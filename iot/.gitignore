@@ -1,2 +1,4 @@
 .vscode
 iot-project
+__pycache__
+credentials.json

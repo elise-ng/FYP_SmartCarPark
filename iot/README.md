@@ -11,3 +11,5 @@ This will create an virtualenv of python 3 in the project folder, which you shou
 Put all necessary libraries in `requirements.txt`, then run `install.sh` again to install them.
 
 Please put your service account credential json in the folder of the project, and rename it 'credentials.json'
+
+Then, you can execute `test.sh` to run the upload example :)

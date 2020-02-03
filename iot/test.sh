@@ -1,0 +1,1 @@
+iot-project/bin/python firestore_upload_example.py

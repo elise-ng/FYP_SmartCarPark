@@ -12,10 +12,14 @@ admin.initializeApp()
  * - onCall Hook Specs: https://firebase.google.com/docs/functions/callable
  * - Function Error Codes: https://firebase.google.com/docs/reference/functions/providers_https_.html#functionserrorcode
  * - Google Cloud Storage API: https://googleapis.dev/nodejs/storage/latest/index.html
+ * - Firestore API: https://googleapis.dev/nodejs/firestore/latest/
  */
 
 // Lambda function for IoT Client to upload snapshots
-export const iotUploadSnapshot = functions.region('asia-east2').https.onCall(async (data, context) => {
+export const iotUploadSnapshot = functions
+.region('asia-east2')
+.https
+.onCall(async (data, context) => {
   interface Parameters {
     deviceId:string,
     imageData:string, // base64
@@ -51,8 +55,29 @@ export const iotUploadSnapshot = functions.region('asia-east2').https.onCall(asy
     private: true,
     gzip: true
   })
+  // TODO: remove old files
   return {
     success: true,
     imageUrl: file.metadata.mediaLink
   }
+})
+
+// Lambda function for logging iotState changes
+export const firestoreIotStatesOnUpdate = functions
+.region('asia-east2')
+.firestore.document('iotStates/{documentId}')
+.onUpdate(async (change, context) => {
+  // parse params
+  const previousState = change.before.data()
+  const newState = change.after.data()
+  // sanity check
+  if (!previousState || !newState) { throw new Error('state undefined') }
+  if (previousState.deviceId !== newState.deviceId) { throw new Error('states deviceId mismatch') }
+  // log change on iotStateChanges collection
+  const db = admin.firestore()
+  return db.collection('iotStateChanges').add({
+    deviceId: previousState.deviceId,
+    previousState,
+    newState
+  })
 })

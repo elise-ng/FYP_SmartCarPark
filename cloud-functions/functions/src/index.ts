@@ -35,24 +35,22 @@ export const iotUploadSnapshot = functions
   if (!params.deviceId || !params.imageData || !params.imageTimestamp) {
     throw new functions.https.HttpsError('invalid-argument', 'parameter missing')
   }
-  const imageMoment = moment(params.imageTimestamp)
   // decode image and save temp file
   let imageLocalPath:string 
   try {
     imageLocalPath = base64ImgSync(
       params.imageData, // data
       path.join(os.tmpdir(), params.deviceId), // path
-      imageMoment.toISOString() // filename
+      moment(params.imageTimestamp).toISOString() // filename
     )
   } catch (e) {
     console.error(e)
     throw new functions.https.HttpsError('invalid-argument', 'failed to decode image data')
   }
-  const imageLocalPathProps = path.parse(imageLocalPath)
   // upload file to cloud storage
   const bucket = admin.storage().bucket('fyp-smartcarpark.appspot.com')
   const [file] = await bucket.upload(imageLocalPath, {
-    destination: `iotSnapshots/${params.deviceId}/${imageLocalPathProps.base}`,
+    destination: `iotSnapshots/${params.deviceId}/${path.parse(imageLocalPath).base}`,
     private: true,
     gzip: true
   })

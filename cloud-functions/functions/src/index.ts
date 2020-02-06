@@ -73,10 +73,14 @@ export const firestoreIotStatesOnUpdate = functions
   // sanity check
   if (!previousState || !newState) { throw new Error('state undefined') }
   if (previousState.deviceId !== newState.deviceId) { throw new Error('states deviceId mismatch') }
+  // formatting for log
+  const deviceId = previousState.deviceId
+  delete previousState.deviceId
+  delete newState.deviceId
   // log change on iotStateChanges collection
   const db = admin.firestore()
   return db.collection('iotStateChanges').add({
-    deviceId: previousState.deviceId,
+    deviceId,
     previousState,
     newState
   })

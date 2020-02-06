@@ -12,6 +12,7 @@ admin.initializeApp()
  * - onCall Hook Specs: https://firebase.google.com/docs/functions/callable
  * - Function Error Codes: https://firebase.google.com/docs/reference/functions/providers_https_.html#functionserrorcode
  * - Google Cloud Storage API: https://googleapis.dev/nodejs/storage/latest/index.html
+ * - Firestore Hook Specs: https://firebase.google.com/docs/firestore/extend-with-functions
  * - Firestore API: https://googleapis.dev/nodejs/firestore/latest/
  */
 
@@ -65,22 +66,18 @@ export const iotUploadSnapshot = functions
 // Lambda function for logging iotState changes
 export const firestoreIotStatesOnUpdate = functions
 .region('asia-east2')
-.firestore.document('iotStates/{documentId}')
+.firestore.document('iotStates/{deviceId}')
 .onUpdate(async (change, context) => {
   // parse params
   const previousState = change.before.data()
   const newState = change.after.data()
   // sanity check
-  if (!previousState || !newState) { throw new Error('state undefined') }
-  if (previousState.deviceId !== newState.deviceId) { throw new Error('states deviceId mismatch') }
-  // formatting for log
-  const deviceId = previousState.deviceId
-  delete previousState.deviceId
-  delete newState.deviceId
+  if (!context.params.deviceId) { throw new Error('device id missing') }
+  if (!previousState || !newState) { throw new Error('state missing') }
   // log change on iotStateChanges collection
   const db = admin.firestore()
   return db.collection('iotStateChanges').add({
-    deviceId,
+    deviceId: context.params.deviceId,
     previousState,
     newState
   })

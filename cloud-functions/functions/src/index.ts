@@ -78,6 +78,7 @@ export const firestoreIotStatesOnUpdate = functions
   const db = admin.firestore()
   return db.collection('iotStateChanges').add({
     deviceId: context.params.deviceId,
+    time: context.timestamp,
     previousState,
     newState
   })

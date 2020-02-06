@@ -11,6 +11,7 @@ admin.initializeApp()
  * SDK Refs:
  * - onCall Hook Specs: https://firebase.google.com/docs/functions/callable
  * - Function Error Codes: https://firebase.google.com/docs/reference/functions/providers_https_.html#functionserrorcode
+ * - Google Cloud Storage API: https://googleapis.dev/nodejs/storage/latest/index.html
  */
 
 // Lambda function for IoT Client to upload snapshots
@@ -45,12 +46,11 @@ export const iotUploadSnapshot = functions.region('asia-east2').https.onCall(asy
   const imageLocalPathProps = path.parse(imageLocalPath)
   // upload file to cloud storage
   const bucket = admin.storage().bucket('fyp-smartcarpark.appspot.com')
-  const file = (await bucket.upload(imageLocalPath, {
+  const [file] = await bucket.upload(imageLocalPath, {
     destination: `iotSnapshots/${params.deviceId}/${imageLocalPathProps.base}`,
     private: true,
     gzip: true
-  }))[0]
-  // TODO: remove older images w/ age > 1 week
+  })
   return {
     success: true,
     imageUrl: file.metadata.mediaLink

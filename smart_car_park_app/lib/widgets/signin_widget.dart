@@ -15,7 +15,6 @@ class _SigninWidgetState extends State<SigninWidget> {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
-      height: 300,
       padding: EdgeInsets.all(24.0),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -23,7 +22,7 @@ class _SigninWidgetState extends State<SigninWidget> {
         boxShadow: [ BoxShadow(blurRadius: 4.0, color: Colors.grey, spreadRadius: 2.0) ],
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.max,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Container(
             width: double.infinity,
@@ -37,7 +36,7 @@ class _SigninWidgetState extends State<SigninWidget> {
                 ),
                 Padding(padding: EdgeInsets.only(top: 4.0)),
                 Text(
-                  "Login to access more features.",
+                  "Sign in to access more features.",
                   style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w300),
                 )
               ],

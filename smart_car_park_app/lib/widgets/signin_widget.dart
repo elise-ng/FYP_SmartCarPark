@@ -13,7 +13,7 @@ class SigninWidget extends StatefulWidget {
 class _SigninWidgetState extends State<SigninWidget> {
   @override
   Widget build(BuildContext context) {
-    return new Container(
+    return Container(
       margin: EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
       height: 300,
       padding: EdgeInsets.all(24.0),
@@ -59,14 +59,13 @@ class _SigninWidgetState extends State<SigninWidget> {
                 flex: 7,
                 child: TextFormField(
                   keyboardType: TextInputType.visiblePassword,
-                  obscureText: true,
                   decoration: InputDecoration(labelText: "Verification Code"),
                 )
               ),
               Expanded(
                 flex: 3,
                 child: Container(
-                  child: RaisedButton(
+                  child: OutlineButton(
                     child: Text("Get Code"),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
                     onPressed: () {},

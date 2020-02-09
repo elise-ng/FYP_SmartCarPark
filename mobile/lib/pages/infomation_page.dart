@@ -11,20 +11,25 @@ class InformationPage extends StatefulWidget {
 }
 
 class _InformationPageState extends State<InformationPage> {
+
+  bool _isSignedIn = false;
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: RaisedButton(
-        child: Text("Login"),
-        color: Colors.blueAccent,
-        textColor: Colors.white,
-        onPressed: () {
-          showBottomSheet(
-            context: context,
-            builder: (context) => SigninWidget()
-          );
-        },
+    return Scaffold(
+      body: Center(
+        child: RaisedButton(
+          child: Text("_isSignedIn = ${_isSignedIn.toString()}"),
+          color: Colors.blueAccent,
+          textColor: Colors.white,
+          onPressed: () {
+            setState(() {
+              _isSignedIn = !_isSignedIn;
+            });
+          },
+        ),
       ),
+      bottomSheet: _isSignedIn ? null : SigninWidget(),
     );
   }
 }

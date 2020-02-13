@@ -77,6 +77,260 @@ class _ParkingPageState extends State<ParkingPage> {
       latitude: 22.338610,
       longitude: 114.263530,
     ),
+    ParkingSpace(
+      id: "LG5-12",
+      latitude: 22.338524,
+      longitude: 114.263194,
+    ),
+    ParkingSpace(
+      id: "LG5-13",
+      latitude: 22.338524,
+      longitude: 114.263216,
+    ),
+    ParkingSpace(
+      id: "LG5-14",
+      latitude: 22.338524,
+      longitude: 114.263283,
+    ),
+    ParkingSpace(
+      id: "LG5-15",
+      latitude: 22.338524,
+      longitude: 114.263320,
+    ),
+    ParkingSpace(
+      id: "LG5-16",
+      latitude: 22.338524,
+      longitude: 114.263343,
+    ),
+
+    ParkingSpace(
+      id: "LG5-17",
+      latitude: 22.338524,
+      longitude: 114.263380,
+    ),
+    ParkingSpace(
+      id: "LG5-18",
+      latitude: 22.338524,
+      longitude: 114.263403,
+    ),
+
+    ParkingSpace(
+      id: "LG5-19",
+      latitude: 22.338524,
+      longitude: 114.263444,
+    ),
+
+    ParkingSpace(
+      id: "LG5-20",
+      latitude: 22.338524,
+      longitude: 114.263475,
+    ),
+
+    ParkingSpace(
+      id: "LG5-21",
+      latitude: 22.338524,
+      longitude: 114.263506,
+    ),
+    ParkingSpace(
+      id: "LG5-22",
+      latitude: 22.338480,
+      longitude: 114.263194,
+    ),
+    ParkingSpace(
+      id: "LG5-23",
+      latitude: 22.338480,
+      longitude: 114.263216,
+    ),
+    ParkingSpace(
+      id: "LG5-24",
+      latitude: 22.338480,
+      longitude: 114.263283,
+    ),
+    ParkingSpace(
+      id: "LG5-25",
+      latitude: 22.338480,
+      longitude: 114.263320,
+    ),
+    ParkingSpace(
+      id: "LG5-26",
+      latitude: 22.338480,
+      longitude: 114.263343,
+    ),
+
+    ParkingSpace(
+      id: "LG5-27",
+      latitude: 22.338480,
+      longitude: 114.263380,
+    ),
+    ParkingSpace(
+      id: "LG5-28",
+      latitude: 22.338480,
+      longitude: 114.263403,
+    ),
+
+    ParkingSpace(
+      id: "LG5-29",
+      latitude: 22.338480,
+      longitude: 114.263444,
+    ),
+
+    ParkingSpace(
+      id: "LG5-30",
+      latitude: 22.338480,
+      longitude: 114.263475,
+    ),
+
+    ParkingSpace(
+      id: "LG5-31",
+      latitude: 22.338480,
+      longitude: 114.263506,
+    ),
+
+    ParkingSpace(
+      id: "LG5-32",
+      latitude: 22.338394,
+      longitude: 114.263194,
+    ),
+    ParkingSpace(
+      id: "LG5-33",
+      latitude: 22.338394,
+      longitude: 114.263216,
+    ),
+    ParkingSpace(
+      id: "LG5-34",
+      latitude: 22.338394,
+      longitude: 114.263283,
+    ),
+    ParkingSpace(
+      id: "LG5-35",
+      latitude: 22.338394,
+      longitude: 114.263320,
+    ),
+    ParkingSpace(
+      id: "LG5-36",
+      latitude: 22.338394,
+      longitude: 114.263343,
+    ),
+
+    ParkingSpace(
+      id: "LG5-37",
+      latitude: 22.338394,
+      longitude: 114.263380,
+    ),
+    ParkingSpace(
+      id: "LG5-38",
+      latitude: 22.338394,
+      longitude: 114.263403,
+    ),
+
+    ParkingSpace(
+      id: "LG5-39",
+      latitude: 22.338394,
+      longitude: 114.263444,
+    ),
+
+    ParkingSpace(
+      id: "LG5-40",
+      latitude: 22.338394,
+      longitude: 114.263475,
+    ),
+
+    ParkingSpace(
+      id: "LG5-41",
+      latitude: 22.338394,
+      longitude: 114.263506,
+    ),
+    ParkingSpace(
+      id: "LG5-42",
+      latitude: 22.338350,
+      longitude: 114.263194,
+    ),
+    ParkingSpace(
+      id: "LG5-43",
+      latitude: 22.338350,
+      longitude: 114.263216,
+    ),
+    ParkingSpace(
+      id: "LG5-44",
+      latitude: 22.338350,
+      longitude: 114.263283,
+    ),
+    ParkingSpace(
+      id: "LG5-45",
+      latitude: 22.338350,
+      longitude: 114.263320,
+    ),
+    ParkingSpace(
+      id: "LG5-46",
+      latitude: 22.338350,
+      longitude: 114.263343,
+    ),
+
+    ParkingSpace(
+      id: "LG5-47",
+      latitude: 22.338350,
+      longitude: 114.263380,
+    ),
+    ParkingSpace(
+      id: "LG5-48",
+      latitude: 22.338350,
+      longitude: 114.263403,
+    ),
+
+    ParkingSpace(
+      id: "LG5-49",
+      latitude: 22.338350,
+      longitude: 114.263444,
+    ),
+
+    ParkingSpace(
+      id: "LG5-50",
+      latitude: 22.338350,
+      longitude: 114.263475,
+    ),
+
+    ParkingSpace(
+      id: "LG5-51",
+      latitude: 22.338350,
+      longitude: 114.263506,
+    ),
+    ParkingSpace(
+      id: "LG5-52",
+      latitude: 22.338264,
+      longitude: 114.263283,
+    ),
+    ParkingSpace(
+      id: "LG5-53",
+      latitude: 22.338264,
+      longitude: 114.263320,
+    ),
+    ParkingSpace(
+      id: "LG5-54",
+      latitude: 22.338264,
+      longitude: 114.263343,
+    ),
+
+    ParkingSpace(
+      id: "LG5-55",
+      latitude: 22.338264,
+      longitude: 114.263380,
+    ),
+    ParkingSpace(
+      id: "LG5-56",
+      latitude: 22.338264,
+      longitude: 114.263403,
+    ),
+
+    ParkingSpace(
+      id: "LG5-57",
+      latitude: 22.338264,
+      longitude: 114.263444,
+    ),
+    ParkingSpace(
+      id: "LG5-58",
+      latitude: 22.338264,
+      longitude: 114.263468,
+    ),
   ];
   List<Marker> parkingSpaceMarkers = [];
 

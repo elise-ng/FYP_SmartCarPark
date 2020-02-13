@@ -8,17 +8,24 @@ part of 'parking_space.dart';
 
 ParkingSpace _$ParkingSpaceFromJson(Map<String, dynamic> json) {
   return ParkingSpace(
-    spaceID: json['space_id'] as String,
-    latLng:
-        ParkingSpace._latLngFromJson(json['lat_lng'] as Map<String, dynamic>),
+    id: json['id'] as String,
+    latitude: (json['latitude'] as num)?.toDouble(),
+    longitude: (json['longitude'] as num)?.toDouble(),
     status: _$enumDecodeNullable(_$ParkingStatusEnumMap, json['status']),
+    widthInMeters: (json['widthInMeters'] as num)?.toDouble(),
+    heightInMeters: (json['heightInMeters'] as num)?.toDouble(),
+    bearing: (json['bearing'] as num)?.toDouble(),
   );
 }
 
 Map<String, dynamic> _$ParkingSpaceToJson(ParkingSpace instance) =>
     <String, dynamic>{
-      'space_id': instance.spaceID,
-      'lat_lng': ParkingSpace._latLngToJson(instance.latLng),
+      'id': instance.id,
+      'widthInMeters': instance.widthInMeters,
+      'heightInMeters': instance.heightInMeters,
+      'bearing': instance.bearing,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
       'status': _$ParkingStatusEnumMap[instance.status],
     };
 

@@ -33,6 +33,8 @@ dependencies:
   # JSON Serialization
   json_annotation: ^3.0.0
 
+  bordered_text: ^1.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -47,7 +49,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
-
+  assets:
+    - 'assets/LG5.png'
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

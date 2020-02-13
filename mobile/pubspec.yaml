@@ -30,19 +30,16 @@ dependencies:
   # LatLong utils
   latlong: ^0.6.1
 
-  # JSON Serialization
-  json_annotation: ^3.0.0
+  # FireStore
+  cloud_firestore: ^0.13.2+1
 
   bordered_text: ^1.0.0
+
+  enum_to_string: ^1.0.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # JSON Serialization
-  build_runner: ^1.0.0
-  json_serializable: ^3.2.0
-
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

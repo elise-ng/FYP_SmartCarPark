@@ -6,7 +6,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong/latlong.dart' hide LatLng;
 import 'package:smart_car_park_app/extensions/latlng_extensions.dart';
 import 'package:smart_car_park_app/marker_generator.dart';
+import 'package:smart_car_park_app/models/car_park_floor.dart';
 import 'package:smart_car_park_app/models/parking_space.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ParkingPage extends StatefulWidget {
   ParkingPage({
@@ -19,317 +21,241 @@ class ParkingPage extends StatefulWidget {
 
 class _ParkingPageState extends State<ParkingPage> {
   GoogleMapController _controller;
+
+  List<CarParkFloor> carParkFloors = [];
+
   List<ParkingSpace> parkingSpaces = [
     ParkingSpace(
       id: "LG5-1",
-      latitude: 22.338610,
-      longitude: 114.263216,
+      position: LatLng(22.338610, 114.263216),
     ),
     ParkingSpace(
       id: "LG5-2",
-      latitude: 22.338610,
-      longitude: 114.263260,
+      position: LatLng(22.338610, 114.263260),
     ),
     ParkingSpace(
       id: "LG5-3",
-      latitude: 22.338610,
-      longitude: 114.263283,
+      position: LatLng(22.338610, 114.263283),
     ),
     ParkingSpace(
       id: "LG5-4",
-      latitude: 22.338610,
-      longitude: 114.263320,
+      position: LatLng(22.338610, 114.263320),
     ),
     ParkingSpace(
       id: "LG5-5",
-      latitude: 22.338610,
-      longitude: 114.263343,
+      position: LatLng(22.338610, 114.263343),
     ),
-
     ParkingSpace(
       id: "LG5-6",
-      latitude: 22.338610,
-      longitude: 114.263380,
+      position: LatLng(22.338610, 114.263380),
     ),
     ParkingSpace(
       id: "LG5-7",
-      latitude: 22.338610,
-      longitude: 114.263403,
+      position: LatLng(22.338610, 114.263403),
     ),
-
     ParkingSpace(
       id: "LG5-8",
-      latitude: 22.338610,
-      longitude: 114.263444,
+      position: LatLng(22.338610, 114.263444),
     ),
     ParkingSpace(
       id: "LG5-9",
-      latitude: 22.338610,
-      longitude: 114.263468,
+      position: LatLng(22.338610, 114.263468),
     ),
     ParkingSpace(
       id: "LG5-10",
-      latitude: 22.338610,
-      longitude: 114.263506,
+      position: LatLng(22.338610, 114.263506),
     ),
     ParkingSpace(
       id: "LG5-11",
-      latitude: 22.338610,
-      longitude: 114.263530,
+      position: LatLng(22.338610, 114.263530),
     ),
     ParkingSpace(
       id: "LG5-12",
-      latitude: 22.338524,
-      longitude: 114.263194,
+      position: LatLng(22.338524, 114.263194),
     ),
     ParkingSpace(
       id: "LG5-13",
-      latitude: 22.338524,
-      longitude: 114.263216,
+      position: LatLng(22.338524, 114.263216),
     ),
     ParkingSpace(
       id: "LG5-14",
-      latitude: 22.338524,
-      longitude: 114.263283,
+      position: LatLng(22.338524, 114.263283),
     ),
     ParkingSpace(
       id: "LG5-15",
-      latitude: 22.338524,
-      longitude: 114.263320,
+      position: LatLng(22.338524, 114.263320),
     ),
     ParkingSpace(
       id: "LG5-16",
-      latitude: 22.338524,
-      longitude: 114.263343,
+      position: LatLng(22.338524, 114.263343),
     ),
-
     ParkingSpace(
       id: "LG5-17",
-      latitude: 22.338524,
-      longitude: 114.263380,
+      position: LatLng(22.338524, 114.263380),
     ),
     ParkingSpace(
       id: "LG5-18",
-      latitude: 22.338524,
-      longitude: 114.263403,
+      position: LatLng(22.338524, 114.263403),
     ),
-
     ParkingSpace(
       id: "LG5-19",
-      latitude: 22.338524,
-      longitude: 114.263444,
+      position: LatLng(22.338524, 114.263444),
     ),
-
     ParkingSpace(
       id: "LG5-20",
-      latitude: 22.338524,
-      longitude: 114.263475,
+      position: LatLng(22.338524, 114.263475),
     ),
-
     ParkingSpace(
       id: "LG5-21",
-      latitude: 22.338524,
-      longitude: 114.263506,
+      position: LatLng(22.338524, 114.263506),
     ),
     ParkingSpace(
       id: "LG5-22",
-      latitude: 22.338480,
-      longitude: 114.263194,
+      position: LatLng(22.338480, 114.263194),
     ),
     ParkingSpace(
       id: "LG5-23",
-      latitude: 22.338480,
-      longitude: 114.263216,
+      position: LatLng(22.338480, 114.263216),
     ),
     ParkingSpace(
       id: "LG5-24",
-      latitude: 22.338480,
-      longitude: 114.263283,
+      position: LatLng(22.338480, 114.263283),
     ),
     ParkingSpace(
       id: "LG5-25",
-      latitude: 22.338480,
-      longitude: 114.263320,
+      position: LatLng(22.338480, 114.263320),
     ),
     ParkingSpace(
       id: "LG5-26",
-      latitude: 22.338480,
-      longitude: 114.263343,
+      position: LatLng(22.338480, 114.263343),
     ),
-
     ParkingSpace(
       id: "LG5-27",
-      latitude: 22.338480,
-      longitude: 114.263380,
+      position: LatLng(22.338480, 114.263380),
     ),
     ParkingSpace(
       id: "LG5-28",
-      latitude: 22.338480,
-      longitude: 114.263403,
+      position: LatLng(22.338480, 114.263403),
     ),
-
     ParkingSpace(
       id: "LG5-29",
-      latitude: 22.338480,
-      longitude: 114.263444,
+      position: LatLng(22.338480, 114.263444),
     ),
-
     ParkingSpace(
       id: "LG5-30",
-      latitude: 22.338480,
-      longitude: 114.263475,
+      position: LatLng(22.338480, 114.263475),
     ),
-
     ParkingSpace(
       id: "LG5-31",
-      latitude: 22.338480,
-      longitude: 114.263506,
+      position: LatLng(22.338480, 114.263506),
     ),
-
     ParkingSpace(
       id: "LG5-32",
-      latitude: 22.338394,
-      longitude: 114.263194,
+      position: LatLng(22.338394, 114.263194),
     ),
     ParkingSpace(
       id: "LG5-33",
-      latitude: 22.338394,
-      longitude: 114.263216,
+      position: LatLng(22.338394, 114.263216),
     ),
     ParkingSpace(
       id: "LG5-34",
-      latitude: 22.338394,
-      longitude: 114.263283,
+      position: LatLng(22.338394, 114.263283),
     ),
     ParkingSpace(
       id: "LG5-35",
-      latitude: 22.338394,
-      longitude: 114.263320,
+      position: LatLng(22.338394, 114.263320),
     ),
     ParkingSpace(
       id: "LG5-36",
-      latitude: 22.338394,
-      longitude: 114.263343,
+      position: LatLng(22.338394, 114.263343),
     ),
-
     ParkingSpace(
       id: "LG5-37",
-      latitude: 22.338394,
-      longitude: 114.263380,
+      position: LatLng(22.338394, 114.263380),
     ),
     ParkingSpace(
       id: "LG5-38",
-      latitude: 22.338394,
-      longitude: 114.263403,
+      position: LatLng(22.338394, 114.263403),
     ),
-
     ParkingSpace(
       id: "LG5-39",
-      latitude: 22.338394,
-      longitude: 114.263444,
+      position: LatLng(22.338394, 114.263444),
     ),
-
     ParkingSpace(
       id: "LG5-40",
-      latitude: 22.338394,
-      longitude: 114.263475,
+      position: LatLng(22.338394, 114.263475),
     ),
-
     ParkingSpace(
       id: "LG5-41",
-      latitude: 22.338394,
-      longitude: 114.263506,
+      position: LatLng(22.338394, 114.263506),
     ),
     ParkingSpace(
       id: "LG5-42",
-      latitude: 22.338350,
-      longitude: 114.263194,
+      position: LatLng(22.338350, 114.263194),
     ),
     ParkingSpace(
       id: "LG5-43",
-      latitude: 22.338350,
-      longitude: 114.263216,
+      position: LatLng(22.338350, 114.263216),
     ),
     ParkingSpace(
       id: "LG5-44",
-      latitude: 22.338350,
-      longitude: 114.263283,
+      position: LatLng(22.338350, 114.263283),
     ),
     ParkingSpace(
       id: "LG5-45",
-      latitude: 22.338350,
-      longitude: 114.263320,
+      position: LatLng(22.338350, 114.263320),
     ),
     ParkingSpace(
       id: "LG5-46",
-      latitude: 22.338350,
-      longitude: 114.263343,
+      position: LatLng(22.338350, 114.263343),
     ),
-
     ParkingSpace(
       id: "LG5-47",
-      latitude: 22.338350,
-      longitude: 114.263380,
+      position: LatLng(22.338350, 114.263380),
     ),
     ParkingSpace(
       id: "LG5-48",
-      latitude: 22.338350,
-      longitude: 114.263403,
+      position: LatLng(22.338350, 114.263403),
     ),
-
     ParkingSpace(
       id: "LG5-49",
-      latitude: 22.338350,
-      longitude: 114.263444,
+      position: LatLng(22.338350, 114.263444),
     ),
-
     ParkingSpace(
       id: "LG5-50",
-      latitude: 22.338350,
-      longitude: 114.263475,
+      position: LatLng(22.338350, 114.263475),
     ),
-
     ParkingSpace(
       id: "LG5-51",
-      latitude: 22.338350,
-      longitude: 114.263506,
+      position: LatLng(22.338350, 114.263506),
     ),
     ParkingSpace(
       id: "LG5-52",
-      latitude: 22.338264,
-      longitude: 114.263283,
+      position: LatLng(22.338264, 114.263283),
     ),
     ParkingSpace(
       id: "LG5-53",
-      latitude: 22.338264,
-      longitude: 114.263320,
+      position: LatLng(22.338264, 114.263320),
     ),
     ParkingSpace(
       id: "LG5-54",
-      latitude: 22.338264,
-      longitude: 114.263343,
+      position: LatLng(22.338264, 114.263343),
     ),
-
     ParkingSpace(
       id: "LG5-55",
-      latitude: 22.338264,
-      longitude: 114.263380,
+      position: LatLng(22.338264, 114.263380),
     ),
     ParkingSpace(
       id: "LG5-56",
-      latitude: 22.338264,
-      longitude: 114.263403,
+      position: LatLng(22.338264, 114.263403),
     ),
-
     ParkingSpace(
       id: "LG5-57",
-      latitude: 22.338264,
-      longitude: 114.263444,
+      position: LatLng(22.338264, 114.263444),
     ),
     ParkingSpace(
       id: "LG5-58",
-      latitude: 22.338264,
-      longitude: 114.263468,
+      position: LatLng(22.338264, 114.263468),
     ),
   ];
   List<Marker> parkingSpaceMarkers = [];
@@ -342,6 +268,23 @@ class _ParkingPageState extends State<ParkingPage> {
   @override
   void initState() {
     super.initState();
+    //this.getData();
+  }
+
+  void getData() async {
+    QuerySnapshot floorSnapshot =
+        await Firestore.instance.collection('carParkFloors').getDocuments();
+    this.carParkFloors = floorSnapshot.documents
+        .map((document) => CarParkFloor.fromDocument(document))
+        .toList();
+
+    QuerySnapshot spaceStateSnapshot = await Firestore.instance.collection('iotStates').getDocuments();
+    this.parkingSpaces = spaceStateSnapshot.documents
+        .map((document) => ParkingSpace.fromDocument(document))
+        .toList();
+
+
+
     MarkerGenerator(markerWidgets(this.parkingSpaces), (bitmaps) {
       setState(() {
         this.parkingSpaceMarkers =
@@ -374,7 +317,7 @@ class _ParkingPageState extends State<ParkingPage> {
             alignment: Alignment.bottomCenter,
             child: IgnorePointer(
               child: Opacity(
-                opacity: 0.5,
+                opacity: 0.0,
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 50.0),
                   child: RotatedBox(

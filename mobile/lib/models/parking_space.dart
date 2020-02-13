@@ -1,48 +1,46 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:latlong/latlong.dart' hide LatLng;
 import 'package:smart_car_park_app/extensions/latlng_extensions.dart';
 import 'dart:math';
 
-part 'parking_space.g.dart';
-
-enum ParkingStatus {
+enum ParkingState {
   Vacant,
   Occupied,
   Leaving,
   Disabled,
+  Undefined,
 }
 
-@JsonSerializable()
 class ParkingSpace {
   final String id;
-
   final double widthInMeters;
   final double heightInMeters;
+  final LatLng position;
   final double bearing;
 
-  final double latitude;
-  final double longitude;
+  ParkingState state;
+  String imageUrl;
+  Timestamp time;
+  String vehicleId;
 
-  ParkingStatus status;
-
-  @JsonKey(ignore: true)
-  LatLng position;
-
-  @JsonKey(ignore: true)
   LatLng center;
 
   ParkingSpace({
     this.id,
-    this.latitude,
-    this.longitude,
-    this.status = ParkingStatus.Vacant,
+    this.position,
+    this.state = ParkingState.Vacant,
+    this.imageUrl = "",
+    this.time,
+    this.vehicleId = "",
     this.widthInMeters = 2.2,
     this.heightInMeters = 4.8,
     this.bearing = 0,
   }) {
-    this.position = LatLng(this.latitude, this.longitude);
+    if (time == null)
+      time = Timestamp.now();
 
     /// Calculate the center of the parking space
     this.center = Distance(roundResult: true)
@@ -50,38 +48,31 @@ class ParkingSpace {
         .toGoogleLatLng();
   }
 
-  factory ParkingSpace.fromJson(Map<String, dynamic> json) =>
-      _$ParkingSpaceFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ParkingSpaceToJson(this);
-
-  static LatLng _latLngFromJson(Map<String, dynamic> json) {
-    if(!json.containsKey("latitude") || !json.containsKey("longitude")) {
-      return null;
-    }
-    return LatLng(json["latitude"], json["longitude"]);
-  }
-
-  static Map<String, dynamic> _latLngToJson(LatLng latLng) {
-    return {
-      "latitude": latLng.latitude,
-      "longitude": latLng.longitude,
-    };
-  }
+  ParkingSpace.fromDocument(DocumentSnapshot document): this(
+    id: document.documentID,
+    position: (document.data["position"] as GeoPoint).toLatLng(),
+    state: EnumToString.fromString(ParkingState.values, document.data["state"]) ?? ParkingState.Undefined,
+    imageUrl: document.data["imageUrl"] as String ?? "",
+    time: document.data["time"] as Timestamp ?? Timestamp.now(),
+    vehicleId: document.data["vehicleId"] as String ?? "",
+    widthInMeters: (document.data["widthInMeters"] as double) ?? 2.2,
+    heightInMeters: (document.data["heightInMeters"] as double) ?? 4.8,
+    bearing: (document.data["bearing"] as double) ?? 0,
+  );
 
   double _hypotenuse(double x, double y) {
     return sqrt(pow(x, 2) + pow(y, 2));
   }
 
   Color getStatusColor() {
-    switch (this.status) {
-      case ParkingStatus.Vacant:
+    switch (this.state) {
+      case ParkingState.Vacant:
         return Colors.green[400];
-      case ParkingStatus.Occupied:
+      case ParkingState.Occupied:
         return Colors.red[400];
-      case ParkingStatus.Leaving:
+      case ParkingState.Leaving:
         return Colors.yellow[400];
-      case ParkingStatus.Disabled:
+      case ParkingState.Disabled:
         return Colors.grey[400];
       default:
         return Colors.grey[400];

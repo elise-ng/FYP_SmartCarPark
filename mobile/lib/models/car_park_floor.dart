@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:smart_car_park_app/extensions/latlng_extensions.dart';
-import 'package:smart_car_park_app/marker_generator.dart';
+import 'package:smart_car_park_app/utils/marker_generator.dart';
 import 'package:smart_car_park_app/models/parking_space.dart';
 
 class CarParkFloor {

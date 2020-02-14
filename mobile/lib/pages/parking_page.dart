@@ -23,242 +23,7 @@ class _ParkingPageState extends State<ParkingPage> {
   GoogleMapController _controller;
 
   List<CarParkFloor> carParkFloors = [];
-
-  List<ParkingSpace> parkingSpaces = [
-    ParkingSpace(
-      id: "LG5-1",
-      position: LatLng(22.338610, 114.263216),
-    ),
-    ParkingSpace(
-      id: "LG5-2",
-      position: LatLng(22.338610, 114.263260),
-    ),
-    ParkingSpace(
-      id: "LG5-3",
-      position: LatLng(22.338610, 114.263283),
-    ),
-    ParkingSpace(
-      id: "LG5-4",
-      position: LatLng(22.338610, 114.263320),
-    ),
-    ParkingSpace(
-      id: "LG5-5",
-      position: LatLng(22.338610, 114.263343),
-    ),
-    ParkingSpace(
-      id: "LG5-6",
-      position: LatLng(22.338610, 114.263380),
-    ),
-    ParkingSpace(
-      id: "LG5-7",
-      position: LatLng(22.338610, 114.263403),
-    ),
-    ParkingSpace(
-      id: "LG5-8",
-      position: LatLng(22.338610, 114.263444),
-    ),
-    ParkingSpace(
-      id: "LG5-9",
-      position: LatLng(22.338610, 114.263468),
-    ),
-    ParkingSpace(
-      id: "LG5-10",
-      position: LatLng(22.338610, 114.263506),
-    ),
-    ParkingSpace(
-      id: "LG5-11",
-      position: LatLng(22.338610, 114.263530),
-    ),
-    ParkingSpace(
-      id: "LG5-12",
-      position: LatLng(22.338524, 114.263194),
-    ),
-    ParkingSpace(
-      id: "LG5-13",
-      position: LatLng(22.338524, 114.263216),
-    ),
-    ParkingSpace(
-      id: "LG5-14",
-      position: LatLng(22.338524, 114.263283),
-    ),
-    ParkingSpace(
-      id: "LG5-15",
-      position: LatLng(22.338524, 114.263320),
-    ),
-    ParkingSpace(
-      id: "LG5-16",
-      position: LatLng(22.338524, 114.263343),
-    ),
-    ParkingSpace(
-      id: "LG5-17",
-      position: LatLng(22.338524, 114.263380),
-    ),
-    ParkingSpace(
-      id: "LG5-18",
-      position: LatLng(22.338524, 114.263403),
-    ),
-    ParkingSpace(
-      id: "LG5-19",
-      position: LatLng(22.338524, 114.263444),
-    ),
-    ParkingSpace(
-      id: "LG5-20",
-      position: LatLng(22.338524, 114.263475),
-    ),
-    ParkingSpace(
-      id: "LG5-21",
-      position: LatLng(22.338524, 114.263506),
-    ),
-    ParkingSpace(
-      id: "LG5-22",
-      position: LatLng(22.338480, 114.263194),
-    ),
-    ParkingSpace(
-      id: "LG5-23",
-      position: LatLng(22.338480, 114.263216),
-    ),
-    ParkingSpace(
-      id: "LG5-24",
-      position: LatLng(22.338480, 114.263283),
-    ),
-    ParkingSpace(
-      id: "LG5-25",
-      position: LatLng(22.338480, 114.263320),
-    ),
-    ParkingSpace(
-      id: "LG5-26",
-      position: LatLng(22.338480, 114.263343),
-    ),
-    ParkingSpace(
-      id: "LG5-27",
-      position: LatLng(22.338480, 114.263380),
-    ),
-    ParkingSpace(
-      id: "LG5-28",
-      position: LatLng(22.338480, 114.263403),
-    ),
-    ParkingSpace(
-      id: "LG5-29",
-      position: LatLng(22.338480, 114.263444),
-    ),
-    ParkingSpace(
-      id: "LG5-30",
-      position: LatLng(22.338480, 114.263475),
-    ),
-    ParkingSpace(
-      id: "LG5-31",
-      position: LatLng(22.338480, 114.263506),
-    ),
-    ParkingSpace(
-      id: "LG5-32",
-      position: LatLng(22.338394, 114.263194),
-    ),
-    ParkingSpace(
-      id: "LG5-33",
-      position: LatLng(22.338394, 114.263216),
-    ),
-    ParkingSpace(
-      id: "LG5-34",
-      position: LatLng(22.338394, 114.263283),
-    ),
-    ParkingSpace(
-      id: "LG5-35",
-      position: LatLng(22.338394, 114.263320),
-    ),
-    ParkingSpace(
-      id: "LG5-36",
-      position: LatLng(22.338394, 114.263343),
-    ),
-    ParkingSpace(
-      id: "LG5-37",
-      position: LatLng(22.338394, 114.263380),
-    ),
-    ParkingSpace(
-      id: "LG5-38",
-      position: LatLng(22.338394, 114.263403),
-    ),
-    ParkingSpace(
-      id: "LG5-39",
-      position: LatLng(22.338394, 114.263444),
-    ),
-    ParkingSpace(
-      id: "LG5-40",
-      position: LatLng(22.338394, 114.263475),
-    ),
-    ParkingSpace(
-      id: "LG5-41",
-      position: LatLng(22.338394, 114.263506),
-    ),
-    ParkingSpace(
-      id: "LG5-42",
-      position: LatLng(22.338350, 114.263194),
-    ),
-    ParkingSpace(
-      id: "LG5-43",
-      position: LatLng(22.338350, 114.263216),
-    ),
-    ParkingSpace(
-      id: "LG5-44",
-      position: LatLng(22.338350, 114.263283),
-    ),
-    ParkingSpace(
-      id: "LG5-45",
-      position: LatLng(22.338350, 114.263320),
-    ),
-    ParkingSpace(
-      id: "LG5-46",
-      position: LatLng(22.338350, 114.263343),
-    ),
-    ParkingSpace(
-      id: "LG5-47",
-      position: LatLng(22.338350, 114.263380),
-    ),
-    ParkingSpace(
-      id: "LG5-48",
-      position: LatLng(22.338350, 114.263403),
-    ),
-    ParkingSpace(
-      id: "LG5-49",
-      position: LatLng(22.338350, 114.263444),
-    ),
-    ParkingSpace(
-      id: "LG5-50",
-      position: LatLng(22.338350, 114.263475),
-    ),
-    ParkingSpace(
-      id: "LG5-51",
-      position: LatLng(22.338350, 114.263506),
-    ),
-    ParkingSpace(
-      id: "LG5-52",
-      position: LatLng(22.338264, 114.263283),
-    ),
-    ParkingSpace(
-      id: "LG5-53",
-      position: LatLng(22.338264, 114.263320),
-    ),
-    ParkingSpace(
-      id: "LG5-54",
-      position: LatLng(22.338264, 114.263343),
-    ),
-    ParkingSpace(
-      id: "LG5-55",
-      position: LatLng(22.338264, 114.263380),
-    ),
-    ParkingSpace(
-      id: "LG5-56",
-      position: LatLng(22.338264, 114.263403),
-    ),
-    ParkingSpace(
-      id: "LG5-57",
-      position: LatLng(22.338264, 114.263444),
-    ),
-    ParkingSpace(
-      id: "LG5-58",
-      position: LatLng(22.338264, 114.263468),
-    ),
-  ];
-  List<Marker> parkingSpaceMarkers = [];
+  int currentFloorIndex = 0;
 
   static final CameraPosition _ustParkingPosition = CameraPosition(
     target: LatLng(22.338616, 114.263270),
@@ -268,29 +33,43 @@ class _ParkingPageState extends State<ParkingPage> {
   @override
   void initState() {
     super.initState();
-    //this.getData();
+    this.getData();
   }
 
   void getData() async {
-    QuerySnapshot floorSnapshot =
-        await Firestore.instance.collection('carParkFloors').getDocuments();
-    this.carParkFloors = floorSnapshot.documents
+    List<Future<QuerySnapshot>> snapshotFutures = [];
+
+    snapshotFutures
+        .add(Firestore.instance.collection('carParkFloors').getDocuments());
+    snapshotFutures
+        .add(Firestore.instance.collection('iotStates').getDocuments());
+
+    List<QuerySnapshot> snapshots =
+        await Future.wait(snapshotFutures); // Future is in order
+    QuerySnapshot floorsSnapshot = snapshots[0];
+    QuerySnapshot spacesSnapshot = snapshots[1];
+
+    this.carParkFloors = floorsSnapshot.documents
         .map((document) => CarParkFloor.fromDocument(document))
         .toList();
+    this.carParkFloors.sort((a, b) => a.zIndex.compareTo(b.zIndex));
 
-    QuerySnapshot spaceStateSnapshot = await Firestore.instance.collection('iotStates').getDocuments();
-    this.parkingSpaces = spaceStateSnapshot.documents
+    /// Guard dummy data
+    List<ParkingSpace> parkingSpaces = spacesSnapshot.documents
+        .where((document) => document.data.containsKey("position"))
         .map((document) => ParkingSpace.fromDocument(document))
         .toList();
 
+    List<Future> futures = [];
 
+    for (CarParkFloor floor in this.carParkFloors) {
+      futures.add(floor.setParkingSpaces(context,
+          parkingSpaces.takeWhile((space) => space.floorId == floor.id).toList()));
+    }
 
-    MarkerGenerator(markerWidgets(this.parkingSpaces), (bitmaps) {
-      setState(() {
-        this.parkingSpaceMarkers =
-            this.mapBitmapsToMarkers(this.parkingSpaces, bitmaps);
-      });
-    }).generate(context);
+    /// Update car park floors and spaces once marker generation is completed
+    await Future.wait(futures);
+    setState(() {});
   }
 
   @override
@@ -305,13 +84,8 @@ class _ParkingPageState extends State<ParkingPage> {
             onMapCreated: (GoogleMapController controller) {
               this._controller = controller;
             },
-            markers: {
-              ...this.parkingSpaceMarkers.toSet(),
-            },
-            polygons: {
-              ...this._getPolygons(),
-              ..._getParkingSpaces(this.parkingSpaces),
-            },
+            markers: this._getMarkers(),
+            polygons: this._getPolygons(),
           ),
           Align(
             alignment: Alignment.bottomCenter,
@@ -336,63 +110,38 @@ class _ParkingPageState extends State<ParkingPage> {
     );
   }
 
-  /// Markers
-  List<Widget> markerWidgets(List<ParkingSpace> parkingSpaces) {
-    return parkingSpaces.map((space) => _getMarkerWidget(space)).toList();
+  /// Handles markers
+  /// Marker generation logic are located inside CarParkFloor class
+  Set<Marker> _getMarkers() {
+    if (this.carParkFloors.isEmpty || this.carParkFloors.any((floor) => floor.parkingSpaceMarkers.isEmpty)) {
+      return {};
+    } else {
+      return this
+          .carParkFloors[this.currentFloorIndex]
+          .parkingSpaceMarkers
+          .toSet();
+    }
   }
 
-  Widget _getMarkerWidget(ParkingSpace parkingSpace) {
-    return BorderedText(
-      strokeWidth: 2.0,
-      strokeColor: Colors.white,
-      child: Text(
-        parkingSpace.id,
-        style: TextStyle(
-          fontSize: 22,
-          color: Colors.black,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  List<Marker> mapBitmapsToMarkers(
-      List<ParkingSpace> parkingSpaces, List<Uint8List> bitmaps) {
-    List<Marker> markersList = [];
-    bitmaps.asMap().forEach((i, bmp) {
-      final parkingSpace = parkingSpaces[i];
-      markersList.add(
-        Marker(
-          anchor: Offset(0.5, 0.5),
-          rotation: 90,
-          markerId: MarkerId(parkingSpace.id),
-          position: parkingSpace.center,
-          flat: true,
-          icon: BitmapDescriptor.fromBytes(bmp),
-        ),
-      );
-    });
-    return markersList;
-  }
-
-  /// Polygons
+  /// Handles polygons
   Set<Polygon> _getPolygons() {
+    if (this.carParkFloors.isEmpty) {
+      return {};
+    } else {
+      return {
+        ...this._getFloorPolygon(this.carParkFloors[this.currentFloorIndex]),
+        ...this._getParkingSpaces(
+            (this.carParkFloors[this.currentFloorIndex]).parkingSpaces),
+      };
+    }
+  }
+
+  Set<Polygon> _getFloorPolygon(CarParkFloor floor) {
     return [
       Polygon(
-        polygonId: PolygonId("LG5_carpark_bounds"),
+        polygonId: PolygonId("${floor.id}_floor"),
         fillColor: Colors.blue[100],
-        points: [
-          LatLng(22.338610, 114.263130),
-          LatLng(22.338610, 114.263565),
-          LatLng(22.338205, 114.263565),
-          LatLng(22.338205, 114.263260),
-          LatLng(22.338300, 114.263180),
-          LatLng(22.338510, 114.263180),
-          LatLng(22.338510, 114.263080),
-          LatLng(22.338570, 114.263080),
-          LatLng(22.338570, 114.263130),
-          LatLng(22.338610, 114.263130),
-        ],
+        points: floor.points,
         strokeWidth: 2,
       ),
     ].toSet();

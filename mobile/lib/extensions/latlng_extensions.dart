@@ -7,9 +7,13 @@ extension GoogleConversion on Utils.LatLng {
 }
 
 extension UtilsConversion on LatLng {
-  Utils.LatLng toUtilsLatLng() => Utils.LatLng(this.latitude, this.longitude);
+  Utils.LatLng toUtilsLatLng() => Utils.LatLng(double.parse(this.latitude.toStringAsFixed(7)), double.parse(this.longitude.toStringAsFixed(7)));
 }
 
 extension FireStoreConversion on GeoPoint {
   LatLng toLatLng() => LatLng(this.latitude, this.longitude);
+}
+
+extension GeoPointConversion on LatLng {
+  GeoPoint toGeoPoint() => GeoPoint(double.parse(this.latitude.toStringAsFixed(7)), double.parse(this.longitude.toStringAsFixed(7)));
 }

@@ -9,16 +9,17 @@ import 'dart:math';
 enum ParkingState {
   Vacant,
   Occupied,
-  Leaving,
+  Changing,
   Disabled,
   Undefined,
 }
 
 class ParkingSpace {
   final String id;
+  final LatLng position;
+  final String floorId;
   final double widthInMeters;
   final double heightInMeters;
-  final LatLng position;
   final double bearing;
 
   ParkingState state;
@@ -31,6 +32,7 @@ class ParkingSpace {
   ParkingSpace({
     this.id,
     this.position,
+    this.floorId,
     this.state = ParkingState.Vacant,
     this.imageUrl = "",
     this.time,
@@ -51,6 +53,7 @@ class ParkingSpace {
   ParkingSpace.fromDocument(DocumentSnapshot document): this(
     id: document.documentID,
     position: (document.data["position"] as GeoPoint).toLatLng(),
+    floorId: document.data["floorId"] as String,
     state: EnumToString.fromString(ParkingState.values, document.data["state"]) ?? ParkingState.Undefined,
     imageUrl: document.data["imageUrl"] as String ?? "",
     time: document.data["time"] as Timestamp ?? Timestamp.now(),
@@ -59,6 +62,17 @@ class ParkingSpace {
     heightInMeters: (document.data["heightInMeters"] as double) ?? 4.8,
     bearing: (document.data["bearing"] as double) ?? 0,
   );
+
+  Map<String, dynamic> toDataMap() {
+    return {
+      "position": this.position.toGeoPoint(),
+      "floorId": this.floorId,
+      "state": EnumToString.parse(this.state).toLowerCase(),
+      "imageUrl": this.imageUrl,
+      "time": this.time,
+      "vehicleId": this.vehicleId,
+    };
+  }
 
   double _hypotenuse(double x, double y) {
     return sqrt(pow(x, 2) + pow(y, 2));
@@ -70,7 +84,7 @@ class ParkingSpace {
         return Colors.green[400];
       case ParkingState.Occupied:
         return Colors.red[400];
-      case ParkingState.Leaving:
+      case ParkingState.Changing:
         return Colors.yellow[400];
       case ParkingState.Disabled:
         return Colors.grey[400];

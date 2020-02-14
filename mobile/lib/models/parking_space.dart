@@ -34,7 +34,7 @@ class ParkingSpace extends Equatable {
     this.id,
     this.position,
     this.floorId,
-    this.state = ParkingState.Vacant,
+    this.state,
     this.imageUrl = "",
     this.time,
     this.vehicleId = "",

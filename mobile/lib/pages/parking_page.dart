@@ -36,44 +36,13 @@ class _ParkingPageState extends State<ParkingPage> {
   }
 
   void getData() async {
-    List<Future<QuerySnapshot>> snapshotFutures = [];
-
-    snapshotFutures
-        .add(Firestore.instance.collection(FLOORS_COLLECTION).getDocuments());
-    snapshotFutures.add(
-        Firestore.instance.collection(IOT_STATES_COLLECTION).getDocuments());
-
-    List<QuerySnapshot> snapshots =
-        await Future.wait(snapshotFutures); // Future is in order
-    QuerySnapshot floorsSnapshot = snapshots[0];
-    QuerySnapshot spacesSnapshot = snapshots[1];
-
+    QuerySnapshot floorsSnapshot = await Firestore.instance.collection(FLOORS_COLLECTION).getDocuments();
     this.carParkFloors = floorsSnapshot.documents
         .map((document) => CarParkFloor.fromDocument(document))
         .toList();
     this.carParkFloors.sort((a, b) => a.zIndex.compareTo(b.zIndex));
 
-    /// Guard dummy data
-    List<ParkingSpace> parkingSpaces = spacesSnapshot.documents
-        .where((document) => document.data.containsKey("position"))
-        .map((document) => ParkingSpace.fromDocument(document))
-        .toList();
-
-    List<Future> futures = [];
-
-    for (CarParkFloor floor in this.carParkFloors) {
-      futures.add(floor.setParkingSpaces(
-          context,
-          parkingSpaces
-              .takeWhile((space) => space.floorId == floor.id)
-              .toList()));
-    }
-
-    /// Update car park floors and spaces once marker generation is completed
-    await Future.wait(futures);
-    setState(() {});
-
-    /// Subscribe to updates
+    /// Init data and subscribe to updates
     Firestore.instance
         .collection("iotStates")
         .snapshots()
@@ -81,7 +50,6 @@ class _ParkingPageState extends State<ParkingPage> {
       List<Future> changeFutures = [];
 
       for (DocumentChange change in snapshot.documentChanges) {
-        /// Guard dummy data
         if(!change.document.data.containsKey("position")) {
           continue;
         }

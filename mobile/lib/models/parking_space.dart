@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enum_to_string/enum_to_string.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong/latlong.dart' hide LatLng;
@@ -14,7 +15,7 @@ enum ParkingState {
   Undefined,
 }
 
-class ParkingSpace {
+class ParkingSpace extends Equatable {
   final String id;
   final LatLng position;
   final String floorId;
@@ -92,4 +93,7 @@ class ParkingSpace {
         return Colors.grey[400];
     }
   }
+
+  @override
+  List<Object> get props => [this.id];
 }

@@ -1,11 +1,7 @@
-import 'dart:typed_data';
-
-import 'package:bordered_text/bordered_text.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong/latlong.dart' hide LatLng;
 import 'package:smart_car_park_app/extensions/latlng_extensions.dart';
-import 'package:smart_car_park_app/utils/marker_generator.dart';
 import 'package:smart_car_park_app/models/car_park_floor.dart';
 import 'package:smart_car_park_app/models/parking_space.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,6 +16,9 @@ class ParkingPage extends StatefulWidget {
 }
 
 class _ParkingPageState extends State<ParkingPage> {
+  static const FLOORS_COLLECTION = "carParkFloors";
+  static const IOT_STATES_COLLECTION = "iotStates";
+
   GoogleMapController _controller;
 
   List<CarParkFloor> carParkFloors = [];
@@ -40,9 +39,9 @@ class _ParkingPageState extends State<ParkingPage> {
     List<Future<QuerySnapshot>> snapshotFutures = [];
 
     snapshotFutures
-        .add(Firestore.instance.collection('carParkFloors').getDocuments());
-    snapshotFutures
-        .add(Firestore.instance.collection('iotStates').getDocuments());
+        .add(Firestore.instance.collection(FLOORS_COLLECTION).getDocuments());
+    snapshotFutures.add(
+        Firestore.instance.collection(IOT_STATES_COLLECTION).getDocuments());
 
     List<QuerySnapshot> snapshots =
         await Future.wait(snapshotFutures); // Future is in order
@@ -63,13 +62,57 @@ class _ParkingPageState extends State<ParkingPage> {
     List<Future> futures = [];
 
     for (CarParkFloor floor in this.carParkFloors) {
-      futures.add(floor.setParkingSpaces(context,
-          parkingSpaces.takeWhile((space) => space.floorId == floor.id).toList()));
+      futures.add(floor.setParkingSpaces(
+          context,
+          parkingSpaces
+              .takeWhile((space) => space.floorId == floor.id)
+              .toList()));
     }
 
     /// Update car park floors and spaces once marker generation is completed
     await Future.wait(futures);
     setState(() {});
+
+    /// Subscribe to updates
+    Firestore.instance
+        .collection("iotStates")
+        .snapshots()
+        .listen((snapshot) async {
+      List<Future> changeFutures = [];
+
+      for (DocumentChange change in snapshot.documentChanges) {
+        /// Guard dummy data
+        if(!change.document.data.containsKey("position")) {
+          continue;
+        }
+
+        ParkingSpace parkingSpace = ParkingSpace.fromDocument(change.document);
+        CarParkFloor floor = this.carParkFloors.firstWhere(
+            (floor) => floor.id == parkingSpace.floorId,
+            orElse: () => null);
+
+        /// Cannot find floor
+        if (floor == null) {
+          continue;
+        }
+
+        switch (change.type) {
+          case DocumentChangeType.added:
+            changeFutures.add(floor.addParkingSpace(context, parkingSpace));
+            break;
+          case DocumentChangeType.modified:
+            changeFutures.add(floor.updateParkingSpace(context, parkingSpace));
+            break;
+          case DocumentChangeType.removed:
+            changeFutures.add(floor.removeParkingSpace(context, parkingSpace));
+            break;
+        }
+      }
+
+      /// Wait for changes to complete and update UI
+      await Future.wait(changeFutures);
+      setState(() {});
+    });
   }
 
   @override
@@ -78,7 +121,7 @@ class _ParkingPageState extends State<ParkingPage> {
       body: Stack(
         children: <Widget>[
           GoogleMap(
-            minMaxZoomPreference: MinMaxZoomPreference(18.0, 26.0),
+            minMaxZoomPreference: MinMaxZoomPreference(19.0, 26.0),
             mapType: MapType.normal,
             initialCameraPosition: _ustParkingPosition,
             onMapCreated: (GoogleMapController controller) {
@@ -113,7 +156,8 @@ class _ParkingPageState extends State<ParkingPage> {
   /// Handles markers
   /// Marker generation logic are located inside CarParkFloor class
   Set<Marker> _getMarkers() {
-    if (this.carParkFloors.isEmpty || this.carParkFloors.any((floor) => floor.parkingSpaceMarkers.isEmpty)) {
+    if (this.carParkFloors.isEmpty ||
+        this.carParkFloors.any((floor) => floor.parkingSpaceMarkers.isEmpty)) {
       return {};
     } else {
       return this

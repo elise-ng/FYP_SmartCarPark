@@ -33,9 +33,14 @@ dependencies:
   # FireStore
   cloud_firestore: ^0.13.2+1
 
+  # Bordered Text Widget
   bordered_text: ^1.0.0
 
+  # Enum String conversion
   enum_to_string: ^1.0.8
+
+  # Reduce boilerplate for object comparison
+  equatable: ^1.1.0
 
 dev_dependencies:
   flutter_test:

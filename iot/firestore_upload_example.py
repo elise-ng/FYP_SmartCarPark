@@ -5,7 +5,7 @@ import asyncio
 async def main():
     print("Initialize firestore upload helper...")
     upload_helper = FirestoreUploadHelper()
-    state = IoTState(device_id="test_device_id", vehicle_id="test_vehicle_id", state="parked")
+    state = IoTState(device_id="test_device_id123", vehicle_id="test_vehicle_id", state="parked")
     await upload_helper.upload_log(state)
     print("State updated")
 

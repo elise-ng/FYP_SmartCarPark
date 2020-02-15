@@ -4,9 +4,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:smart_car_park_app/extensions/latlng_extensions.dart';
 
 class CarParkPath extends Equatable{
-  String id;
-  bool isParkingPath;
-  List<LatLng> points;
+  final String id;
+  final bool isParkingPath;
+  final List<LatLng> points;
 
   CarParkPath({
     this.id,

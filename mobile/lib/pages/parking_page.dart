@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong/latlong.dart' hide LatLng;
@@ -248,6 +246,7 @@ class _ParkingPageState extends State<ParkingPage> {
 
     List<LatLng> polylinePoints = await this.calculateParkingPath(
         this.navigationOrigin, this.navigationTargetSpace);
+    print((polylinePoints));
     setState(() {
       this.navigatingPolyline = Polyline(
         polylineId: PolylineId("navigation"),
@@ -264,34 +263,40 @@ class _ParkingPageState extends State<ParkingPage> {
     List<CarParkPath> availablePath =
         List.from(this.carParkFloors[this.currentFloorIndex].paths);
 
-    do {
-      /// The distance of the last calculated point to origin
-      double lastPointDistanceToOrigin =
-          ParkingPathUtils.getLatLngDistance(originPoint, navigationPathPoints.last);
+    CarParkPath lastUsedPath;
+    ProjectionInfo originPointOnNearestPathProjection = ParkingPathUtils.findNearestProjectionOnPath(
+      target: originPoint,
+      availablePaths: availablePath,
+      distanceRelativeToTarget: true,
+    );
 
+    do {
       /// All projection of points on available paths, and it's distance to origin
       ProjectionInfo projectionInfo =
           ParkingPathUtils.findNearestProjectionOnPath(
-        origin: originPoint,
+        origin: originPointOnNearestPathProjection.projection,
         target: navigationPathPoints.last,
         availablePaths: availablePath,
-        isParkingToSpace: navigationPathPoints.last == space.center,
+        lastUsedPath: lastUsedPath,
+        distanceRelativeToTarget: navigationPathPoints.last == space.center,
       );
 
-      if (lastPointDistanceToOrigin < projectionInfo.distanceToOrigin) {
-        /// The last calculated point is the closest point that we will ever get using the available paths.
-        /// Ends the navigation with the origin point
+      /// Add the projection point to navigationPath, and remove the used path from available pool
+      navigationPathPoints.add(projectionInfo.projection);
+      lastUsedPath = projectionInfo.path;
+      availablePath.remove(projectionInfo.path);
+
+      /// If the last projection lands on the nearest path of the origin projection, end the navigation
+      if(lastUsedPath == originPointOnNearestPathProjection.path) {
+        navigationPathPoints.add(originPointOnNearestPathProjection.projection);
         navigationPathPoints.add(originPoint);
         break;
-      } else {
-        /// Add the projection point to navigationPath, and remove the used path from available pool
-        navigationPathPoints.add(projectionInfo.projection);
-        availablePath.remove(projectionInfo.path);
       }
 
       /// Used all available path
       /// This case should not happen, but just as a safe guard
       if (availablePath.isEmpty) {
+        navigationPathPoints.add(originPointOnNearestPathProjection.projection);
         navigationPathPoints.add(originPoint);
         break;
       }

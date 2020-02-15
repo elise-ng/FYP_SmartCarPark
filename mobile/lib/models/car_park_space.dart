@@ -15,7 +15,7 @@ enum ParkingState {
   Undefined,
 }
 
-class ParkingSpace extends Equatable {
+class CarParkSpace extends Equatable {
   final String id;
   final LatLng position;
   final String floorId;
@@ -30,7 +30,7 @@ class ParkingSpace extends Equatable {
 
   LatLng center;
 
-  ParkingSpace({
+  CarParkSpace({
     this.id,
     this.position,
     this.floorId,
@@ -51,7 +51,7 @@ class ParkingSpace extends Equatable {
         .toGoogleLatLng();
   }
 
-  ParkingSpace.fromDocument(DocumentSnapshot document): this(
+  CarParkSpace.fromDocument(DocumentSnapshot document): this(
     id: document.documentID,
     position: (document.data["position"] as GeoPoint).toLatLng(),
     floorId: document.data["floorId"] as String,

@@ -42,6 +42,9 @@ dependencies:
   # Reduce boilerplate for object comparison
   equatable: ^1.1.0
 
+  # Vector
+  vector_math: ^2.0.8
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

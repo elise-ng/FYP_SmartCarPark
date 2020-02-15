@@ -1,10 +1,14 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong/latlong.dart' hide LatLng;
 import 'package:smart_car_park_app/extensions/latlng_extensions.dart';
 import 'package:smart_car_park_app/models/car_park_floor.dart';
-import 'package:smart_car_park_app/models/parking_space.dart';
+import 'package:smart_car_park_app/models/car_park_path.dart';
+import 'package:smart_car_park_app/models/car_park_space.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:smart_car_park_app/utils/parking_path_utils.dart';
 
 class ParkingPage extends StatefulWidget {
   ParkingPage({
@@ -23,6 +27,7 @@ class _ParkingPageState extends State<ParkingPage> {
 
   List<CarParkFloor> carParkFloors = [];
   int currentFloorIndex = 0;
+  bool isNavigating = true;
 
   static final CameraPosition _ustParkingPosition = CameraPosition(
     target: LatLng(22.338616, 114.263270),
@@ -36,7 +41,8 @@ class _ParkingPageState extends State<ParkingPage> {
   }
 
   void getData() async {
-    QuerySnapshot floorsSnapshot = await Firestore.instance.collection(FLOORS_COLLECTION).getDocuments();
+    QuerySnapshot floorsSnapshot =
+        await Firestore.instance.collection(FLOORS_COLLECTION).getDocuments();
     this.carParkFloors = floorsSnapshot.documents
         .map((document) => CarParkFloor.fromDocument(document))
         .toList();
@@ -44,17 +50,17 @@ class _ParkingPageState extends State<ParkingPage> {
 
     /// Init data and subscribe to updates
     Firestore.instance
-        .collection("iotStates")
+        .collection(IOT_STATES_COLLECTION)
         .snapshots()
         .listen((snapshot) async {
       List<Future> changeFutures = [];
 
       for (DocumentChange change in snapshot.documentChanges) {
-        if(!change.document.data.containsKey("position")) {
+        if (!change.document.data.containsKey("position")) {
           continue;
         }
 
-        ParkingSpace parkingSpace = ParkingSpace.fromDocument(change.document);
+        CarParkSpace parkingSpace = CarParkSpace.fromDocument(change.document);
         CarParkFloor floor = this.carParkFloors.firstWhere(
             (floor) => floor.id == parkingSpace.floorId,
             orElse: () => null);
@@ -89,7 +95,7 @@ class _ParkingPageState extends State<ParkingPage> {
       body: Stack(
         children: <Widget>[
           GoogleMap(
-            minMaxZoomPreference: MinMaxZoomPreference(19.0, 26.0),
+            minMaxZoomPreference: MinMaxZoomPreference(19.0, 21.0),
             mapType: MapType.normal,
             initialCameraPosition: _ustParkingPosition,
             onMapCreated: (GoogleMapController controller) {
@@ -97,6 +103,7 @@ class _ParkingPageState extends State<ParkingPage> {
             },
             markers: this._getMarkers(),
             polygons: this._getPolygons(),
+            polylines: this._getPolylines(),
           ),
           Align(
             alignment: Alignment.bottomCenter,
@@ -159,7 +166,7 @@ class _ParkingPageState extends State<ParkingPage> {
     ].toSet();
   }
 
-  Set<Polygon> _getParkingSpaces(List<ParkingSpace> parkingSpaces) {
+  Set<Polygon> _getParkingSpaces(List<CarParkSpace> parkingSpaces) {
     return parkingSpaces.map((parkingSpace) {
       return Polygon(
         consumeTapEvents: true,
@@ -199,4 +206,33 @@ class _ParkingPageState extends State<ParkingPage> {
       topLeft,
     ];
   }
+
+  Set<Polyline> _getPolylines() {
+    if (this.carParkFloors.isEmpty || !this.isNavigating) {
+      return {};
+    } else {
+      return this
+          .carParkFloors[this.currentFloorIndex]
+          .paths
+          .map(
+            (path) => Polyline(
+              polylineId: PolylineId(path.id),
+              points: path.points,
+              width: 3,
+            ),
+          )
+          .toSet();
+    }
+  }
+
+  Future<List<LatLng>> calculateParkingPath(LatLng originPoint, CarParkSpace space) {
+    List<LatLng> pathPoints = [space.center];
+    List<CarParkPath> availablePath = List.from(this.carParkFloors[this.currentFloorIndex].paths);
+
+    do {
+      ProjectionInfo projectionInfo = ParkingPathUtils.findNearestProjectionOnPath(availablePath, pathPoints.last, isParkingToSpace: pathPoints.last == space.center);
+
+    } while(pathPoints.last != originPoint);
+  }
+
 }

@@ -8,17 +8,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:smart_car_park_app/extensions/latlng_extensions.dart';
+import 'package:smart_car_park_app/models/car_park_path.dart';
 import 'package:smart_car_park_app/utils/marker_generator.dart';
-import 'package:smart_car_park_app/models/parking_space.dart';
+import 'package:smart_car_park_app/models/car_park_space.dart';
 
 class CarParkFloor extends Equatable {
   final String id;
   final String name;
   final int zIndex;
   final List<LatLng> points;
-  final List<List<LatLng>> paths;
+  final List<CarParkPath> paths;
 
-  List<ParkingSpace> parkingSpaces = [];
+  List<CarParkSpace> parkingSpaces = [];
   List<Marker> parkingSpaceMarkers = [];
 
   CarParkFloor({
@@ -40,19 +41,18 @@ class CarParkFloor extends Equatable {
                   .map((geoPoint) => geoPoint.toLatLng())
                   .toList() ??
               [],
-          paths: (document.data["paths"] as Map<dynamic, dynamic>)
-                  .values
-                  .cast<List<dynamic>>()
-                  .map((geoPoints) => geoPoints
-                      .cast<GeoPoint>()
-                      .map((geoPoint) => geoPoint.toLatLng())
-                      .toList())
+          paths: (document.data["paths"] as List<dynamic>)
+                  .cast<Map<dynamic, dynamic>>()
+                  .asMap()
+                  .entries
+                  .map((entry) => CarParkPath.fromMap(
+                      "path-${document.documentID}-${entry.key}", entry.value))
                   .toList() ??
               [],
         );
 
   Future<void> setParkingSpaces(
-      BuildContext context, List<ParkingSpace> parkingSpaces) async {
+      BuildContext context, List<CarParkSpace> parkingSpaces) async {
     this.parkingSpaces = parkingSpaces;
 
     /// Generate markers
@@ -67,12 +67,14 @@ class CarParkFloor extends Equatable {
   }
 
   Future<void> addParkingSpace(
-      BuildContext context, ParkingSpace parkingSpace) async {
+      BuildContext context, CarParkSpace parkingSpace) async {
     /// Generate marker
     Completer completer = Completer();
     MarkerGenerator(markerWidgets([parkingSpace]), (bitmaps) {
       this.parkingSpaces.add(parkingSpace);
-      this.parkingSpaceMarkers.add(this.mapBitmapsToMarkers([parkingSpace], bitmaps).first);
+      this
+          .parkingSpaceMarkers
+          .add(this.mapBitmapsToMarkers([parkingSpace], bitmaps).first);
       completer.complete();
     }).generate(context);
 
@@ -81,20 +83,24 @@ class CarParkFloor extends Equatable {
 
   /// Assuming position and name unchanged
   Future<bool> updateParkingSpace(
-      BuildContext context, ParkingSpace parkingSpace, {bool updateMarker = false}) async {
+      BuildContext context, CarParkSpace parkingSpace,
+      {bool updateMarker = false}) async {
     int index = this.parkingSpaces.indexOf(parkingSpace);
     if (index == -1) {
       /// Cannot find existing parking space, skipping
       return false;
     }
 
-    if(updateMarker) {
+    if (updateMarker) {
       /// Generate and replace marker
       Completer completer = Completer();
       MarkerGenerator(markerWidgets([parkingSpace]), (bitmaps) {
         this.parkingSpaces[index] = parkingSpace;
-        int markerIndex = this.parkingSpaceMarkers.indexWhere((marker) => marker.markerId.value == parkingSpace.id);
-        this.parkingSpaceMarkers[markerIndex] = this.mapBitmapsToMarkers([parkingSpace], bitmaps).first;
+        int markerIndex = this
+            .parkingSpaceMarkers
+            .indexWhere((marker) => marker.markerId.value == parkingSpace.id);
+        this.parkingSpaceMarkers[markerIndex] =
+            this.mapBitmapsToMarkers([parkingSpace], bitmaps).first;
         completer.complete();
       }).generate(context);
 
@@ -106,16 +112,19 @@ class CarParkFloor extends Equatable {
     }
   }
 
-  Future<void> removeParkingSpace(BuildContext context, ParkingSpace parkingSpace) async {
+  Future<void> removeParkingSpace(
+      BuildContext context, CarParkSpace parkingSpace) async {
     this.parkingSpaces.remove(parkingSpace);
-    this.parkingSpaceMarkers.removeWhere((marker) => marker.markerId.value == parkingSpace.id);
+    this
+        .parkingSpaceMarkers
+        .removeWhere((marker) => marker.markerId.value == parkingSpace.id);
   }
 
-  List<Widget> markerWidgets(List<ParkingSpace> parkingSpaces) {
+  List<Widget> markerWidgets(List<CarParkSpace> parkingSpaces) {
     return parkingSpaces.map((space) => _getMarkerWidget(space)).toList();
   }
 
-  Widget _getMarkerWidget(ParkingSpace parkingSpace) {
+  Widget _getMarkerWidget(CarParkSpace parkingSpace) {
     return BorderedText(
       strokeWidth: 2.0,
       strokeColor: Colors.white,
@@ -131,7 +140,7 @@ class CarParkFloor extends Equatable {
   }
 
   List<Marker> mapBitmapsToMarkers(
-      List<ParkingSpace> parkingSpaces, List<Uint8List> bitmaps) {
+      List<CarParkSpace> parkingSpaces, List<Uint8List> bitmaps) {
     List<Marker> markersList = [];
     bitmaps.asMap().forEach((i, bmp) {
       final parkingSpace = parkingSpaces[i];

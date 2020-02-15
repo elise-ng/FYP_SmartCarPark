@@ -40,6 +40,10 @@ class ParkingPathUtils {
       distance: projectionVec.distanceTo(vecTarget),
     );
   }
+
+  static getLatLngDistance(LatLng a, LatLng b) {
+    return sqrt(pow(a.latitude - b.latitude, 2) + pow(a.longitude - b.longitude, 2));
+  }
 }
 
 class ProjectionInfo {

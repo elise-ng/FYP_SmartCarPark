@@ -225,14 +225,28 @@ class _ParkingPageState extends State<ParkingPage> {
     }
   }
 
-  Future<List<LatLng>> calculateParkingPath(LatLng originPoint, CarParkSpace space) {
+  Future<List<LatLng>> calculateParkingPath(
+      LatLng originPoint, CarParkSpace space) async {
     List<LatLng> pathPoints = [space.center];
-    List<CarParkPath> availablePath = List.from(this.carParkFloors[this.currentFloorIndex].paths);
+    List<CarParkPath> availablePath =
+        List.from(this.carParkFloors[this.currentFloorIndex].paths);
 
     do {
-      ProjectionInfo projectionInfo = ParkingPathUtils.findNearestProjectionOnPath(availablePath, pathPoints.last, isParkingToSpace: pathPoints.last == space.center);
+      double distanceToOrigin =
+          ParkingPathUtils.getLatLngDistance(originPoint, pathPoints.last);
+      ProjectionInfo projectionInfo =
+          ParkingPathUtils.findNearestProjectionOnPath(
+              availablePath, pathPoints.last,
+              isParkingToSpace: pathPoints.last == space.center);
 
-    } while(pathPoints.last != originPoint);
+      if (distanceToOrigin < projectionInfo.distance) {
+        pathPoints.add(originPoint);
+      } else {
+        pathPoints.add(projectionInfo.projection);
+        availablePath.remove(projectionInfo.path);
+      }
+    } while (pathPoints.last != originPoint);
+
+    return pathPoints;
   }
-
 }

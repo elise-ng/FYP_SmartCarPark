@@ -27,7 +27,11 @@ class _ParkingPageState extends State<ParkingPage> {
 
   List<CarParkFloor> carParkFloors = [];
   int currentFloorIndex = 0;
-  bool isNavigating = true;
+
+  ///Navigation
+  LatLng navigationOrigin = LatLng(22.338616, 114.263270);
+  CarParkSpace navigationTargetSpace;
+  Polyline navigatingPolyline;
 
   static final CameraPosition _ustParkingPosition = CameraPosition(
     target: LatLng(22.338616, 114.263270),
@@ -72,10 +76,12 @@ class _ParkingPageState extends State<ParkingPage> {
 
         switch (change.type) {
           case DocumentChangeType.added:
-            changeFutures.add(floor.addParkingSpace(context, parkingSpace));
+            changeFutures.add(floor.addParkingSpace(
+                context, parkingSpace, this.onParkingSpaceTap));
             break;
           case DocumentChangeType.modified:
-            changeFutures.add(floor.updateParkingSpace(context, parkingSpace));
+            changeFutures.add(floor.updateParkingSpace(
+                context, parkingSpace, this.onParkingSpaceTap));
             break;
           case DocumentChangeType.removed:
             changeFutures.add(floor.removeParkingSpace(context, parkingSpace));
@@ -95,13 +101,25 @@ class _ParkingPageState extends State<ParkingPage> {
       body: Stack(
         children: <Widget>[
           GoogleMap(
+            mapToolbarEnabled: false,
             minMaxZoomPreference: MinMaxZoomPreference(19.0, 21.0),
             mapType: MapType.normal,
             initialCameraPosition: _ustParkingPosition,
             onMapCreated: (GoogleMapController controller) {
               this._controller = controller;
             },
-            markers: this._getMarkers(),
+            markers: {
+              ...this._getMarkers(),
+              Marker(
+                markerId: MarkerId("navigation"),
+                position: this.navigationOrigin,
+                draggable: true,
+                onDragEnd: (latLng) {
+                  this.navigationOrigin = latLng;
+                  this.updateNavigationPath();
+                },
+              )
+            },
             polygons: this._getPolygons(),
             polylines: this._getPolylines(),
           ),
@@ -169,7 +187,6 @@ class _ParkingPageState extends State<ParkingPage> {
   Set<Polygon> _getParkingSpaces(List<CarParkSpace> parkingSpaces) {
     return parkingSpaces.map((parkingSpace) {
       return Polygon(
-        consumeTapEvents: true,
         polygonId: PolygonId(parkingSpace.id),
         fillColor: parkingSpace.getStatusColor(),
         points: _getPolygonPoints(
@@ -179,8 +196,15 @@ class _ParkingPageState extends State<ParkingPage> {
           bearing: parkingSpace.bearing,
         ),
         strokeWidth: 1,
+        consumeTapEvents: true,
+        onTap: () => this.onParkingSpaceTap(parkingSpace),
       );
     }).toSet();
+  }
+
+  void onParkingSpaceTap(CarParkSpace space) {
+    this.navigationTargetSpace = space;
+    this.updateNavigationPath();
   }
 
   List<LatLng> _getPolygonPoints({
@@ -208,45 +232,72 @@ class _ParkingPageState extends State<ParkingPage> {
   }
 
   Set<Polyline> _getPolylines() {
-    if (this.carParkFloors.isEmpty || !this.isNavigating) {
+    if (this.navigatingPolyline == null) {
       return {};
     } else {
-      return this
-          .carParkFloors[this.currentFloorIndex]
-          .paths
-          .map(
-            (path) => Polyline(
-              polylineId: PolylineId(path.id),
-              points: path.points,
-              width: 3,
-            ),
-          )
-          .toSet();
+      return {
+        this.navigatingPolyline,
+      };
     }
+  }
+
+  void updateNavigationPath() async {
+    if (this.navigationOrigin == null || this.navigationTargetSpace == null) {
+      return;
+    }
+
+    List<LatLng> polylinePoints = await this.calculateParkingPath(
+        this.navigationOrigin, this.navigationTargetSpace);
+    setState(() {
+      this.navigatingPolyline = Polyline(
+        polylineId: PolylineId("navigation"),
+        color: Colors.deepOrange,
+        points: polylinePoints,
+        width: 3,
+      );
+    });
   }
 
   Future<List<LatLng>> calculateParkingPath(
       LatLng originPoint, CarParkSpace space) async {
-    List<LatLng> pathPoints = [space.center];
+    List<LatLng> navigationPathPoints = [space.center];
     List<CarParkPath> availablePath =
         List.from(this.carParkFloors[this.currentFloorIndex].paths);
 
     do {
-      double distanceToOrigin =
-          ParkingPathUtils.getLatLngDistance(originPoint, pathPoints.last);
+      /// The distance of the last calculated point to origin
+      double lastPointDistanceToOrigin =
+          ParkingPathUtils.getLatLngDistance(originPoint, navigationPathPoints.last);
+
+      /// All projection of points on available paths, and it's distance to origin
       ProjectionInfo projectionInfo =
           ParkingPathUtils.findNearestProjectionOnPath(
-              availablePath, pathPoints.last,
-              isParkingToSpace: pathPoints.last == space.center);
+        origin: originPoint,
+        target: navigationPathPoints.last,
+        availablePaths: availablePath,
+        isParkingToSpace: navigationPathPoints.last == space.center,
+      );
 
-      if (distanceToOrigin < projectionInfo.distance) {
-        pathPoints.add(originPoint);
+      if (lastPointDistanceToOrigin < projectionInfo.distanceToOrigin) {
+        /// The last calculated point is the closest point that we will ever get using the available paths.
+        /// Ends the navigation with the origin point
+        navigationPathPoints.add(originPoint);
+        break;
       } else {
-        pathPoints.add(projectionInfo.projection);
+        /// Add the projection point to navigationPath, and remove the used path from available pool
+        navigationPathPoints.add(projectionInfo.projection);
         availablePath.remove(projectionInfo.path);
       }
-    } while (pathPoints.last != originPoint);
 
-    return pathPoints;
+      /// Used all available path
+      /// This case should not happen, but just as a safe guard
+      if (availablePath.isEmpty) {
+        navigationPathPoints.add(originPoint);
+        break;
+      }
+    } while (navigationPathPoints.last != originPoint);
+
+    /// Flip the points since we calculate from the end back to start
+    return navigationPathPoints.reversed.toList();
   }
 }

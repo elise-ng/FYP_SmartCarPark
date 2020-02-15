@@ -52,14 +52,14 @@ class CarParkFloor extends Equatable {
         );
 
   Future<void> setParkingSpaces(
-      BuildContext context, List<CarParkSpace> parkingSpaces) async {
+      BuildContext context, List<CarParkSpace> parkingSpaces, Function(CarParkSpace) markerTapCallback) async {
     this.parkingSpaces = parkingSpaces;
 
     /// Generate markers
     Completer completer = Completer();
     MarkerGenerator(markerWidgets(this.parkingSpaces), (bitmaps) {
       this.parkingSpaceMarkers =
-          this.mapBitmapsToMarkers(this.parkingSpaces, bitmaps);
+          this.mapBitmapsToMarkers(this.parkingSpaces, bitmaps, markerTapCallback);
       completer.complete();
     }).generate(context);
 
@@ -67,14 +67,14 @@ class CarParkFloor extends Equatable {
   }
 
   Future<void> addParkingSpace(
-      BuildContext context, CarParkSpace parkingSpace) async {
+      BuildContext context, CarParkSpace parkingSpace, Function(CarParkSpace) markerTapCallback) async {
     /// Generate marker
     Completer completer = Completer();
     MarkerGenerator(markerWidgets([parkingSpace]), (bitmaps) {
       this.parkingSpaces.add(parkingSpace);
       this
           .parkingSpaceMarkers
-          .add(this.mapBitmapsToMarkers([parkingSpace], bitmaps).first);
+          .add(this.mapBitmapsToMarkers([parkingSpace], bitmaps, markerTapCallback).first);
       completer.complete();
     }).generate(context);
 
@@ -83,7 +83,7 @@ class CarParkFloor extends Equatable {
 
   /// Assuming position and name unchanged
   Future<bool> updateParkingSpace(
-      BuildContext context, CarParkSpace parkingSpace,
+      BuildContext context, CarParkSpace parkingSpace, Function(CarParkSpace) markerTapCallback,
       {bool updateMarker = false}) async {
     int index = this.parkingSpaces.indexOf(parkingSpace);
     if (index == -1) {
@@ -100,7 +100,7 @@ class CarParkFloor extends Equatable {
             .parkingSpaceMarkers
             .indexWhere((marker) => marker.markerId.value == parkingSpace.id);
         this.parkingSpaceMarkers[markerIndex] =
-            this.mapBitmapsToMarkers([parkingSpace], bitmaps).first;
+            this.mapBitmapsToMarkers([parkingSpace], bitmaps, markerTapCallback).first;
         completer.complete();
       }).generate(context);
 
@@ -140,7 +140,7 @@ class CarParkFloor extends Equatable {
   }
 
   List<Marker> mapBitmapsToMarkers(
-      List<CarParkSpace> parkingSpaces, List<Uint8List> bitmaps) {
+      List<CarParkSpace> parkingSpaces, List<Uint8List> bitmaps, Function(CarParkSpace) tapCallback) {
     List<Marker> markersList = [];
     bitmaps.asMap().forEach((i, bmp) {
       final parkingSpace = parkingSpaces[i];
@@ -152,6 +152,8 @@ class CarParkFloor extends Equatable {
           position: parkingSpace.center,
           flat: true,
           icon: BitmapDescriptor.fromBytes(bmp),
+          consumeTapEvents: true,
+          onTap: () => tapCallback(parkingSpace),
         ),
       );
     });

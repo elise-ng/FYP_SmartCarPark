@@ -187,15 +187,17 @@ class _SigninWidgetState extends State<SigninWidget> {
                 ),
                 Padding(padding: EdgeInsets.only(top: 4.0)),
                 _errorMessage.isNotEmpty
-                ? Text(
-                  _errorMessage,
-                  style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.red),
+                ? Padding(
+                  padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
+                  child: Text(
+                    _errorMessage,
+                    style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.red),
+                  )
                 )
                 : Container()
               ],
             ),
           ),
-          // Padding(padding: EdgeInsets.only(top: 4.0)),
           Container(
             width: double.infinity,
             child: TextFormField(

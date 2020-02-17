@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SigninWidget extends StatefulWidget {
@@ -10,7 +11,86 @@ class SigninWidget extends StatefulWidget {
   _SigninWidgetState createState() => new _SigninWidgetState();
 }
 
+
+enum SigninState {
+  codeNotSent,
+  codeSending,
+  codeSent,
+}
+
 class _SigninWidgetState extends State<SigninWidget> {
+
+  final _firebaseAuth = FirebaseAuth.instance;
+
+  SigninState _signinState = SigninState.codeNotSent;
+  String _errorMessage = '';
+
+  TextEditingController _phoneNumberTextEditingController = TextEditingController();
+  TextEditingController _smsCodeTextEditingController = TextEditingController();
+
+  // id of verification session
+  String _verificationId;
+  int _forceResendingToken;
+
+  /// Send SMS code and try to auto-retrieve for instant sign in
+  void sendVerificationCode(String phoneNumber) {
+    setState(() {
+      _signinState = SigninState.codeNotSent;
+    });
+    _firebaseAuth.verifyPhoneNumber(
+      phoneNumber: '+852'+phoneNumber,
+      timeout: Duration(seconds: 30),
+      forceResendingToken: _forceResendingToken,
+      verificationCompleted: (credential) async {
+        try {
+          final result = await _firebaseAuth.signInWithCredential(credential);
+          if (result.user != null) {
+            // TODO: success, dismiss widget
+
+          } else {
+            // TODO: show error
+            setState(() {
+              _errorMessage = 'Sign in failed.';
+            });
+          }
+        } catch (e) {
+          debugPrint(e.toString());
+          setState(() {
+            _errorMessage = 'Error: ${e.toString()}';
+          });
+        }
+      },
+      verificationFailed: (e) {
+        debugPrint(e.toString());
+        setState(() {
+          _errorMessage = 'Error: ${e.toString()}';
+        });
+      },
+      codeSent: (verificationId, [forceResendingToken]) {
+        _verificationId = verificationId;
+        _forceResendingToken = forceResendingToken;
+        setState(() {
+          _signinState = SigninState.codeSent;
+        });
+      },
+      codeAutoRetrievalTimeout: (verificationId) {
+        _verificationId = verificationId;
+        // Do nothing, wait for user input
+      }
+    );
+  }
+
+  /// Manually submit SMS code, for when auto-retrieve fails
+  void signIn(String smsCode) {
+    final credential = PhoneAuthProvider.getCredential(verificationId: _verificationId, smsCode: smsCode);
+    _firebaseAuth.signInWithCredential(credential);
+  }
+
+  /// Request resend of SMS code
+  void resendToken(String phoneNumber) {
+    
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -32,13 +112,20 @@ class _SigninWidgetState extends State<SigninWidget> {
               children: <Widget>[
                 Text(
                   "Welcome to Smart Car Park",
-                  style: TextStyle(fontSize: 26.0, fontWeight: FontWeight.w500)
+                  style: Theme.of(context).textTheme.subhead
                 ),
                 Padding(padding: EdgeInsets.only(top: 4.0)),
                 Text(
                   "Sign in to access more features.",
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w300),
+                  style: Theme.of(context).textTheme.subtitle,
+                ),
+                Padding(padding: EdgeInsets.only(top: 4.0)),
+                _errorMessage.isNotEmpty
+                ? Text(
+                  _errorMessage,
+                  style: Theme.of(context).textTheme.subtitle.copyWith(color: Colors.red),
                 )
+                : Container()
               ],
             ),
           ),
@@ -46,6 +133,7 @@ class _SigninWidgetState extends State<SigninWidget> {
           Container(
             width: double.infinity,
             child: TextFormField(
+              controller: _phoneNumberTextEditingController,
               keyboardType: TextInputType.phone,
               decoration: InputDecoration(labelText: "Phone Number"),
             ),
@@ -57,6 +145,7 @@ class _SigninWidgetState extends State<SigninWidget> {
               Expanded(
                 flex: 7,
                 child: TextFormField(
+                  controller: _smsCodeTextEditingController,
                   keyboardType: TextInputType.visiblePassword,
                   decoration: InputDecoration(labelText: "Verification Code"),
                 )
@@ -65,9 +154,24 @@ class _SigninWidgetState extends State<SigninWidget> {
                 flex: 3,
                 child: Container(
                   child: OutlineButton(
-                    child: Text("Get Code"),
+                    child: () {
+                      switch (_signinState) {
+                        case SigninState.codeNotSent:
+                          return Text('Get Code');
+                        case SigninState.codeSending:
+                          return CircularProgressIndicator();
+                        case SigninState.codeSent:
+                          return Text('Code Sent');
+                        default:
+                          return Container();
+                      }
+                    }(),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-                    onPressed: () {},
+                    onPressed: _signinState == SigninState.codeNotSent
+                    ? () {
+                      sendVerificationCode(_phoneNumberTextEditingController.text);
+                    }
+                    : null
                   )
                 )
               )
@@ -81,7 +185,11 @@ class _SigninWidgetState extends State<SigninWidget> {
               child: Text("Login"),
               color: Colors.blueAccent,
               textColor: Colors.white,
-              onPressed: () {},
+              onPressed: _signinState == SigninState.codeSent
+              ? () {
+                signIn(_smsCodeTextEditingController.text);
+              }
+              : null
             ),
           )
         ],

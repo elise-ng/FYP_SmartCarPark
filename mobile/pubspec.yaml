@@ -30,6 +30,10 @@ dependencies:
   # LatLong utils
   latlong: ^0.6.1
 
+  # Firebase
+  firebase_core: ^0.4.4
+  firebase_auth: ^0.15.4
+
   # FireStore
   cloud_firestore: ^0.13.2+1
 

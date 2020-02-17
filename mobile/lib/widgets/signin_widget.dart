@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SigninWidget extends StatefulWidget {
 
@@ -12,21 +13,31 @@ class SigninWidget extends StatefulWidget {
 }
 
 
-enum SigninState {
+enum SmsCodeState {
   codeNotSent,
   codeSending,
-  codeSent,
+  codeSent
+}
+
+enum SigninState {
+  pending,
+  inProgress,
+  success
 }
 
 class _SigninWidgetState extends State<SigninWidget> {
 
   final _firebaseAuth = FirebaseAuth.instance;
 
-  SigninState _signinState = SigninState.codeNotSent;
+  SmsCodeState _smsCodeState = SmsCodeState.codeNotSent;
+  SigninState _signinState = SigninState.pending;
   String _errorMessage = '';
 
   TextEditingController _phoneNumberTextEditingController = TextEditingController();
   TextEditingController _smsCodeTextEditingController = TextEditingController();
+
+  FocusNode _phoneNumberFocus = FocusNode();
+  FocusNode _smsCodeFocus = FocusNode();
 
   // id of verification session
   String _verificationId;
@@ -35,7 +46,8 @@ class _SigninWidgetState extends State<SigninWidget> {
   /// Send SMS code and try to auto-retrieve for instant sign in
   void sendVerificationCode(String phoneNumber) {
     setState(() {
-      _signinState = SigninState.codeNotSent;
+      _errorMessage = '';
+      _smsCodeState = SmsCodeState.codeNotSent;
     });
     _firebaseAuth.verifyPhoneNumber(
       phoneNumber: '+852'+phoneNumber,
@@ -46,13 +58,19 @@ class _SigninWidgetState extends State<SigninWidget> {
           final result = await _firebaseAuth.signInWithCredential(credential);
           if (result.user != null) {
             // TODO: success, dismiss widget
-
+            setState(() {
+              _signinState = SigninState.success;
+            });
           } else {
-            // TODO: show error
             setState(() {
               _errorMessage = 'Sign in failed.';
             });
           }
+        } on PlatformException catch (e) {
+          debugPrint(e.toString());
+          setState(() {
+            _errorMessage = 'Error: ${e.message}';
+          });
         } catch (e) {
           debugPrint(e.toString());
           setState(() {
@@ -61,16 +79,16 @@ class _SigninWidgetState extends State<SigninWidget> {
         }
       },
       verificationFailed: (e) {
-        debugPrint(e.toString());
+        debugPrint(e.message);
         setState(() {
-          _errorMessage = 'Error: ${e.toString()}';
+          _errorMessage = 'Error: ${e.message}';
         });
       },
       codeSent: (verificationId, [forceResendingToken]) {
         _verificationId = verificationId;
         _forceResendingToken = forceResendingToken;
         setState(() {
-          _signinState = SigninState.codeSent;
+          _smsCodeState = SmsCodeState.codeSent;
         });
       },
       codeAutoRetrievalTimeout: (verificationId) {
@@ -81,19 +99,42 @@ class _SigninWidgetState extends State<SigninWidget> {
   }
 
   /// Manually submit SMS code, for when auto-retrieve fails
-  void signIn(String smsCode) {
-    final credential = PhoneAuthProvider.getCredential(verificationId: _verificationId, smsCode: smsCode);
-    _firebaseAuth.signInWithCredential(credential);
+  void signIn(String smsCode) async {
+    setState(() {
+      _errorMessage = '';
+      _signinState = SigninState.inProgress;
+    });
+    try {
+      final credential = PhoneAuthProvider.getCredential(verificationId: _verificationId, smsCode: smsCode);
+      final _result = await _firebaseAuth.signInWithCredential(credential);
+      if (_result.user != null) {
+        setState(() {
+          _signinState = SigninState.success;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Sign in failed.';
+        });
+      }
+    } on PlatformException catch (e) {
+      debugPrint(e.toString());
+      setState(() {
+        _errorMessage = 'Error: ${e.message}';
+      });
+    } catch (e) {
+      debugPrint(e.toString());
+      setState(() {
+        _errorMessage = 'Error: ${e.toString()}';
+      });
+    }
   }
 
-  /// Request resend of SMS code
-  void resendToken(String phoneNumber) {
-    
-  }
+  // TODO: allow resend sms code after timeout
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       margin: EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
       padding: EdgeInsets.all(24.0),
       decoration: BoxDecoration(
@@ -103,7 +144,29 @@ class _SigninWidgetState extends State<SigninWidget> {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
+        children: _signinState == SigninState.success
+        // Success Prompt
+        ? <Widget>[
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(padding: EdgeInsets.only(top: 24.0)),
+              Icon(
+                Icons.check_circle,
+                size: 40.0,
+                color: Colors.green,
+              ),
+              Text(
+                'Sign in success',
+                style: Theme.of(context).textTheme.title,
+              ),
+              Padding(padding: EdgeInsets.only(bottom: 24.0)),
+            ],
+          )
+        ]
+        // Sign in form
+        : <Widget>[
           Container(
             width: double.infinity,
             child: Column(
@@ -112,18 +175,18 @@ class _SigninWidgetState extends State<SigninWidget> {
               children: <Widget>[
                 Text(
                   "Welcome to Smart Car Park",
-                  style: Theme.of(context).textTheme.subhead
+                  style: Theme.of(context).textTheme.title
                 ),
                 Padding(padding: EdgeInsets.only(top: 4.0)),
                 Text(
                   "Sign in to access more features.",
-                  style: Theme.of(context).textTheme.subtitle,
+                  style: Theme.of(context).textTheme.subhead,
                 ),
                 Padding(padding: EdgeInsets.only(top: 4.0)),
                 _errorMessage.isNotEmpty
                 ? Text(
                   _errorMessage,
-                  style: Theme.of(context).textTheme.subtitle.copyWith(color: Colors.red),
+                  style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.red),
                 )
                 : Container()
               ],
@@ -134,7 +197,8 @@ class _SigninWidgetState extends State<SigninWidget> {
             width: double.infinity,
             child: TextFormField(
               controller: _phoneNumberTextEditingController,
-              keyboardType: TextInputType.phone,
+              focusNode: _phoneNumberFocus,
+              keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
               decoration: InputDecoration(labelText: "Phone Number"),
             ),
           ),
@@ -146,30 +210,35 @@ class _SigninWidgetState extends State<SigninWidget> {
                 flex: 7,
                 child: TextFormField(
                   controller: _smsCodeTextEditingController,
-                  keyboardType: TextInputType.visiblePassword,
+                  focusNode: _smsCodeFocus,
+                  keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
                   decoration: InputDecoration(labelText: "Verification Code"),
                 )
               ),
               Expanded(
                 flex: 3,
                 child: Container(
-                  child: OutlineButton(
+                  child: RaisedButton(
                     child: () {
-                      switch (_signinState) {
-                        case SigninState.codeNotSent:
+                      switch (_smsCodeState) {
+                        case SmsCodeState.codeNotSent:
                           return Text('Get Code');
-                        case SigninState.codeSending:
+                        case SmsCodeState.codeSending:
                           return CircularProgressIndicator();
-                        case SigninState.codeSent:
+                        case SmsCodeState.codeSent:
                           return Text('Code Sent');
                         default:
                           return Container();
                       }
                     }(),
+                    color: Colors.blueAccent,
+                    textColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-                    onPressed: _signinState == SigninState.codeNotSent
+                    onPressed: _smsCodeState == SmsCodeState.codeNotSent
                     ? () {
                       sendVerificationCode(_phoneNumberTextEditingController.text);
+                      _phoneNumberFocus.unfocus();
+                      FocusScope.of(context).requestFocus(_smsCodeFocus);
                     }
                     : null
                   )
@@ -178,16 +247,19 @@ class _SigninWidgetState extends State<SigninWidget> {
             ],
           ),
           Padding(padding: EdgeInsets.only(top: 24.0)),
-          Container(
+          _signinState == SigninState.inProgress
+          ? CircularProgressIndicator()
+          : Container(
             width: double.infinity,
             height: 40.0,
             child: RaisedButton(
               child: Text("Login"),
               color: Colors.blueAccent,
               textColor: Colors.white,
-              onPressed: _signinState == SigninState.codeSent
+              onPressed: _smsCodeState == SmsCodeState.codeSent
               ? () {
                 signIn(_smsCodeTextEditingController.text);
+                _smsCodeFocus.unfocus();
               }
               : null
             ),

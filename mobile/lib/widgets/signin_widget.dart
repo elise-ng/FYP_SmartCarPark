@@ -114,17 +114,20 @@ class _SigninWidgetState extends State<SigninWidget> {
       } else {
         setState(() {
           _errorMessage = 'Sign in failed.';
+          _signinState = SigninState.pending;
         });
       }
     } on PlatformException catch (e) {
       debugPrint(e.toString());
       setState(() {
         _errorMessage = 'Error: ${e.message}';
+        _signinState = SigninState.pending;
       });
     } catch (e) {
       debugPrint(e.toString());
       setState(() {
         _errorMessage = 'Error: ${e.toString()}';
+        _signinState = SigninState.pending;
       });
     }
   }
@@ -175,7 +178,7 @@ class _SigninWidgetState extends State<SigninWidget> {
               children: <Widget>[
                 Text(
                   "Welcome to Smart Car Park",
-                  style: Theme.of(context).textTheme.title
+                  style: Theme.of(context).textTheme.headline
                 ),
                 Padding(padding: EdgeInsets.only(top: 4.0)),
                 Text(

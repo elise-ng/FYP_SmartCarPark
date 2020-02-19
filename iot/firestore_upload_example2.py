@@ -1,10 +1,11 @@
-from iot_state import IoTState
+from iot_state import IoTState, ParkingState
 from firestore_upload_helper import FirestoreUploadHelper
 import asyncio
 import RPi.GPIO as GPIO
 import time
 from picamera import PiCamera
 from time import sleep
+from io import BytesIO
 
 # GPIO Setting
 GPIO.setmode(GPIO.BOARD)
@@ -36,10 +37,12 @@ def distance():
     return distance
 
 def capture():
+    stream = BytesIO()
     camera.start_preview()
     sleep(3)
-    camera.capture('image.jpeg')
+    camera.capture(stream, 'jpeg')
     camera.stop_preview()
+    return stream
 
 def analysis():
     return True #if successfully scan the plate num
@@ -52,12 +55,12 @@ async def main():
             dist = distance()
             print("Measured Distance = %.1f cm" %dist)
             if (dist < 30 and not parked): #parking near
-                capture()
+                stream = capture()
                 if(analysis()): #do carplate scan
                     parked = True
                     print("Uploading state")
-                    state = IoTState(device_id="test2_device_idabc", vehicle_id="test_vehiicle_id", state="parked")
-                    await upload_helper.upload_log(state)
+                    state = IoTState(device_id="test2_device_idabc", vehicle_id="test_vehiicle_id", parking_state=ParkingState.Occupied)
+                    await upload_helper.update_state_log(jpg_image_bytes=stream, iot_state=state)
                     print("State updated")
             elif (dist > 30 and parked): # leaving the car space
                 parked = False

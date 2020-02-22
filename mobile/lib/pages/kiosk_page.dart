@@ -201,6 +201,7 @@ class _KioskPageState extends State<KioskPage> {
                           TextField(
                             decoration: InputDecoration(labelText: "Phone Number"),
                             style: Theme.of(context).textTheme.display1,
+                            keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
                           ),
                           Padding(padding: EdgeInsets.only(top: 32.0)),
                           Container(

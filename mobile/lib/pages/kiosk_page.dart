@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:smart_car_park_app/widgets/signin_widget.dart';
 
 class KioskPage extends StatefulWidget {
@@ -27,7 +26,7 @@ class _KioskPageState extends State<KioskPage> {
   bool _isSignedIn = FirebaseAuth.instance.currentUser() != null;
 
   GateMode _gateMode = GateMode.entry;
-  GateFlowState _gateFlowState = GateFlowState.scanning;
+  GateFlowState _gateFlowState = GateFlowState.scanned;
 
   @override
   void initState() {
@@ -154,40 +153,80 @@ class _KioskPageState extends State<KioskPage> {
                 ),
               )
             )
-            
-
           ),
           Expanded(
             flex: 6,
             child: Padding(
               padding: EdgeInsets.all(48.0),
               child: Column(
-                children: <Widget>[
-                  Text(
-                    'Welcome to Smart Car Park',
-                    style: Theme.of(context).textTheme.display2,
-                  ),
-                  _gateFlowState == GateFlowState.scanning
-                  ? Expanded(
-                    child:  Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        CircularProgressIndicator(),
-                        Padding(padding: EdgeInsets.only(left: 16.0)),
-                        Text(
-                          'Scanning License Plate...',
-                          style: Theme.of(context).textTheme.display1,
-                        )
-                      ],
+                mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Welcome to Smart Car Park',
+                        style: Theme.of(context).textTheme.display2,
+                      ),
+                    ),
+                    _gateFlowState == GateFlowState.scanning
+                    ? Expanded(
+                      flex: 9,
+                      child: Row(
+                        children: <Widget>[
+                          CircularProgressIndicator(),
+                          Padding(padding: EdgeInsets.only(left: 16.0)),
+                          Text(
+                            'Scanning License Plate...',
+                            style: Theme.of(context).textTheme.display1,
+                          )
+                        ],
+                      )
                     )
-                  )
-                  : Container()
-                ],
-              ),
+                    : Container(),
+                    _gateFlowState == GateFlowState.scanned
+                    ? Expanded(
+                      flex: 9,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            'Please confirm your information:',
+                            style: Theme.of(context).textTheme.display1,
+                          ),
+                          Padding(padding: EdgeInsets.only(top: 32.0)),
+                          TextField(
+                            decoration: InputDecoration(labelText: "License Plate"),
+                            style: Theme.of(context).textTheme.display1,
+                          ),
+                          TextField(
+                            decoration: InputDecoration(labelText: "Phone Number"),
+                            style: Theme.of(context).textTheme.display1,
+                          ),
+                          Padding(padding: EdgeInsets.only(top: 32.0)),
+                          Container(
+                            height: 80.0,
+                            width: 240.0,
+                            child: RaisedButton(
+                              child: Text(
+                                'Submit',
+                                style: Theme.of(context).textTheme.display1.copyWith(color: Colors.white),
+                              ),
+                              color: Theme.of(context).primaryColor,
+                              onPressed: () {},
+                            )
+                          )
+                        ],
+                      )
+                    )
+                    : Container()
+                  ],
+                ),
             )
+            
           ),
         ],
       )
+    
     );
   }
 }

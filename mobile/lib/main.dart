@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_car_park_app/pages/kiosk_page.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_car_park_app/global_variables.dart';
 import 'package:smart_car_park_app/splash_page.dart';
@@ -8,6 +9,9 @@ void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
   // This widget is the root of your application.
+
+  final isKioskMode = true;
+
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -39,7 +43,7 @@ class _MyAppState extends State<MyApp> {
           theme: ThemeData(
             primarySwatch: Colors.blue,
           ),
-          home: SplashPage(),
+          home: isKioskMode ? KioskPage() : SplashPage(),
         ),
       ),
     );

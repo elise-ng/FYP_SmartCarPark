@@ -18,7 +18,8 @@ enum GateMode {
 
 enum GateFlowState {
   scanning,
-  scanned
+  scanned,
+  submitted
 }
 
 class _KioskPageState extends State<KioskPage> {
@@ -26,7 +27,7 @@ class _KioskPageState extends State<KioskPage> {
   bool _isSignedIn = FirebaseAuth.instance.currentUser() != null;
 
   GateMode _gateMode = GateMode.entry;
-  GateFlowState _gateFlowState = GateFlowState.scanned;
+  GateFlowState _gateFlowState = GateFlowState.submitted;
 
   @override
   void initState() {
@@ -203,7 +204,7 @@ class _KioskPageState extends State<KioskPage> {
                             style: Theme.of(context).textTheme.display1,
                             keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
                           ),
-                          Padding(padding: EdgeInsets.only(top: 32.0)),
+                          Padding(padding: EdgeInsets.only(top: 40.0)),
                           Container(
                             height: 80.0,
                             width: 240.0,
@@ -215,6 +216,34 @@ class _KioskPageState extends State<KioskPage> {
                               color: Theme.of(context).primaryColor,
                               onPressed: () {},
                             )
+                          )
+                        ],
+                      )
+                    )
+                    : Container(),
+                    _gateFlowState == GateFlowState.submitted
+                    ? Expanded(
+                      flex: 9,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(
+                            Icons.check_circle,
+                            size: 100.0,
+                            color: Colors.green,
+                          ),
+                          Text(
+                            'Registration Completed',
+                            style: Theme.of(context).textTheme.display1,
+                            textAlign: TextAlign.center,
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(top: 80.0)
+                          ),
+                          Text(
+                            'Check SMS for instruction to use our mobile app for payment and other services',
+                            style: Theme.of(context).textTheme.display1,
+                            textAlign: TextAlign.center,
                           )
                         ],
                       )

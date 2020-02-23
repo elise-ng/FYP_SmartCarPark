@@ -7,7 +7,12 @@ async function main() {
     await firebaseHelper.init();
     let image = readFileSync("./image.jpeg");
     let iotState = new IotState("vehicleID", ParkingStatus.Occupied);
-    await firebaseHelper.updateIotState(iotState, image);
+    try {
+        await firebaseHelper.updateIotState(iotState, image);
+    } catch (error) {
+        console.log(error);
+    }
+    process.exit();
 }
 
 main();

@@ -19,18 +19,18 @@ export class IotState {
     }
 
     toObj(imageUrl: string): Object {
-        if(imageUrl == null) {
+        if(imageUrl != null) {
             return {
-                image_url: imageUrl,
-                vehicle_id: this.vehicleId,
-                state: this.parkingStatus,
-                time: this.time,
+                imageUrl: imageUrl,
+                vehicleId: this.vehicleId,
+                state: ParkingStatus[this.parkingStatus].toLowerCase(),
+                time: this.time.toDate(),
             }
         } else {
             return {
-                vehicle_id: this.vehicleId,
-                state: this.parkingStatus,
-                time: this.time,
+                vehicleId: this.vehicleId,
+                state: ParkingStatus[this.parkingStatus].toLowerCase(),
+                time: this.time.toDate(),
             }
         }
     }

@@ -16,6 +16,7 @@ export class FirebaseHelper {
 
     async init() {
         try {
+            console.log("Initializing Firebase...")
             //FIXME: Security
             let app = firebase.initializeApp({
                 apiKey: "AIzaSyCJOspIynTav487E4qnKkj-o8WHTsddGIQ",
@@ -29,34 +30,36 @@ export class FirebaseHelper {
             })
             await firebase.auth().signInWithEmailAndPassword("iot-client@fyp-smartcarpark.com", "f]T*UjCtLGf7[#TYxJQ;vJ");
             this.firestore = app.firestore();
-            this.functions = app.functions('asia-east-2');
+            this.functions = app.functions('asia-east2');
         } catch (error) {
             console.log(error);
         }
     }
 
-    async updateIotState(iotState: IotState, imageBuffer?: Buffer) {
+    async updateIotState(iotState: IotState, jpgImageBuffer?: Buffer) {
         let imageUrl: string;
 
-        if (imageBuffer != null) {
+        if (jpgImageBuffer != null) {
             let data = {
                 deviceId: this.deviceId,
-                imageData: imageBuffer.toString('base64'),
+                imageData: `data:image/jpeg;base64,${jpgImageBuffer.toString('base64')}`,
                 imageTimestamp: iotState.time.toISOString()
             }
 
             let uploadFunction = this.functions.httpsCallable('iotUploadSnapshot');
             try {
-                let response = await uploadFunction(data);
-                console.log(response);
-                imageUrl = response.data["imageUrl"];
+                console.log("Uploading image...");
+                imageUrl = (await uploadFunction(data)).data["imageUrl"];
             } catch (error) {
                 console.log(error);
             }
         }
 
+        console.log(`Updating state of ${this.deviceId}...`);
         let state = iotState.toObj(imageUrl);
-
-        await this.firestore.collection("iotState").doc(this.deviceId).set(state);
+        await this.firestore.collection("iotStates").doc(this.deviceId).set(state, {
+            merge: true
+        });
+        console.log("State updated");
     }
 }

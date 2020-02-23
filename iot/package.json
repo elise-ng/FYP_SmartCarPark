@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "base64-img": "^1.0.4",
     "firebase": "^7.9.1",
     "moment": "^2.24.0",
     "onoff": "^5.0.1",

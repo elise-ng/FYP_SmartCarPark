@@ -53,6 +53,7 @@ async function main() {
         if(dist < 30 && !parked) {
             let imageBuffer = await capture();
             let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied);
+            firebaseHelper.updateIotState(iotState, imageBuffer);
         } else if (dist > 30 && parked) {
             parked = false;
         } else {

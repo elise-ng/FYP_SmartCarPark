@@ -57,9 +57,13 @@ export class FirebaseHelper {
 
         console.log(`Updating state of ${this.deviceId}...`);
         let state = iotState.toObj(imageUrl);
-        await this.firestore.collection("iotStates").doc(this.deviceId).set(state, {
+        await this.updateDocument("iotStates", this.deviceId, state);
+        console.log("State updated");
+    }
+
+    async updateDocument(collection: string, document: string, data: object) {
+        await this.firestore.collection(collection).doc(document).set(data, {
             merge: true
         });
-        console.log("State updated");
     }
 }

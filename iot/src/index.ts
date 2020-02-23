@@ -4,10 +4,11 @@ import moment from "moment";
 import { FirebaseHelper } from "./firebase-helper";
 import { IotState, ParkingStatus } from "./iot-state";
 
-const GPIO_TRIGGER = 7;
-const GPIO_ECHO = 11;
+const GPIO_TRIGGER = 4;
+const GPIO_ECHO = 17;
 
 // Setting up GPIO
+
 console.log("Measuring distance with ultrasonic sensor");
 let trigger = new Gpio(GPIO_TRIGGER, 'out');
 let echo = new Gpio(GPIO_ECHO, 'in');

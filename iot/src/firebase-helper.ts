@@ -31,6 +31,7 @@ export class FirebaseHelper {
             await firebase.auth().signInWithEmailAndPassword("iot-client@fyp-smartcarpark.com", "f]T*UjCtLGf7[#TYxJQ;vJ");
             this.firestore = app.firestore();
             this.functions = app.functions('asia-east2');
+            console.log("Firebase initialized")
         } catch (error) {
             console.log(error);
         }

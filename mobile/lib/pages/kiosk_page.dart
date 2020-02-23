@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_car_park_app/models/gate_record.dart';
 import 'package:smart_car_park_app/widgets/signin_widget.dart';
 
 class KioskPage extends StatefulWidget {
@@ -33,7 +34,7 @@ class _KioskPageState extends State<KioskPage> {
   GateMode _gateMode = GateMode.entry;
   GateFlowState _gateFlowState = GateFlowState.submitted;
 
-  DocumentSnapshot _gateRecord;
+  GateRecord _gateRecord;
   StreamSubscription<QuerySnapshot> _gateRecordSubscription;
 
   TextEditingController _vehicleIdTextEditingController = TextEditingController();
@@ -50,13 +51,18 @@ class _KioskPageState extends State<KioskPage> {
       .collection('gateRecords')
       .where('entryGate', isEqualTo: 'southEntry')
       .where('entryConfirmTime', isNull: true)
-      // .orderBy('entryScanTime', descending: false)
       .snapshots()
       .listen(
       (snapshot) {
-        debugPrint(snapshot.documentChanges.length.toString());
-        _gateRecord = snapshot.documentChanges.where((change) => change.type == DocumentChangeType.added || change.type == DocumentChangeType.modified).map((change) => change.document).toList().first;
-        if (_gateRecord != null) onScanned();
+        final gateRecords = snapshot.documentChanges
+        .where((change) => change.type == DocumentChangeType.added || change.type == DocumentChangeType.modified)
+        .map((change) => GateRecord.fromDocumentSnapshot(change.document))
+        .toList();
+        gateRecords.sort((a, b) => a.entryScanTime.compareTo(b.entryScanTime));
+        if (gateRecords.isNotEmpty) {
+          _gateRecord = gateRecords.first;
+          onScanned();
+        }
       },
       onError: (e) {
         debugPrint(e.toString());
@@ -69,7 +75,7 @@ class _KioskPageState extends State<KioskPage> {
   void onScanned() {
     setState(() {
       _gateFlowState = GateFlowState.scanned;
-      _vehicleIdTextEditingController.text = _gateRecord.data['vehicleId'];
+      _vehicleIdTextEditingController.text = _gateRecord.vehicleId;
       // TODO: read previous phone number
       _phoneNumberTextEditingController.text = '';
     });
@@ -84,7 +90,7 @@ class _KioskPageState extends State<KioskPage> {
     try {
       await Firestore.instance
       .collection('gateRecords')
-      .document(_gateRecord.documentID)
+      .document(_gateRecord.id)
       .updateData(<String, dynamic>{
         'vehicleId': _vehicleIdTextEditingController.text,
         'phoneNumber': '+852' + _phoneNumberTextEditingController.text,

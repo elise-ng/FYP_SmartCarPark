@@ -42,6 +42,10 @@ class _MyAppState extends State<MyApp> {
           title: 'Smart Car Park',
           theme: ThemeData(
             primarySwatch: Colors.blue,
+            primaryColor: Colors.blue,
+            accentColor: Colors.blueAccent,
+            // TODO: auto night mode?
+            brightness: Brightness.light
           ),
           home: isKioskMode ? KioskPage() : SplashPage(),
         ),

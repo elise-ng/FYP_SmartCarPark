@@ -43,6 +43,8 @@ class _KioskPageState extends State<KioskPage> {
   FocusNode _vehicleIdFocus = FocusNode();
   FocusNode _phoneNumberFocus = FocusNode();
 
+  String _errorMessage = '';
+
   void onScanning() {
     setState(() {
       _gateFlowState = GateFlowState.scanning;
@@ -75,6 +77,7 @@ class _KioskPageState extends State<KioskPage> {
   void onScanned() {
     setState(() {
       _gateFlowState = GateFlowState.scanned;
+      _errorMessage = '';
       _vehicleIdTextEditingController.text = _gateRecord.vehicleId;
       // TODO: read previous phone number
       _phoneNumberTextEditingController.text = '';
@@ -83,7 +86,23 @@ class _KioskPageState extends State<KioskPage> {
   }
 
   void submit() async {
-    // TODO: form validation
+    final vehicleId = _vehicleIdTextEditingController.text;
+    final phoneNumber = _phoneNumberTextEditingController.text;
+
+    if (vehicleId.isEmpty) {
+      setState(() {
+        _errorMessage = 'License Plate is empty';
+      });
+      return;
+    }
+
+    if (phoneNumber.isEmpty || phoneNumber.length != 8 || int.tryParse(phoneNumber) == null) {
+      setState(() {
+        _errorMessage = 'Phone Number is empty or invalid';
+      });
+      return;
+    }
+
     setState(() {
       _gateFlowState = GateFlowState.submitting;
     });
@@ -92,14 +111,17 @@ class _KioskPageState extends State<KioskPage> {
       .collection('gateRecords')
       .document(_gateRecord.id)
       .updateData(<String, dynamic>{
-        'vehicleId': _vehicleIdTextEditingController.text,
-        'phoneNumber': '+852' + _phoneNumberTextEditingController.text,
+        'vehicleId': vehicleId.toUpperCase(),
+        'phoneNumber': '+852' + phoneNumber,
         'entryConfirmTime': Timestamp.fromDate(DateTime.now()),
       });
       onSubmitted();
     } catch (e) {
       debugPrint(e);
-      // TODO: display error on ui
+      setState(() {
+        _gateFlowState = GateFlowState.scanned;
+        _errorMessage = e.toString();
+      });
     }
   }
 
@@ -107,7 +129,7 @@ class _KioskPageState extends State<KioskPage> {
     setState(() {
       _gateFlowState = GateFlowState.submitted;
     });
-    Future.delayed(Duration(seconds: 3), () => onScanning());
+    Future.delayed(Duration(seconds: 5), () => onScanning());
   }
 
   @override
@@ -285,7 +307,14 @@ class _KioskPageState extends State<KioskPage> {
                                 'Please confirm your information:',
                                 style: Theme.of(context).textTheme.display1,
                               ),
-                              Padding(padding: EdgeInsets.only(top: 32.0)),
+                              Padding(padding: EdgeInsets.only(top: 16.0)),
+                              _errorMessage.isNotEmpty
+                              ? Text(
+                                _errorMessage,
+                                style: Theme.of(context).textTheme.headline.copyWith(color: Colors.red),
+                              )
+                              : Container(),
+                              Padding(padding: EdgeInsets.only(top: 16.0)),
                               TextField(
                                 focusNode: _vehicleIdFocus,
                                 controller: _vehicleIdTextEditingController,
@@ -307,7 +336,6 @@ class _KioskPageState extends State<KioskPage> {
                                 textInputAction: TextInputAction.done,
                                 onSubmitted: (value) {
                                   _phoneNumberFocus.unfocus();
-                                  // TODO: submit form
                                 },
                               ),
                               Padding(padding: EdgeInsets.only(top: 40.0)),
@@ -321,7 +349,6 @@ class _KioskPageState extends State<KioskPage> {
                                   ),
                                   color: Theme.of(context).primaryColor,
                                   onPressed: () {
-                                    // TODO: submit form
                                     submit();
                                   },
                                 )

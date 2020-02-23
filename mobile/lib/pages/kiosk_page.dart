@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_car_park_app/widgets/signin_widget.dart';
@@ -22,6 +25,8 @@ enum GateFlowState {
   submitted
 }
 
+
+
 class _KioskPageState extends State<KioskPage> {
 
   bool _isSignedIn = FirebaseAuth.instance.currentUser() != null;
@@ -29,9 +34,43 @@ class _KioskPageState extends State<KioskPage> {
   GateMode _gateMode = GateMode.entry;
   GateFlowState _gateFlowState = GateFlowState.submitted;
 
+  List<DocumentSnapshot> _gateRecords;
+  StreamSubscription<QuerySnapshot> _gateRecordSubscription;
+
+  void onScanning() {
+    setState(() {
+      _gateFlowState = GateFlowState.scanning;
+    });
+    _gateRecordSubscription = Firestore.instance
+      .collection('gateRecords')
+      .where('entryGate', isEqualTo: 'southEntry')
+      .where('entryConfirmTime', isNull: true)
+      .orderBy('entryScanTime', descending: false)
+      .snapshots()
+      .listen((snapshot) {
+        _gateRecords = snapshot.documents;
+        onScanned();
+      });
+  }
+
+  void onScanned() {
+    setState(() {
+      _gateFlowState = GateFlowState.scanned;
+    });
+    _gateRecordSubscription.cancel();
+  }
+
+  void onSubmitted() {
+    setState(() {
+      _gateFlowState = GateFlowState.submitted;
+    });
+    Future.delayed(Duration(seconds: 3), () => onScanning());
+  }
+
   @override
   void initState() {
     super.initState();
+    onScanning();
   }
 
   @override

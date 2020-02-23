@@ -1,18 +1,11 @@
-import { Gpio } from "onoff";
 import { StillCamera } from "pi-camera-connect";
 import moment from "moment";
 import { FirebaseHelper } from "./firebase-helper";
 import { IotState, ParkingStatus } from "./iot-state";
 
-const GPIO_TRIGGER = 4;
-const GPIO_ECHO = 17;
+const Gpio = require('pigpio').Gpio;
 
 // Setting up GPIO
-
-console.log("Measuring distance with ultrasonic sensor");
-let trigger = new Gpio(GPIO_TRIGGER, 'out');
-let echo = new Gpio(GPIO_ECHO, 'in');
-trigger.writeSync(0);
 
 // Setting up Camera
 let camera = new StillCamera();
@@ -21,24 +14,28 @@ function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function distance(): Promise<number> {
-    trigger.writeSync(1);
-    await sleep(0.01);
-    trigger.writeSync(0);
-
-    let startTime = moment();
-    let stopTime = moment();
-
-    while(echo.readSync() == 0) {
-        startTime = moment();
-    }
-    while(echo.readSync() == 1) {
-        stopTime = moment();
-    }
-
-    let timeElapsed = stopTime.diff(startTime);
-    return Number((timeElapsed * 17150).toFixed(2));
+function getDistance() {
+  return new Promise((resolve, reject) => {
+    var MICROSECDONDS_PER_CM = 1e6 / 34321;
+    var trigger = new Gpio(4, { mode: Gpio.OUTPUT });
+    var echo = new Gpio(17, { mode: Gpio.INPUT, alert: true });
+    trigger.digitalWrite(0); // Make sure trigger is low
+    var startTick;
+    var prox;
+    trigger.trigger(10, 1);
+    echo.on('alert', (level, tick) => {
+      if (level == 1) {
+        startTick = tick;
+      } else {
+        var endTick = tick;
+        var diff = (endTick >> 0) - (startTick >> 0); // Unsigned 32 bit $
+        prox = diff / 2 / MICROSECDONDS_PER_CM;
+        resolve(prox);
+      }
+    });
+  });
 }
+
 
 async function capture(): Promise<Buffer> {
     return camera.takeImage();
@@ -48,8 +45,11 @@ async function main() {
     let parked = false;
     let firebaseHelper = new FirebaseHelper('lg5-1');
     await firebaseHelper.init();
+    console.log("done firebase helper")
     while(true) {
-        let dist = await distance();
+    console.log("enter loop")
+        const dist = await getDistance();
+
         console.log(`Measured Distance: ${dist} cm`);
         if(dist < 30 && !parked) {
             let imageBuffer = await capture();

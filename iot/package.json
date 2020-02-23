@@ -12,12 +12,13 @@
   "dependencies": {
     "firebase": "^7.9.1",
     "moment": "^2.24.0",
-    "onoff": "^5.0.1",
-    "pi-camera-connect": "^0.2.0"
+    "pi-camera-connect": "^0.2.0",
+    "pigpio": "^3.0.0"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.20.0",
     "@typescript-eslint/parser": "^2.20.0",
+    "@types/pigpio": "^1.2.2",
     "eslint": "^6.8.0",
     "typescript": "^3.8.2"
   }

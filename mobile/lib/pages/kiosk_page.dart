@@ -83,8 +83,7 @@ class _KioskPageState extends State<KioskPage> {
     .orderBy('entryScanTime', descending: true)
     .limit(1)
     .getDocuments();
-    final gateRecords = response.documents.map((doc) => GateRecord.fromDocumentSnapshot(doc));
-    return gateRecords.first?.phoneNumber?.replaceAll('+852', '');
+    return response.documents.isNotEmpty ? GateRecord.fromDocumentSnapshot(response.documents.first).phoneNumber.replaceAll('+852', '') : null;
   }
 
   void onScanned() async {

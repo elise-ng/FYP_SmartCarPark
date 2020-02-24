@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_car_park_app/models/car_park_floor.dart';
 import 'package:smart_car_park_app/models/car_park_space.dart';
 import 'package:smart_car_park_app/models/gate_record.dart';
 import 'package:smart_car_park_app/widgets/signin_widget.dart';
@@ -44,6 +45,7 @@ class _KioskPageState extends State<KioskPage> {
   FocusNode _phoneNumberFocus = FocusNode();
 
   Map<String, int> _floorStatus = {};
+  Map<String, String> _floorName = {};
 
   String _errorMessage = '';
 
@@ -145,10 +147,27 @@ class _KioskPageState extends State<KioskPage> {
     Future.delayed(Duration(seconds: 5), () => onScanning());
   }
 
+  void getFloorNames() async {
+    Map<String, String> floorName = (await Firestore.instance
+    .collection('carParkFloors')
+    .getDocuments())
+    .documents
+    .map((doc) => CarParkFloor.fromDocument(doc))
+    .map((floor) => {floor.id : floor.name})
+    .reduce((val, elem) {
+      val.keys.contains(elem.keys.first) ? val[elem.keys.first] += elem.values.first : val[elem.keys.first] = elem.values.first;
+      return val;
+    });
+    setState(() {
+      _floorName = floorName;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     onScanning();
+    getFloorNames();
     Firestore.instance
     .collection('iotStates')
     .snapshots()
@@ -213,7 +232,7 @@ class _KioskPageState extends State<KioskPage> {
                               Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
-                                  key ?? '',
+                                  _floorName.keys.contains(key) ? _floorName[key] : key ?? '',
                                   style: Theme.of(context).textTheme.display2,
                                   textAlign: TextAlign.center,
                                 ),

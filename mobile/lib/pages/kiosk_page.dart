@@ -74,13 +74,26 @@ class _KioskPageState extends State<KioskPage> {
       });
   }
 
-  void onScanned() {
+  Future<String> getLastPhoneNumber(String vehicleId) async {
+    final response = await Firestore.instance
+    .collection('gateRecords')
+    .where('vehicleId', isEqualTo: vehicleId)
+    .where('phoneNumber', isGreaterThan: '') // not null and not empty string
+    .orderBy('phoneNumber') // required by firestore, can't orderBy another field after comparison
+    .orderBy('entryScanTime', descending: true)
+    .limit(1)
+    .getDocuments();
+    final gateRecords = response.documents.map((doc) => GateRecord.fromDocumentSnapshot(doc));
+    return gateRecords.first?.phoneNumber?.replaceAll('+852', '');
+  }
+
+  void onScanned() async {
+    final lastPhoneNumber = await getLastPhoneNumber(_gateRecord.vehicleId);
     setState(() {
       _gateFlowState = GateFlowState.scanned;
       _errorMessage = '';
       _vehicleIdTextEditingController.text = _gateRecord.vehicleId;
-      // TODO: read previous phone number
-      _phoneNumberTextEditingController.text = '';
+      _phoneNumberTextEditingController.text = lastPhoneNumber ?? '';
     });
     _gateRecordSubscription.cancel();
   }

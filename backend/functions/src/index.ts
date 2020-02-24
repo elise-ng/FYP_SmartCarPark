@@ -51,6 +51,7 @@ export const iotUploadSnapshot = functions
   const bucket = admin.storage().bucket('fyp-smartcarpark.appspot.com')
   const [file] = await bucket.upload(imageLocalPath, {
     destination: `iotSnapshots/${params.deviceId}/${path.parse(imageLocalPath).base}`,
+    predefinedAcl: 'bucketOwnerFullControl',
     gzip: true
   })
   // TODO: remove old files

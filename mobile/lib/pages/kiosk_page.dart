@@ -1,8 +1,8 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_car_park_app/models/car_park_space.dart';
 import 'package:smart_car_park_app/models/gate_record.dart';
 import 'package:smart_car_park_app/widgets/signin_widget.dart';
 
@@ -43,6 +43,8 @@ class _KioskPageState extends State<KioskPage> {
   FocusNode _vehicleIdFocus = FocusNode();
   FocusNode _phoneNumberFocus = FocusNode();
 
+  Map<String, int> _floorStatus = {};
+
   String _errorMessage = '';
 
   void onScanning() {
@@ -56,9 +58,8 @@ class _KioskPageState extends State<KioskPage> {
       .snapshots()
       .listen(
       (snapshot) {
-        final gateRecords = snapshot.documentChanges
-        .where((change) => change.type == DocumentChangeType.added || change.type == DocumentChangeType.modified)
-        .map((change) => GateRecord.fromDocumentSnapshot(change.document))
+        final gateRecords = snapshot.documents
+        .map((doc) => GateRecord.fromDocumentSnapshot(doc))
         .toList();
         gateRecords.sort((a, b) => a.entryScanTime.compareTo(b.entryScanTime));
         if (gateRecords.isNotEmpty) {
@@ -148,6 +149,20 @@ class _KioskPageState extends State<KioskPage> {
   void initState() {
     super.initState();
     onScanning();
+    Firestore.instance
+    .collection('iotStates')
+    .snapshots()
+    .listen((snapshot) {
+      setState(() {
+        _floorStatus = snapshot.documents
+        .map((doc) => CarParkSpace.fromDocument(doc))
+        .map((space) => {space.floorId : space.state == ParkingState.Vacant ? 1 : 0})
+        .reduce((val, elem) {
+          val.keys.contains(elem.keys.first) ? val[elem.keys.first] += elem.values.first : val[elem.keys.first] = elem.values.first;
+          return val;
+        });
+      });
+    });
   }
 
   @override
@@ -191,88 +206,30 @@ class _KioskPageState extends State<KioskPage> {
                             style: Theme.of(context).textTheme.display1,
                           ),
                         ),
-                        // TODO: read real data
-                        Table(
-                          children: <TableRow>[
-                            TableRow(
-                              children: <Widget>[
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'LG1',
-                                    style: Theme.of(context).textTheme.display2,
-                                    textAlign: TextAlign.center,
-                                  ),
+                        _floorStatus.keys.isNotEmpty
+                        ? Table(
+                          children: _floorStatus.keys.map((key) => TableRow(
+                            children: <Widget>[
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  key ?? '',
+                                  style: Theme.of(context).textTheme.display2,
+                                  textAlign: TextAlign.center,
                                 ),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    '7',
-                                    style: Theme.of(context).textTheme.display2,
-                                    textAlign: TextAlign.center,
-                                  ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  _floorStatus[key].toString(),
+                                  style: Theme.of(context).textTheme.display2,
+                                  textAlign: TextAlign.center,
                                 ),
-                              ]
-                            ),TableRow(
-                              children: <Widget>[
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'LG3',
-                                    style: Theme.of(context).textTheme.display2,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    '21',
-                                    style: Theme.of(context).textTheme.display2,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ]
-                            ),TableRow(
-                              children: <Widget>[
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'LG4',
-                                    style: Theme.of(context).textTheme.display2,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    '8',
-                                    style: Theme.of(context).textTheme.display2,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ]
-                            ),TableRow(
-                              children: <Widget>[
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'LG5',
-                                    style: Theme.of(context).textTheme.display2,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    '31',
-                                    style: Theme.of(context).textTheme.display2,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ]
-                            ),
-                          ],
+                              ),
+                            ]
+                          )).toList()
                         )
+                        : CircularProgressIndicator()
                       ],
                     ),
                   )

@@ -56,7 +56,7 @@ class CarParkSpace extends Equatable {
   CarParkSpace.fromDocument(DocumentSnapshot document): this(
     id: document.documentID,
     displayName: document.data["displayName"] as String,
-    position: (document.data["position"] as GeoPoint).toLatLng(),
+    position: ((document.data["position"] as GeoPoint) ?? GeoPoint(0.0, 0.0)).toLatLng(),
     floorId: document.data["floorId"] as String,
     state: EnumToString.fromString(ParkingState.values, document.data["state"]) ?? ParkingState.Undefined,
     imageUrl: document.data["imageUrl"] as String ?? "",

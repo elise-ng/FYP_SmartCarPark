@@ -92,7 +92,6 @@ export const recognizeNumberPlate = functions
     interface Annotation {
       xCoord: number;
       yCoord: number;
-      score: number;
       text: string;
     }
 
@@ -103,15 +102,14 @@ export const recognizeNumberPlate = functions
 
     let client = new vision.ImageAnnotatorClient();
     let detections = await client.textDetection(`gs://${object.bucket}/${object.name}`);
-    let textDetections = detections.textAnnotations;
+    let textDetections = detections[0].textAnnotations;
     // Get all necessary fields from text annotations
     let annotations: Annotation[] = [];
     for(let anno of textDetections) {
       if(!anno) continue;
       annotations.push({
-        xCoord: Math.min(anno.boundingPoly.vertices.map((vertex) => vertex.x)),
-        yCoord: Math.min(anno.boundingPoly.vertices.map((vertex) => vertex.y)),
-        score: anno.score,
+        xCoord: Math.min(...(anno.boundingPoly.vertices.map((vertex) => vertex.x))),
+        yCoord: Math.min(...(anno.boundingPoly.vertices.map((vertex) => vertex.y))),
         text: anno.description,
       })
     }
@@ -120,11 +118,10 @@ export const recognizeNumberPlate = functions
 
     // Logging
     for(let anno of annotations) {
-      console.log(`Text "${anno.text}" found at (x:${anno.xCoord}, y:${anno.yCoord}) with confidence: ${anno.score}`);
+      console.log(`Text "${anno.text}" found at (x:${anno.xCoord}, y:${anno.yCoord})`);
     }
 
     // Results
     let vehicleNumber: string = annotations.map((anno) => anno.text).join("");
-    let averageConfidence: number = annotations.map((anno) => anno.score).reduce((a, b) => a + b) / annotations.length;
-    console.log(`Identified vehicle number ${vehicleNumber} with confidence of ${averageConfidence}`);
+    console.log(`Identified vehicle number ${vehicleNumber}`);
   });

@@ -4,6 +4,7 @@ import "firebase/firestore";
 import "firebase/functions";
 
 import { IotState } from "./iot-state";
+import { GateState } from "./gate-state";
 
 export class FirebaseHelper {
     deviceId: string;
@@ -62,9 +63,43 @@ export class FirebaseHelper {
         console.log("State updated");
     }
 
+    
+    async updateEntryGateState(gateState: GateState, jpgImageBuffer?: Buffer) {
+        let imageUrl: string;
+
+        if (jpgImageBuffer != null) {
+            let data = {
+                deviceId: this.deviceId,
+                imageData: `data:image/jpeg;base64,${jpgImageBuffer.toString('base64')}`,
+                imageTimestamp: gateState.entryScanTime.toISOString()
+            }
+
+            let uploadFunction = this.functions.httpsCallable('iotUploadSnapshot');
+            try {
+                console.log("Uploading image...");
+                imageUrl = (await uploadFunction(data)).data["imageUrl"];
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        console.log(`Updating state of ${this.deviceId}...`);
+        let state = gateState.toObj(imageUrl);
+        await this.uploadDocument("gateRecords", state);
+        console.log("gateState updated");
+    }
+
+
+
     async updateDocument(collection: string, document: string, data: object) {
         await this.firestore.collection(collection).doc(document).set(data, {
             merge: true
         });
     }
+
+    async uploadDocument(collection: string, data: object) {
+        await this.firestore.collection(collection).add(data).then(ref => {
+          console.log('Added document with ID: ', ref.id);
+        });
+    }
+
 }

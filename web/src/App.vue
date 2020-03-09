@@ -1,36 +1,41 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    <div>
-      <p>
-        If Element is successfully added to this project, you'll see an
-        <code v-text="'<el-button>'"></code>
-        below
-      </p>
-      <el-button>el-button</el-button>
-    </div>
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <el-container style="height: 100%;">
+      <el-aside width="200px">
+        <el-menu :router="true" style="height: 100%;">
+          <el-menu-item index="/live">
+              <i class="el-icon-monitor"></i>
+              <span slot="title">Live View</span>
+          </el-menu-item>
+          <el-menu-item index="/stats">
+              <i class="el-icon-data-analysis"></i>
+              <span slot="title">Statistics</span>
+          </el-menu-item>
+          <el-menu-item index="/auth" style="position:absolute; bottom:0; width:100%;">
+              <i class="el-icon-key"></i>
+              <span slot="title">Authenication</span>
+          </el-menu-item>
+        </el-menu>
+      </el-aside>
+      <el-main>
+        <router-view/>
+      </el-main>
+    </el-container>
   </div>
 </template>
-
-<script>
-import HelloWorld from './components/HelloWorld.vue'
-
-export default {
-  name: 'app',
-  components: {
-    HelloWorld
-  }
-}
-</script>
 
 <style>
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
+  text-align: left;
   color: #2c3e50;
-  margin-top: 60px;
+  height: 100%;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
 }
 </style>

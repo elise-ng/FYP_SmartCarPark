@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_car_park_app/pages/infomation_page.dart';
 import 'package:smart_car_park_app/pages/parking_page.dart';
 import 'package:smart_car_park_app/pages/payment_page.dart';
+import 'package:smart_car_park_app/pages/snapshot.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({
@@ -31,6 +32,9 @@ class _HomePageState extends State<HomePage> {
           PaymentPage(
             key: PageStorageKey('Payment'),
           ),
+          SnapShotPage(
+            key: PageStorageKey('Snapshot'),
+          ),
         ][_currentIndex],
         bucket: this.bucket,
       ),
@@ -52,6 +56,10 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.payment),
             title: Text('Payment'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.camera),
+            title: Text('Snapshot'),
           ),
         ],
       ),

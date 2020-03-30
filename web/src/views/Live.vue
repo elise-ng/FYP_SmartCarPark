@@ -47,17 +47,18 @@ export default {
       }
     },
     entryScanTimeFormatter (row) {
-      return moment(row.entryScanTime).format('HH:mm')
+      return row.entryScanTime ? moment(row.entryScanTime.toDate()).format('HH:mm') : ''
     },
     exitScanTimeFormatter (row) {
-      return moment(row.exitScanTime).format('HH:mm')
+      return row.exitScanTime ? moment(row.exitScanTime.toDate()).format('HH:mm') : ''
     },
     phoneNumberFormatter (row) {
       return row.phoneNumber ? row.phoneNumber.replace('+852', '') : ''
     },
     paymentFormatter (row) {
-      const paymentMoment = moment(row.paymentTime)
-      if (!row.paymentTime || !paymentMoment.isValid()) {
+      if (!row.paymentTime) { return 'Unpaid' }
+      const paymentMoment = moment(row.paymentTime.toDate())
+      if (!paymentMoment.isValid()) {
         return 'Unpaid'
       } else if (moment().isAfter(paymentMoment.add(5, 'minutes'))) {
         return 'Overtime'

@@ -60,7 +60,7 @@ export default {
       const paymentMoment = moment(row.paymentTime.toDate())
       if (!paymentMoment.isValid()) {
         return 'Unpaid'
-      } else if (moment().isAfter(paymentMoment.add(5, 'minutes'))) {
+      } else if (!row.exitScanTime && moment().isAfter(paymentMoment.add(5, 'minutes'))) {
         return 'Overtime'
       } else {
         return 'Paid'

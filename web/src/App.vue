@@ -3,6 +3,7 @@
     <el-container style="height: 100%;">
       <el-aside width="200px">
         <el-menu :router="true" style="height: 100%;">
+          <el-main>🚙 Smart Car Park</el-main>
           <el-menu-item index="/live">
               <i class="el-icon-monitor"></i>
               <span slot="title">Live View</span>

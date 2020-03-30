@@ -1,6 +1,6 @@
 <template>
   <div class='live'>
-    <el-table :data='gateRecords'>
+    <el-table :data='gateRecords' @row-click='navPushToGateRecord'>
       <el-table-column label='License Plate' prop='vehicleId' sortable></el-table-column>
       <el-table-column label='Entry Gate' prop='entryGate' :formatter='entryGateFormatter' sortable></el-table-column>
       <el-table-column label='Entry Scan Time' prop='entryScanTime' :formatter='entryScanTimeFormatter' sortable></el-table-column>
@@ -26,6 +26,9 @@ export default {
     gateRecords: db.collection('gateRecords')
   },
   methods: {
+    navPushToGateRecord (row, _, __) {
+      this.$router.push(`/gateRecord/${row.id}`)
+    },
     entryGateFormatter (row) {
       switch (row.entryGate) {
         case 'northEntry':

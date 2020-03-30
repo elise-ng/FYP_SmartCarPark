@@ -3,7 +3,16 @@ import 'firebase/firestore'
 
 // Get a Firestore instance
 export const db = firebase
-  .initializeApp({ projectId: 'fyp-smartcarpark' })
+  .initializeApp({
+    apiKey: 'AIzaSyCJOspIynTav487E4qnKkj-o8WHTsddGIQ',
+    authDomain: 'fyp-smartcarpark.firebaseapp.com',
+    databaseURL: 'https://fyp-smartcarpark.firebaseio.com',
+    projectId: 'fyp-smartcarpark',
+    storageBucket: 'fyp-smartcarpark.appspot.com',
+    messagingSenderId: '777981643981',
+    appId: '1:777981643981:web:c3b373ce798b3d7e89ad84',
+    measurementId: 'G-X9BHYVJG9B'
+  })
   .firestore()
 
 // Export types that exists in Firestore

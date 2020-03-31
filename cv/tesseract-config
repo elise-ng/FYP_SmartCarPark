@@ -1,0 +1,4 @@
+load_system_dawg F
+load_freq_dawg F
+tessedit_char_whitelist ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+user_patterns_suffix user-patterns

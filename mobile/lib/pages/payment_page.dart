@@ -10,10 +10,58 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
+    String carPlateNum = "PK12345";
+    String parkingLocation = "LG3-12";
+    int parkingDuation = 130;
+    
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text("Shut up and give me your money"),
+
+    return new MaterialApp(
+      home: new Scaffold(
+        appBar: new AppBar(
+          title: new Text('Payments'),
+          // leading: new IconButton(
+          //   icon: new Icon(Icons.arrow_back),
+          //         onPressed: () {
+          //     },
+          // ),
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(40),
+          children: <Widget>[
+            Text("Car Plate Number\n" ,style: TextStyle(fontSize: 20)),
+            Text(carPlateNum ,style: TextStyle(fontSize: 16)),
+            Divider(),
+            Text("\nParking Location\n" ,style: TextStyle(fontSize: 20)),
+            Text(parkingLocation ,style: TextStyle(fontSize: 16)),
+            Divider(),
+            Text("\nParking Duration\n" ,style: TextStyle(fontSize: 20)),
+            Text(parkingDuation.toString() + " minutes" ,style: TextStyle(fontSize: 16)),
+            Divider(),
+            Text("\nParking Fees\n" ,style: TextStyle(fontSize: 20)),
+            Text("HKD " + ((parkingDuation/60).ceil()*20).toString(),style: TextStyle(fontSize: 16)),
+            Divider(),
+            Align(
+                    child: SizedBox(
+                      width: 240,
+                      child: RaisedButton( 
+                        color: Theme.of(context).primaryColor, 
+                        textColor: Colors.white, 
+                        child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text("Proceed with the Payment"),
+                        Icon(Icons.navigate_next)                          
+                      ], ), 
+                        onPressed: () => {}, 
+                        splashColor: Colors.redAccent,
+                      ),
+                    ),
+                  ),
+            
+          ],
+        ),
+      ),
     );
   }
 }

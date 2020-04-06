@@ -81,3 +81,27 @@ export const firestoreIotStatesOnUpdate = functions
     newState
   })
 })
+
+export const stripePaymentWebhook = functions
+.region('asia-east2')
+.https
+.onRequest(async (req, res) => { // express.js style req and res object
+  // handle request as per stripe spec: https://stripe.com/docs/webhooks/build
+  // their sample is already using express.js
+  console.log(req.body)
+
+  // verify secret, return 403 if not authorized
+
+  // read paymentIntent object to get state, metadata and payment time: https://stripe.com/docs/api/payment_intents
+  // update record in our db if paid
+  const db = admin.firestore()
+  // read metadata object of paymentIntent, which our mobile app should write gateRecord Id inside
+  await db.ref(`gateRecords/${gateRecordId}`).update({
+    paymentReceived: true
+    // should probably write paymentIntent id, amount paid and duration covered here as well? need to review whole payment flow
+  })
+
+  res.status(200).json({ // send 3xx if error as per stripe spec
+    success: true
+  })
+})

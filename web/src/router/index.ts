@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import { auth } from '@/helpers/firebaseHelper'
 
 Vue.use(VueRouter)
 
@@ -36,6 +37,14 @@ const routes = [
 
 const router = new VueRouter({
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  if (auth.currentUser) { // redirect auth page if logged out
+    next()
+  } else {
+    next('/auth')
+  }
 })
 
 export default router

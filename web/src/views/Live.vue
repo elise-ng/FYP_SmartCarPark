@@ -14,7 +14,7 @@
 
 <script>
 import moment from 'moment'
-import { db } from '@/helpers/dbHelper.js'
+import { db } from '@/helpers/firebaseHelper'
 export default {
   name: 'Live',
   data () {

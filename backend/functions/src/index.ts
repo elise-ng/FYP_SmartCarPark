@@ -87,7 +87,7 @@ export const firestoreIotStatesOnUpdate = functions
 export const recognizeLicensePlate = functions
   .region('asia-east2')
   .https
-  .onCall(async (data, context) => {
+  .onCall(async (data, _) => { // eslint-disable-line no-unused-vars
     function intersects(a, b) {
       var polygons = [a, b];
         var minA, maxA, projected, i, i1, j, minB, maxB;
@@ -149,7 +149,7 @@ export const recognizeLicensePlate = functions
       for(let word of words) {
         text += word.symbols.map(symbol => symbol.text).join("")
         let lastSymbol = word.symbols[word.symbols.length - 1]
-        if(lastSymbol.hasOwnProperty("property") && lastSymbol.property.hasOwnProperty("detectedBreak") && lastSymbol.property.detectedBreak) {
+        if('property' in lastSymbol && 'detectedBreak' in lastSymbol.property && lastSymbol.property.detectedBreak) {
           let type = lastSymbol.property.detectedBreak.type
           if(type === "EOL_SURE_SPACE" || type === "LINE_BREAK") {
             textArray.push((text.match(/[a-zA-Z0-9粵港]+/g) || []).join('')) // Filter out undesired character
@@ -231,12 +231,14 @@ export const recognizeLicensePlate = functions
     if(mainlandLicense) {
       return {
         success: true,
+        confidence: confidence,
         license: license,
         mainlandLicense: mainlandLicense
       }
     } else {
       return {
         success: true,
+        confidence: confidence,
         license: license
       }
     }

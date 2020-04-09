@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:smart_car_park_app/pages/payment/pay_inperson.dart';
+import 'package:smart_car_park_app/pages/payment/credit_card.dart';
 
 class PaymentMethodPage extends StatefulWidget {
+  String gateRecordId;
+  int fee; 
   PaymentMethodPage({
     key,
-  }) : super(key: key);
-
+    gateRecordId,
+    fee,
+  }) : this.gateRecordId = gateRecordId, this.fee = fee, super(key: key); 
+  
   @override
   _PaymentMethodPageState createState() => _PaymentMethodPageState();
 }
@@ -20,12 +26,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
           leading: new IconButton(
           icon: new Icon(Icons.arrow_back),
               onPressed: () {
-                /*setState(() {
-                  _source = null;
-                  _paymentIntent = null;
-                  _paymentMethod = null;
-                  _paymentToken = null;
-                });*/
+                Navigator.pop(context);
               },
           ),
           ),
@@ -35,6 +36,10 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
             RaisedButton(
               child: Text("Credit Card" ,style: TextStyle(fontSize: 16)),
               onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => CardPage(gateRecordId: widget.gateRecordId, fee:widget.fee)),
+                  );
               },
             ),
             Divider(),
@@ -52,6 +57,10 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
             RaisedButton(
               child: Text("Pay in Security Center",style:TextStyle(fontSize: 16)),
               onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => PayInPersonPage(gateRecordId: widget.gateRecordId)),
+                  );
               },
             ),
           ],

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:awesome_card/awesome_card.dart';
+import 'package:awesome_card/awesome_card.dart' as card;
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 
 class CardPage extends StatefulWidget {
+  String gateRecordId;
+  int fee; 
   CardPage({
     key,
-  }) : super(key: key);
+    gateRecordId,
+    fee,
+  }) : this.gateRecordId = gateRecordId, this.fee = fee, super(key: key);
 
   @override
   _CardPageState createState() => _CardPageState();
@@ -59,6 +63,7 @@ class _CardPageState extends State<CardPage> {
           leading: new IconButton(
             icon: new Icon(Icons.arrow_back),
                   onPressed: () {
+                    Navigator.pop(context);
               },
           ),
         ),
@@ -70,15 +75,15 @@ class _CardPageState extends State<CardPage> {
             SizedBox(
               height: 20,
             ),
-            CreditCard(
+            card.CreditCard(
               cardNumber: cardNumber,
               cardExpiry: expiryDate,
               cardHolderName: cardHolderName,
               cvv: cvv,
               bankName: "",
               showBackSide: showBack,
-              frontBackground: CardBackgrounds.black,
-              backBackground: CardBackgrounds.white,
+              frontBackground: card.CardBackgrounds.black,
+              backBackground: card.CardBackgrounds.white,
               showShadow: true,
             ),
             SizedBox(

@@ -2,22 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class PayInPersonPage extends StatefulWidget {
+  String gateRecordId;
   PayInPersonPage({
     key,
-  }) : super(key: key);
+    gateRecordId,
+  }) : this.gateRecordId = gateRecordId, super(key: key);
 
   @override
   _PayInPersonPageState createState() => _PayInPersonPageState();
 }
 
 class _PayInPersonPageState extends State<PayInPersonPage> {
-  String carPlateNum = "PK12345";
-    String parkingLocation = "LG3-12";
-    int parkingDuation = 130;
-    
   @override
   Widget build(BuildContext context) {
-    String phoneNum = "98765432";
+    String gateRecordId = widget.gateRecordId;
     return new MaterialApp(
       home: new Scaffold(
         appBar: new AppBar(
@@ -25,6 +23,7 @@ class _PayInPersonPageState extends State<PayInPersonPage> {
           leading: new IconButton(
             icon: new Icon(Icons.arrow_back),
                   onPressed: () {
+                    Navigator.pop(context);
               },
           ),
         ),
@@ -32,7 +31,7 @@ class _PayInPersonPageState extends State<PayInPersonPage> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             Center(child: QrImage(
-              data: phoneNum,
+              data: gateRecordId,
               version: QrVersions.auto,
               size: 300,
               gapless: false,

@@ -198,14 +198,12 @@ export const recognizeLicensePlate = functions
   
     let objectAnnotations = annotateResponse.localizedObjectAnnotations
     let licensePlateObjects = objectAnnotations.filter(object => object.mid === '/m/01jfm_') // Filter only license plate object
-    let confidence = 0
     let texts: string[] = []
   
     for(let element of licensePlateObjects) {
       let objectVertices = element.boundingPoly.normalizedVertices.map(coord => ({x: Math.round(coord.x * width), y: Math.round(coord.y * height)}))
       for(let textBlock of blocks) {
         if(intersects(objectVertices, textBlock.boundingBox.vertices)) {
-          confidence = textBlock.confidence
           texts = buildTextObject(textBlock.paragraphs[0].words)
           break
         }
@@ -231,14 +229,12 @@ export const recognizeLicensePlate = functions
     if(mainlandLicense) {
       return {
         success: true,
-        confidence: confidence,
         license: license,
         mainlandLicense: mainlandLicense
       }
     } else {
       return {
         success: true,
-        confidence: confidence,
         license: license
       }
     }

@@ -7,7 +7,7 @@
       <el-table-column label='Exit Gate' prop='exitGate' :formatter='exitGateFormatter' sortable></el-table-column>
       <el-table-column label='Exit Scan Time' prop='exitScanTime' :formatter='exitScanTimeFormatter' sortable></el-table-column>
       <el-table-column label='Phone Number' prop='phoneNumber' :formatter='phoneNumberFormatter' sortable></el-table-column>
-      <el-table-column label='Payment' prop='paymentTime' :formatter='paymentFormatter' sortable></el-table-column>
+      <el-table-column label='Payment' prop='paymentStatus' sortable></el-table-column>
     </el-table>
   </div>
 </template>
@@ -57,17 +57,6 @@ export default {
     },
     phoneNumberFormatter (row) {
       return row.phoneNumber ? row.phoneNumber.replace('+852', '') : ''
-    },
-    paymentFormatter (row) {
-      if (!row.paymentTime) { return 'Unpaid' }
-      const paymentMoment = moment(row.paymentTime.toDate())
-      if (!paymentMoment.isValid()) {
-        return 'Unpaid'
-      } else if (!row.exitScanTime && moment().isAfter(paymentMoment.add(5, 'minutes'))) {
-        return 'Overtime'
-      } else {
-        return 'Paid'
-      }
     }
   }
 }

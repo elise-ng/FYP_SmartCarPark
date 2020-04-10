@@ -50,10 +50,12 @@ export default {
       }
     },
     entryScanTimeFormatter (row) {
-      return row.entryScanTime ? moment(row.entryScanTime.toDate()).format('HH:mm') : ''
+      const timeMoment = moment(row.entryScanTime.toDate())
+      return row.entryScanTime ? `${timeMoment.format('HH:mm')} (${moment.duration(timeMoment.diff(moment())).humanize(true)})` : ''
     },
     exitScanTimeFormatter (row) {
-      return row.exitScanTime ? moment(row.exitScanTime.toDate()).format('HH:mm') : ''
+      const timeMoment = moment(row.entryScanTime.toDate())
+      return row.exitScanTime ? `${timeMoment.format('HH:mm')} (${moment.duration(timeMoment.diff(moment())).humanize(true)})` : ''
     },
     phoneNumberFormatter (row) {
       return row.phoneNumber ? row.phoneNumber.replace('+852', '') : ''

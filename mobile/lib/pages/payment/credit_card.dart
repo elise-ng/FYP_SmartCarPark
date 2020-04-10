@@ -18,22 +18,15 @@ class CardPage extends StatefulWidget {
 }
 
 class _CardPageState extends State<CardPage> {
+  /// TODO:
   String carPlateNum = "PK12345";
   String parkingLocation = "LG3-12";
-  int parkingDuation = 130;
+  Duration parkingDuration = Duration(minutes: 130);
   String cardNumber = '';
   String expiryDate = '';
   String cardHolderName = '';
-  String cvvCode = '';
-  bool isCvvFocused = false;
-
-  // String cardNumber = "";
-  // String cardHolderName = "";
-  // String expiryDate = "";
   String cvv = "";
-  bool showBack = false;
-
-  FocusNode _focusNode;
+  FocusNode _cvvFocusNode = FocusNode();
 
   MaskedTextController _expiryTextController =
       MaskedTextController(mask: '00/00');
@@ -41,17 +34,16 @@ class _CardPageState extends State<CardPage> {
   @override
   void initState() {
     super.initState();
-    _focusNode = new FocusNode();
-    _focusNode.addListener(() {
+    _cvvFocusNode.addListener(() {
       setState(() {
-        _focusNode.hasFocus ? showBack = true : showBack = false;
+        /// Update card show back state
       });
     });
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    _cvvFocusNode.dispose();
     super.dispose();
   }
 
@@ -79,7 +71,7 @@ class _CardPageState extends State<CardPage> {
                 cardHolderName: cardHolderName,
                 cvv: cvv,
                 bankName: "",
-                showBackSide: showBack,
+                showBackSide: this._cvvFocusNode.hasFocus,
                 frontBackground: card.CardBackgrounds.black,
                 backBackground: card.CardBackgrounds.white,
                 showShadow: true,
@@ -120,6 +112,7 @@ class _CardPageState extends State<CardPage> {
                           child: TextFormField(
                             controller: this._expiryTextController,
                             decoration: InputDecoration(labelText: "Expiry Date"),
+                            keyboardType: TextInputType.number,
                             maxLength: 5,
                             onChanged: (value) {
                               setState(() {
@@ -134,14 +127,15 @@ class _CardPageState extends State<CardPage> {
                         child: Padding(
                           padding: const EdgeInsets.only(left: 4.0),
                           child: TextFormField(
+                            focusNode: this._cvvFocusNode,
                             decoration: InputDecoration(labelText: "CVV"),
+                            keyboardType: TextInputType.number,
                             maxLength: 3,
                             onChanged: (value) {
                               setState(() {
                                 cvv = value;
                               });
                             },
-                            focusNode: _focusNode,
                           ),
                         ),
                       ),

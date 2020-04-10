@@ -30,6 +30,9 @@
       <el-form-item label="Exit Confirm Time">
         <div class="form-field-plaintext">{{ formatTimestamp(gateRecord.exitConfirmTime) || '---' }}</div>
       </el-form-item>
+      <el-form-item v-if="gateRecord.paymentStatus !== 'processing' && gateRecord.paymentStatus !== 'succeeded'">
+        <el-button round @click="cashPayment">Manual Exit</el-button>
+      </el-form-item>
 
       <el-divider content-position="left">Payment</el-divider>
       <el-form-item label="Payment Status">
@@ -102,6 +105,11 @@ export default {
         console.error(e)
         this.$message.warning('Cash Payment Cancelled')
       }
+    },
+    async manualExit () {
+      // TODO: allow selection of exitGate, check if payment succeed & payment time not exceed 15 min
+      // DB Ref: see cashPayment above
+      // remember to do try-catch and use async-await
     }
   },
   async mounted () {

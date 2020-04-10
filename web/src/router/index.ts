@@ -40,10 +40,10 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (auth.currentUser) { // redirect auth page if logged out
-    next()
+  if (to.name !== 'Auth' && !auth.currentUser) {
+    next({ name: 'Auth' })
   } else {
-    next('/auth')
+    next()
   }
 })
 

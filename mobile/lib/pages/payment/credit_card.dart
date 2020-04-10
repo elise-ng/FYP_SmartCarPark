@@ -4,16 +4,14 @@ import 'package:awesome_card/awesome_card.dart' as card;
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 
 class CardPage extends StatefulWidget {
-  String gateRecordId;
-  int fee;
+  final String gateRecordId;
+  final int fee;
 
   CardPage({
     key,
-    gateRecordId,
-    fee,
-  })  : this.gateRecordId = gateRecordId,
-        this.fee = fee,
-        super(key: key);
+    this.gateRecordId,
+    this.fee,
+  }) : super(key: key);
 
   @override
   _CardPageState createState() => _CardPageState();

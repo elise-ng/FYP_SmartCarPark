@@ -17,6 +17,9 @@ environment:
   sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
+  cloud_firestore:
+  provider: ^4.0.0+1
+  connectivity: ^0.4.3+6
   flutter:
     sdk: flutter
 
@@ -25,6 +28,8 @@ dependencies:
   cupertino_icons: ^0.1.2
   timeline_list: ^0.0.3
   intl: ^0.16.1
+  firebase_auth: ^0.15.5
+
   
 dev_dependencies:
   flutter_test:

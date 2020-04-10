@@ -8,11 +8,14 @@ PODS:
   - tobias (0.0.1):
     - AlipaySDK-iOS (~> 15.6.8)
     - Flutter
+  - uni_links (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - stripe_payment (from `.symlinks/plugins/stripe_payment/ios`)
   - tobias (from `.symlinks/plugins/tobias/ios`)
+  - uni_links (from `.symlinks/plugins/uni_links/ios`)
 
 SPEC REPOS:
   trunk:
@@ -26,6 +29,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/stripe_payment/ios"
   tobias:
     :path: ".symlinks/plugins/tobias/ios"
+  uni_links:
+    :path: ".symlinks/plugins/uni_links/ios"
 
 SPEC CHECKSUMS:
   AlipaySDK-iOS: 703a55774a37f412410ab04af96c011b91ec58cb
@@ -33,6 +38,7 @@ SPEC CHECKSUMS:
   Stripe: 03313f9520a0786e2c00d9a7a2672c11e08821af
   stripe_payment: 1baf1bbf556f7a35c210dc9e2eccf2075947b6be
   tobias: b77cace96409ab4a1710403cd362bf6a9dd9c685
+  uni_links: d97da20c7701486ba192624d99bffaaffcfc298a
 
 PODFILE CHECKSUM: 4882e7de205c48a7916a7e69951d67e8eda84567
 

@@ -14,7 +14,7 @@ description: Mobile client for Smart Car Park project
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
   flutter:
@@ -29,6 +29,7 @@ dependencies:
   qr_flutter: ^3.1.0 # for security center payment
   tobias: ^1.6.0+1 # alipay
   http: ^0.12.0+4
+  uni_links: ^0.2.0 # Handle payment
 
 dev_dependencies:
   flutter_test:

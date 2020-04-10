@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:smart_car_park_app/pages/payment/pay_inperson.dart';
 import 'package:smart_car_park_app/pages/payment/credit_card.dart';
+import 'package:stripe_payment/stripe_payment.dart';
+import 'package:uni_links/uni_links.dart';
 
 class PaymentMethodPage extends StatefulWidget {
   String gateRecordId;
@@ -21,6 +25,7 @@ class PaymentMethodPage extends StatefulWidget {
 }
 
 class _PaymentMethodPageState extends State<PaymentMethodPage> {
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,7 +71,9 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                 "Alipay",
                 style: TextStyle(fontSize: 16),
               ),
-              onPressed: () {},
+              onPressed: () {
+                this._performAlipay();
+              },
             ),
             RaisedButton(
               child: Text(
@@ -103,6 +110,31 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
   }
 
   void _performNativePayment() {
-    //TODO
+//    StripePayment.paymentRequestWithNativePay(
+//      androidPayOptions: AndroidPayPaymentRequest(
+//        total_price: "90",
+//        currency_code: "HKD",
+//      ),
+//      applePayOptions: ApplePayPaymentOptions(
+//        currencyCode: 'HKD',
+//        items: [
+//          ApplePayItem(
+//            label: 'Pay',
+//            amount: '90',
+//          )
+//        ],
+//      ),
+//    );
+  }
+
+  void _performAlipay() {
+    StripePayment.createSourceWithParams(
+      SourceParams(
+        type: 'alipay',
+        amount: 6000,
+        currency: 'HKD',
+        returnURL: 'smartcarpark://safepay/',
+      ),
+    );
   }
 }

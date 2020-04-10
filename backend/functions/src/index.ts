@@ -7,7 +7,9 @@ import * as path from 'path'
 import * as vision from '@google-cloud/vision';
 
 admin.initializeApp()
+const db = admin.firestore()
 const visionClient = new vision.ImageAnnotatorClient();
+const stripe = require('stripe')('sk_test_VckSxVd8Rq6sZh81IMU84W9h00XQrbe0jO');
 
 /**
  * SDK Refs:
@@ -75,7 +77,6 @@ export const firestoreIotStatesOnUpdate = functions
     if (!context.params.deviceId) { throw new Error('device id missing') }
     if (!previousState || !newState) { throw new Error('state missing') }
     // log change on iotStateChanges collection
-    const db = admin.firestore()
     return db.collection('iotStateChanges').add({
       deviceId: context.params.deviceId,
       time: admin.firestore.Timestamp.fromDate(moment(context.timestamp).toDate()),
@@ -237,5 +238,57 @@ export const recognizeLicensePlate = functions
         success: true,
         license: license
       }
+    }
+  })
+
+// Creates Stripe PaymentIntent
+export const createPaymentIntent = functions
+  .region('asia-east2')
+  .https
+  .onCall(async (data, context) => {
+    interface Parameters {
+      gateRecordId: string,
+    }
+    // check auth
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'unauthenticated')
+    }
+    // parse params
+    const params = data as Parameters
+    if (!params.gateRecordId) {
+      throw new functions.https.HttpsError('invalid-argument', 'parameter missing')
+    }
+    // Get gate record
+    const docRef = await db.collection('gateRecords').doc(params.gateRecordId)
+    const doc = await docRef.get()
+    const docData = doc.data()
+    if(!doc.exists || !docData) {
+      return {
+        success: false,
+        error: "Gate record does not exist"
+      }
+    }
+    // Get entry time of gate record
+    const entryTime = docData.entryScanTime.toDate()
+    const paytime = Date.now()
+    if(paytime < entryTime) {
+      return {
+        success: false,
+        error: "Entry time is in the future"
+      }
+    }
+    // Calculate fee
+    let parkingDurationInMinutes = Math.ceil(((paytime - entryTime)/1000)/60)
+    // FIXME: HARDCODED MINUTES FOR TESTING
+    parkingDurationInMinutes = 128
+    /// Fee: First 2 hours $20 per hour, then every hour $50
+    const parkingFee = Math.ceil(Math.min(120, parkingDurationInMinutes)/60) * 20 + Math.ceil(Math.max(0, parkingDurationInMinutes - 120)/60) * 50 
+    const paymentIntent = await stripe.createSource({
+      amount: parkingFee,
+      currency: 'hkd',
+    });
+    return {
+      success: true,
+      clientSecret: paymentIntent.client_secret
     }
   })

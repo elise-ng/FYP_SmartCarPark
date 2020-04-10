@@ -38,6 +38,9 @@
       <el-form-item label="Payment Time">
         <div class="form-field-plaintext">{{ formatTimestamp(gateRecord.paymentTime) || '---' }}</div>
       </el-form-item>
+      <el-form-item v-if="gateRecord.paymentStatus !== 'processing' && gateRecord.paymentStatus !== 'succeeded'">
+        <el-button round @click="cashPayment">Cash Payment</el-button>
+      </el-form-item>
 
       <el-button type="primary" @click="submitForm">Save</el-button>
       <el-button @click="resetForm">Reset</el-button>
@@ -47,8 +50,7 @@
 
 <script>
 import moment from 'moment'
-import { diff } from 'deep-object-diff'
-import { db } from '@/helpers/firebaseHelper'
+import { db, Timestamp } from '@/helpers/firebaseHelper'
 export default {
   name: 'GateRecordEdit',
   data () {
@@ -79,7 +81,27 @@ export default {
     formatTimestamp (timestamp) {
       if (!timestamp) { return '---' }
       const timestampMoment = moment(timestamp.toDate())
-      return `${timestampMoment.format('YYYY-MM-DD HH:mm')} (${moment.duration(timestampMoment.diff(moment())).humanize(true)})`
+      return `${timestampMoment.format('YYYY-MM-DD HH:mm')} (${this.getDurationToNow(timestampMoment, true)})`
+    },
+    getDurationToNow (fromMoment, withSuffix) {
+      return moment.duration(fromMoment.diff(moment())).humanize(withSuffix)
+    },
+    async cashPayment () {
+      try {
+        // TODO: get amount from cloud function
+        await this.$confirm(`Parked Duration: ${moment.duration(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment())).humanize()}, Amount Due: $`, 'Cash Payment', {
+          confirmButtonText: 'Received',
+          cancelButtonText: 'Cancel'
+        })
+        await db.collection('gateRecords').doc(this.$route.params.gateRecordId).update({
+          paymentStatus: 'succeeded',
+          paymentTime: Timestamp.fromDate(new Date())
+        })
+        this.$message.success('Cash Payment Success')
+      } catch (e) {
+        console.error(e)
+        this.$message.warning('Cash Payment Cancelled')
+      }
     }
   },
   async mounted () {

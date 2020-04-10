@@ -1,0 +1,39 @@
+PODS:
+  - AlipaySDK-iOS (15.6.8)
+  - Flutter (1.0.0)
+  - Stripe (19.0.1)
+  - stripe_payment (1.0.0):
+    - Flutter
+    - Stripe (>= 18.0.0)
+  - tobias (0.0.1):
+    - AlipaySDK-iOS (~> 15.6.8)
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - stripe_payment (from `.symlinks/plugins/stripe_payment/ios`)
+  - tobias (from `.symlinks/plugins/tobias/ios`)
+
+SPEC REPOS:
+  trunk:
+    - AlipaySDK-iOS
+    - Stripe
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  stripe_payment:
+    :path: ".symlinks/plugins/stripe_payment/ios"
+  tobias:
+    :path: ".symlinks/plugins/tobias/ios"
+
+SPEC CHECKSUMS:
+  AlipaySDK-iOS: 703a55774a37f412410ab04af96c011b91ec58cb
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  Stripe: 03313f9520a0786e2c00d9a7a2672c11e08821af
+  stripe_payment: 1baf1bbf556f7a35c210dc9e2eccf2075947b6be
+  tobias: b77cace96409ab4a1710403cd362bf6a9dd9c685
+
+PODFILE CHECKSUM: 4882e7de205c48a7916a7e69951d67e8eda84567
+
+COCOAPODS: 1.8.4

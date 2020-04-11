@@ -18,3 +18,6 @@ export * from './cv/handler'
 
 // Stripe
 export * from './stripe/handler'
+
+// Firebase Authentication Trigger
+export * from './users/handler'

@@ -1,8 +1,8 @@
 import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
+import { stripe } from '../common/stripe'
 
 const db = admin.firestore()
-const stripe = require('stripe')('sk_test_VckSxVd8Rq6sZh81IMU84W9h00XQrbe0jO');
 
 // Creates Stripe PaymentIntent
 export const createPaymentIntent = functions

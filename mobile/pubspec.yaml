@@ -63,6 +63,9 @@ dependencies:
   # QR Code
   qr_flutter: ^3.1.0
 
+  # Provider
+  provider: ^4.0.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

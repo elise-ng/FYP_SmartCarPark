@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:smart_car_park_app/global_variables.dart';
+import 'package:smart_car_park_app/utils/user_utils.dart';
 
 class SigninWidget extends StatefulWidget {
 
@@ -43,6 +46,12 @@ class _SigninWidgetState extends State<SigninWidget> {
   String _verificationId;
   int _forceResendingToken;
 
+  @override
+  void initState() {
+    super.initState();
+    this._signinState = userRecord.isEmpty() ? SigninState.pending : SigninState.success;
+  }
+
   /// Send SMS code and try to auto-retrieve for instant sign in
   void sendVerificationCode(String phoneNumber) {
     setState(() {
@@ -57,6 +66,7 @@ class _SigninWidgetState extends State<SigninWidget> {
         try {
           final result = await _firebaseAuth.signInWithCredential(credential);
           if (result.user != null) {
+            userRecord.update(await UserUtils.getUserRecordDocument(result.user.uid, source: Source.server));
             // TODO: success, dismiss widget
             setState(() {
               _signinState = SigninState.success;

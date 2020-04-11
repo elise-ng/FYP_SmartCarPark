@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:smart_car_park_app/global_variables.dart';
 import 'package:smart_car_park_app/home_page.dart';
+import 'package:smart_car_park_app/splash_page.dart';
 import 'package:stripe_sdk/stripe_sdk.dart';
-import 'package:uni_links/uni_links.dart';
 
 void main() => runApp(MyApp());
 
@@ -30,12 +32,15 @@ class _MyAppState extends State<MyApp> {
           currentFocus.unfocus();
         }
       },
-      child: MaterialApp(
-        title: 'Smart Car Park',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
+      child: ChangeNotifierProvider.value(
+        value: userRecord,
+        child: MaterialApp(
+          title: 'Smart Car Park',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          home: SplashPage(),
         ),
-        home: HomePage(),
       )
     );
   }

@@ -3,10 +3,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong/latlong.dart' hide LatLng;
 import 'package:smart_car_park_app/extensions/latlng_extensions.dart';
 import 'package:smart_car_park_app/models/car_park_floor.dart';
-import 'package:smart_car_park_app/models/car_park_path.dart';
 import 'package:smart_car_park_app/models/car_park_space.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:smart_car_park_app/utils/parking_path_utils.dart';
 
 class ParkingPage extends StatefulWidget {
   ParkingPage({

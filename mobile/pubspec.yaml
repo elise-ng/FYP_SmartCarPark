@@ -23,12 +23,12 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
-  stripe_payment: ^1.0.6  # Not sure yet
   awesome_card: ^1.1.0 # for credit card payment
   flutter_masked_text: ^0.8.0 # for credit card payment
   qr_flutter: ^3.1.0 # for security center payment
   tobias: ^1.6.0+1 # alipay
   http: ^0.12.0+4
+  stripe_sdk: ^2.5.1
   uni_links: ^0.2.0 # Handle payment
 
 dev_dependencies:

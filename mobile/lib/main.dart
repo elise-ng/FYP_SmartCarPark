@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:smart_car_park_app/home_page.dart';
-import 'package:stripe_payment/stripe_payment.dart';
+import 'package:stripe_sdk/stripe_sdk.dart';
 import 'package:uni_links/uni_links.dart';
 
 void main() => runApp(MyApp());
@@ -13,16 +13,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
-
   @override
   void initState() {
     super.initState();
-    StripePayment.setOptions(
-        StripeOptions(
-            publishableKey: "pk_test_Kbnp8sRWTtMqKaXJdOKIO2hK00y1OinDK1",
-            merchantId: "Test",
-            androidPayMode: 'test'));
+    Stripe.init("pk_test_Kbnp8sRWTtMqKaXJdOKIO2hK00y1OinDK1",
+        returnUrlForSca: "smartcarpark://sca/");
   }
 
   @override

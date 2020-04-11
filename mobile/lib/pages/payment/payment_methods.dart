@@ -1,12 +1,9 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:smart_car_park_app/pages/payment/pay_inperson.dart';
 import 'package:smart_car_park_app/pages/payment/credit_card.dart';
-import 'package:stripe_payment/stripe_payment.dart';
-import 'package:uni_links/uni_links.dart';
+import 'package:stripe_sdk/stripe_sdk.dart';
 
 class PaymentMethodPage extends StatefulWidget {
   String gateRecordId;
@@ -128,13 +125,6 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
   }
 
   void _performAlipay() {
-    StripePayment.createSourceWithParams(
-      SourceParams(
-        type: 'alipay',
-        amount: 6000,
-        currency: 'HKD',
-        returnURL: 'smartcarpark://safepay/',
-      ),
-    );
+    // TODO:
   }
 }

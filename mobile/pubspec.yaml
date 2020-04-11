@@ -14,7 +14,7 @@ description: Mobile client for Smart Car Park project
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.2.2 <3.0.0"
+  sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -31,17 +31,42 @@ dependencies:
   stripe_sdk: ^2.5.1
   uni_links: ^0.2.0 # Handle payment
 
+  # Google Maps SDK
+  google_maps_flutter: ^0.5.22+3
+
+  # LatLong utils
+  latlong: ^0.6.1
+
+  # Firebase
+  firebase_core: ^0.4.4
+  firebase_auth: ^0.15.4
+
+  # FireStore
+  cloud_firestore: ^0.13.2+1
+
+  # Bordered Text Widget
+  bordered_text: ^1.0.0
+
+  # Enum String conversion
+  enum_to_string: ^1.0.8
+
+  # Reduce boilerplate for object comparison
+  equatable: ^1.1.0
+
+  # Vector
+  vector_math: ^2.0.8
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter.
 flutter:
-
+  assets:
+    - 'assets/LG5.png'
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

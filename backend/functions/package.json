@@ -1,7 +1,7 @@
 {
   "name": "functions",
   "scripts": {
-    "lint": "npx eslint src/**",
+    "lint": "npx eslint src/**/*",
     "build": "tsc",
     "serve": "npm run build && firebase serve --only functions",
     "shell": "npm run build && firebase functions:shell",

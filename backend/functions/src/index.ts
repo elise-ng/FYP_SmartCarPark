@@ -283,7 +283,7 @@ export const createPaymentIntent = functions
     parkingDurationInMinutes = 128
     /// Fee: First 2 hours $20 per hour, then every hour $50
     const parkingFee = Math.ceil(Math.min(120, parkingDurationInMinutes)/60) * 20 + Math.ceil(Math.max(0, parkingDurationInMinutes - 120)/60) * 50 
-    const paymentIntent = await stripe.createSource({
+    const paymentIntent = await stripe.paymentIntents.create({
       amount: parkingFee,
       currency: 'hkd',
     });

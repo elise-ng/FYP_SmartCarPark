@@ -27,9 +27,9 @@ class _ParkingPageState extends State<ParkingPage> {
   int currentFloorIndex = 0;
 
   ///Navigation
-  LatLng navigationOrigin = LatLng(22.338616, 114.263270);
-  CarParkSpace navigationTargetSpace;
-  Polyline navigatingPolyline;
+//  LatLng navigationOrigin = LatLng(22.338616, 114.263270);
+//  CarParkSpace navigationTargetSpace;
+//  Polyline navigatingPolyline;
 
   static final CameraPosition _ustParkingPosition = CameraPosition(
     target: LatLng(22.338616, 114.263270),
@@ -108,18 +108,18 @@ class _ParkingPageState extends State<ParkingPage> {
             },
             markers: {
               ...this._getMarkers(),
-              Marker(
-                markerId: MarkerId("navigation"),
-                position: this.navigationOrigin,
-                draggable: true,
-                onDragEnd: (latLng) {
-                  this.navigationOrigin = latLng;
-                  this.updateNavigationPath();
-                },
-              )
+//              Marker(
+//                markerId: MarkerId("navigation"),
+//                position: this.navigationOrigin,
+//                draggable: true,
+//                onDragEnd: (latLng) {
+//                  this.navigationOrigin = latLng;
+//                  this.updateNavigationPath();
+//                },
+//              )
             },
             polygons: this._getPolygons(),
-            polylines: this._getPolylines(),
+//            polylines: this._getPolylines(),
           ),
           Align(
             alignment: Alignment.bottomCenter,
@@ -201,8 +201,8 @@ class _ParkingPageState extends State<ParkingPage> {
   }
 
   void onParkingSpaceTap(CarParkSpace space) {
-    this.navigationTargetSpace = space;
-    this.updateNavigationPath();
+//    this.navigationTargetSpace = space;
+//    this.updateNavigationPath();
   }
 
   List<LatLng> _getPolygonPoints({
@@ -229,80 +229,80 @@ class _ParkingPageState extends State<ParkingPage> {
     ];
   }
 
-  Set<Polyline> _getPolylines() {
-    if (this.navigatingPolyline == null) {
-      return {};
-    } else {
-      return {
-        this.navigatingPolyline,
-      };
-    }
-  }
-
-  void updateNavigationPath() async {
-    if (this.navigationOrigin == null || this.navigationTargetSpace == null) {
-      return;
-    }
-
-    List<LatLng> polylinePoints = await this.calculateParkingPath(
-        this.navigationOrigin, this.navigationTargetSpace);
-    print((polylinePoints));
-    setState(() {
-      this.navigatingPolyline = Polyline(
-        polylineId: PolylineId("navigation"),
-        color: Colors.deepOrange,
-        points: polylinePoints,
-        width: 3,
-      );
-    });
-  }
-
-  Future<List<LatLng>> calculateParkingPath(
-      LatLng originPoint, CarParkSpace space) async {
-    List<LatLng> navigationPathPoints = [space.center];
-    List<CarParkPath> availablePath =
-        List.from(this.carParkFloors[this.currentFloorIndex].paths);
-
-    CarParkPath lastUsedPath;
-    ProjectionInfo originPointOnNearestPathProjection = ParkingPathUtils.findNearestProjectionOnPath(
-      target: originPoint,
-      availablePaths: availablePath,
-      distanceRelativeToTarget: true,
-    );
-
-    do {
-      /// All projection of points on available paths, and it's distance to origin
-      ProjectionInfo projectionInfo =
-          ParkingPathUtils.findNearestProjectionOnPath(
-        origin: originPointOnNearestPathProjection.projection,
-        target: navigationPathPoints.last,
-        availablePaths: availablePath,
-        lastUsedPath: lastUsedPath,
-        distanceRelativeToTarget: navigationPathPoints.last == space.center,
-      );
-
-      /// Add the projection point to navigationPath, and remove the used path from available pool
-      navigationPathPoints.add(projectionInfo.projection);
-      lastUsedPath = projectionInfo.path;
-      availablePath.remove(projectionInfo.path);
-
-      /// If the last projection lands on the nearest path of the origin projection, end the navigation
-      if(lastUsedPath == originPointOnNearestPathProjection.path) {
-        navigationPathPoints.add(originPointOnNearestPathProjection.projection);
-        navigationPathPoints.add(originPoint);
-        break;
-      }
-
-      /// Used all available path
-      /// This case should not happen, but just as a safe guard
-      if (availablePath.isEmpty) {
-        navigationPathPoints.add(originPointOnNearestPathProjection.projection);
-        navigationPathPoints.add(originPoint);
-        break;
-      }
-    } while (navigationPathPoints.last != originPoint);
-
-    /// Flip the points since we calculate from the end back to start
-    return navigationPathPoints.reversed.toList();
-  }
+//  Set<Polyline> _getPolylines() {
+//    if (this.navigatingPolyline == null) {
+//      return {};
+//    } else {
+//      return {
+//        this.navigatingPolyline,
+//      };
+//    }
+//  }
+//
+//  void updateNavigationPath() async {
+//    if (this.navigationOrigin == null || this.navigationTargetSpace == null) {
+//      return;
+//    }
+//
+//    List<LatLng> polylinePoints = await this.calculateParkingPath(
+//        this.navigationOrigin, this.navigationTargetSpace);
+//    print((polylinePoints));
+//    setState(() {
+//      this.navigatingPolyline = Polyline(
+//        polylineId: PolylineId("navigation"),
+//        color: Colors.deepOrange,
+//        points: polylinePoints,
+//        width: 3,
+//      );
+//    });
+//  }
+//
+//  Future<List<LatLng>> calculateParkingPath(
+//      LatLng originPoint, CarParkSpace space) async {
+//    List<LatLng> navigationPathPoints = [space.center];
+//    List<CarParkPath> availablePath =
+//        List.from(this.carParkFloors[this.currentFloorIndex].paths);
+//
+//    CarParkPath lastUsedPath;
+//    ProjectionInfo originPointOnNearestPathProjection = ParkingPathUtils.findNearestProjectionOnPath(
+//      target: originPoint,
+//      availablePaths: availablePath,
+//      distanceRelativeToTarget: true,
+//    );
+//
+//    do {
+//      /// All projection of points on available paths, and it's distance to origin
+//      ProjectionInfo projectionInfo =
+//          ParkingPathUtils.findNearestProjectionOnPath(
+//        origin: originPointOnNearestPathProjection.projection,
+//        target: navigationPathPoints.last,
+//        availablePaths: availablePath,
+//        lastUsedPath: lastUsedPath,
+//        distanceRelativeToTarget: navigationPathPoints.last == space.center,
+//      );
+//
+//      /// Add the projection point to navigationPath, and remove the used path from available pool
+//      navigationPathPoints.add(projectionInfo.projection);
+//      lastUsedPath = projectionInfo.path;
+//      availablePath.remove(projectionInfo.path);
+//
+//      /// If the last projection lands on the nearest path of the origin projection, end the navigation
+//      if(lastUsedPath == originPointOnNearestPathProjection.path) {
+//        navigationPathPoints.add(originPointOnNearestPathProjection.projection);
+//        navigationPathPoints.add(originPoint);
+//        break;
+//      }
+//
+//      /// Used all available path
+//      /// This case should not happen, but just as a safe guard
+//      if (availablePath.isEmpty) {
+//        navigationPathPoints.add(originPointOnNearestPathProjection.projection);
+//        navigationPathPoints.add(originPoint);
+//        break;
+//      }
+//    } while (navigationPathPoints.last != originPoint);
+//
+//    /// Flip the points since we calculate from the end back to start
+//    return navigationPathPoints.reversed.toList();
+//  }
 }

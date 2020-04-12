@@ -14,7 +14,8 @@ interface ParkingInvoice {
   items: Array<object>
 }
 
-async function calculateParkingFeeByGateRecord(gateRecordId: string): Promise<ParkingInvoice> {
+// Calculate parking fees and generate invoice
+async function calculateParkingInvoice(gateRecordId: string): Promise<ParkingInvoice> {
   // Get gate record
   const docRef = await db.collection('gateRecords').doc(gateRecordId)
   const doc = await docRef.get()
@@ -61,7 +62,8 @@ async function calculateParkingFeeByGateRecord(gateRecordId: string): Promise<Pa
   }
 }
 
-export const calculateParkingFee = functions.region('asia-east2')
+// Get Parking Invoice
+export const getParkingInvoice = functions.region('asia-east2')
   .https
   .onCall(async (data, context) => {
     interface Parameters {
@@ -78,10 +80,10 @@ export const calculateParkingFee = functions.region('asia-east2')
     }
 
     try {
-      const parkingFee = await calculateParkingFeeByGateRecord(params.gateRecordId)
+      const invoice = await calculateParkingInvoice(params.gateRecordId)
       return {
         success: true,
-        parkingFee: parkingFee
+        invoice: invoice
       }
     } catch (error) {
       return {
@@ -89,7 +91,38 @@ export const calculateParkingFee = functions.region('asia-east2')
         erorr: error
       }
     }
-})
+  })
+
+// Get Stripe Ephemeral Key
+export const getEphemeralKey = functions
+  .region('asia-east2')
+  .https
+  .onCall(async (data, context) => {
+    interface Parameters {
+      stripeApiVersion: string,
+    }
+    // check auth
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'unauthenticated')
+    }
+    // parse params
+    const params = data as Parameters
+    if (!params.stripeApiVersion) {
+      throw new functions.https.HttpsError('invalid-argument', 'parameter missing')
+    }
+    const docRef = await db.collection('userRecords').doc(context.auth.uid)
+    const doc = await docRef.get()
+    const docData = doc.data()
+    if (!doc.exists || !docData) {
+      throw new Error("User record does not exist")
+    }
+
+    const key = await stripe.ephemeralKeys.create({ customer: docData.stripe_customerId }, { stripe_version: params.stripeApiVersion })
+    return {
+      success: true,
+      key: key
+    }
+  })
 
 // Creates Stripe PaymentIntent
 export const createPaymentIntent = functions
@@ -109,7 +142,7 @@ export const createPaymentIntent = functions
       throw new functions.https.HttpsError('invalid-argument', 'parameter missing')
     }
     try {
-      const parkingFeeTotal = (await calculateParkingFeeByGateRecord(params.gateRecordId)).total * 100 // Stripe uses minimum amount as unit
+      const parkingFeeTotal = (await calculateParkingInvoice(params.gateRecordId)).total * 100 // Stripe uses minimum amount as unit
       const paymentIntent = await stripe.paymentIntents.create({
         amount: parkingFeeTotal,
         currency: 'hkd'

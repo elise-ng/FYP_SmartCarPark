@@ -1,13 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'parking_fee_receipt.dart';
+part of 'parking_invoice.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-ParkingFeeReceipt _$ParkingFeeReceiptFromJson(Map json) {
-  return ParkingFeeReceipt(
+ParkingInvoice _$ParkingInvoiceFromJson(Map json) {
+  return ParkingInvoice(
     (json['total'] as num)?.toDouble(),
     json['durationInMinutes'] as int,
     json['license'] as String,
@@ -17,7 +17,7 @@ ParkingFeeReceipt _$ParkingFeeReceiptFromJson(Map json) {
   );
 }
 
-Map<String, dynamic> _$ParkingFeeReceiptToJson(ParkingFeeReceipt instance) =>
+Map<String, dynamic> _$ParkingInvoiceToJson(ParkingInvoice instance) =>
     <String, dynamic>{
       'total': instance.total,
       'durationInMinutes': instance.durationInMinutes,

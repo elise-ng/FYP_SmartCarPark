@@ -1,18 +1,18 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'parking_fee_receipt.g.dart';
+part 'parking_invoice.g.dart';
 
 @JsonSerializable(explicitToJson: true, anyMap: true)
-class ParkingFeeReceipt {
-  ParkingFeeReceipt(this.total, this.durationInMinutes, this.license, this.items);
+class ParkingInvoice {
+  ParkingInvoice(this.total, this.durationInMinutes, this.license, this.items);
 
   double total;
   int durationInMinutes;
   String license;
   List<ParkingFeeItem> items;
 
-  factory ParkingFeeReceipt.fromJson(Map json) => _$ParkingFeeReceiptFromJson(json);
-  Map<String, dynamic> toJson() => _$ParkingFeeReceiptToJson(this);
+  factory ParkingInvoice.fromJson(Map json) => _$ParkingInvoiceFromJson(json);
+  Map<String, dynamic> toJson() => _$ParkingInvoiceToJson(this);
 }
 
 @JsonSerializable(anyMap: true)

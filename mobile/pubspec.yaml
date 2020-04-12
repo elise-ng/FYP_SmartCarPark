@@ -81,6 +81,12 @@ dependencies:
   # Lottie animations
   lottie: ^0.3.3
 
+  # Timeline UI
+  timeline_list: ^0.0.5
+
+  # humanize duration
+  timeago: ^2.0.26
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

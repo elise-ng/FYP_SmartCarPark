@@ -6,12 +6,10 @@ part of 'payment_method.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-PaymentMethod _$PaymentMethodFromJson(Map<String, dynamic> json) {
+PaymentMethod _$PaymentMethodFromJson(Map json) {
   return PaymentMethod()
     ..id = json['id'] as String
-    ..card = json['card'] == null
-        ? null
-        : Card.fromJson(json['card'] as Map<String, dynamic>)
+    ..card = json['card'] == null ? null : Card.fromJson(json['card'] as Map)
     ..created = json['created'] as int;
 }
 
@@ -22,7 +20,7 @@ Map<String, dynamic> _$PaymentMethodToJson(PaymentMethod instance) =>
       'created': instance.created,
     };
 
-Card _$CardFromJson(Map<String, dynamic> json) {
+Card _$CardFromJson(Map json) {
   return Card()
     ..brand = json['brand'] as String
     ..country = json['country'] as String

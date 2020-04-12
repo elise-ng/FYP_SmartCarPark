@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'payment_method.g.dart';
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, anyMap: true)
 class PaymentMethod {
   PaymentMethod();
 
@@ -10,11 +10,11 @@ class PaymentMethod {
   Card card;
   int created;
 
-  factory PaymentMethod.fromJson(Map<String, dynamic> json) => _$PaymentMethodFromJson(json);
+  factory PaymentMethod.fromJson(Map json) => _$PaymentMethodFromJson(json);
   Map<String, dynamic> toJson() => _$PaymentMethodToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(anyMap: true)
 class Card {
   Card();
 
@@ -28,6 +28,6 @@ class Card {
   String funding;
   String last4;
 
-  factory Card.fromJson(Map<String, dynamic> json) => _$CardFromJson(json);
+  factory Card.fromJson(Map json) => _$CardFromJson(json);
   Map<String, dynamic> toJson() => _$CardToJson(this);
 }

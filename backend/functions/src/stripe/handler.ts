@@ -142,14 +142,16 @@ export const createPaymentIntent = functions
       throw new functions.https.HttpsError('invalid-argument', 'parameter missing')
     }
     try {
-      const parkingFeeTotal = (await calculateParkingInvoice(params.gateRecordId)).total * 100 // Stripe uses minimum amount as unit
+      const invoice = await calculateParkingInvoice(params.gateRecordId) // Stripe uses minimum amount as unit
+      const parkingFeeTotal = invoice.total * 100
       const paymentIntent = await stripe.paymentIntents.create({
         amount: parkingFeeTotal,
         currency: 'hkd'
       });
       return {
         success: true,
-        clientSecret: paymentIntent.client_secret
+        clientSecret: paymentIntent.client_secret,
+        invoice: invoice,
       }
     } catch (error) {
       return {

@@ -22,6 +22,12 @@ class PaymentMethodPage extends StatefulWidget {
 }
 
 class _PaymentMethodPageState extends State<PaymentMethodPage> {
+  Widget _getDivider() {
+    return Divider(
+      height: 2,
+      thickness: 2,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,15 +42,15 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      body: ListTileTheme(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            RaisedButton(
-              child: Text("Credit Card", style: TextStyle(fontSize: 16)),
-              onPressed: () {
+            this._getDivider(),
+            ListTile(
+              onTap: () {
                 this._pushRoute(
                   CardPage(
                     gateRecordId: widget.gateRecordId,
@@ -52,45 +58,52 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                   ),
                 );
               },
-            ),
-            Divider(),
-            RaisedButton(
-              child: Text(
-                Platform.isIOS ? "Apple Pay" : "Google Pay",
-                style: TextStyle(fontSize: 16),
+              leading: Icon(
+                Icons.payment,
+                size: 40,
               ),
-              onPressed: () {
-                this._performNativePayment();
-              },
+              trailing: Icon(Icons.arrow_forward_ios),
+              title: Text("Credit Card"),
             ),
-            RaisedButton(
-              child: Text(
-                "Alipay",
-                style: TextStyle(fontSize: 16),
+            this._getDivider(),
+            ListTile(
+              onTap: this._payByAlipay,
+              leading: Image(
+                width: 40,
+                height: 40,
+                image: AssetImage("assets/alipay.png"),
               ),
-              onPressed: () {
-                this._performAlipay();
-              },
+              trailing: Icon(Icons.arrow_forward_ios),
+              title: Text("Alipay"),
             ),
-            RaisedButton(
-              child: Text(
-                "WeChatpay",
-                style: TextStyle(fontSize: 16),
+            this._getDivider(),
+            ListTile(
+              onTap: this._payByWeChatPay,
+              leading: Image(
+                width: 40,
+                height: 40,
+                image: AssetImage("assets/wechatpay.png"),
               ),
-              onPressed: () {},
+              trailing: Icon(Icons.arrow_forward_ios),
+              title: Text("WeChat Pay"),
             ),
-            Divider(),
-            RaisedButton(
-              child: Text("Pay in Security Center",
-                  style: TextStyle(fontSize: 16)),
-              onPressed: () {
+            this._getDivider(),
+            ListTile(
+              onTap: () {
                 this._pushRoute(
                   PayInPersonPage(
                     gateRecordId: widget.gateRecordId,
                   ),
                 );
               },
+              leading: Icon(
+                Icons.face,
+                size: 40,
+              ),
+              trailing: Icon(Icons.arrow_forward_ios),
+              title: Text("Pay in Security Center"),
             ),
+            this._getDivider(),
           ],
         ),
       ),
@@ -124,7 +137,11 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
 //    );
   }
 
-  void _performAlipay() {
+  void _payByAlipay() {
+    // TODO:
+  }
+
+  void _payByWeChatPay() {
     // TODO:
   }
 }

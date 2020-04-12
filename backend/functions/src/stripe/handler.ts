@@ -4,7 +4,15 @@ import { stripe } from '../common/stripe'
 
 const db = admin.firestore()
 
-async function calculateParkingFeeByGateRecord(gateRecordId: string): Promise<number> {
+const normalHourFee = 20
+const busyHourFee = 50
+
+interface ParkingFee {
+  total: number
+  items: Array<object>
+}
+
+async function calculateParkingFeeByGateRecord(gateRecordId: string): Promise<ParkingFee> {
   // Get gate record
   const docRef = await db.collection('gateRecords').doc(gateRecordId)
   const doc = await docRef.get()
@@ -23,7 +31,30 @@ async function calculateParkingFeeByGateRecord(gateRecordId: string): Promise<nu
   // FIXME: HARDCODED MINUTES FOR TESTING
   parkingDurationInMinutes = 128
   /// Fee: First 2 hours $20 per hour, then every hour $50
-  return Math.ceil(Math.min(120, parkingDurationInMinutes) / 60) * 20 + Math.ceil(Math.max(0, parkingDurationInMinutes - 120) / 60) * 50
+  const roundedUpParkingHours = Math.ceil(parkingDurationInMinutes / 60)
+  const numberOfNormalHours = Math.min(roundedUpParkingHours, 2)
+  const numberOfBusyHours = Math.max(roundedUpParkingHours - 2, 0)
+  const normalSubtotal = numberOfNormalHours * normalHourFee
+  const busySubtotal = numberOfBusyHours * busyHourFee
+  const total = normalSubtotal + busySubtotal
+
+  return {
+    total: total,
+    items: [
+      {
+        name: "Normal hour",
+        quantity: numberOfNormalHours,
+        fee: normalHourFee,
+        subtotal: normalSubtotal
+      },
+      {
+        name: "Busy hour",
+        quantity: numberOfBusyHours,
+        fee: busyHourFee,
+        subtotal: busySubtotal
+      }
+    ]
+  }
 }
 
 export const calculateParkingFee = functions.region('asia-east2')
@@ -74,10 +105,10 @@ export const createPaymentIntent = functions
       throw new functions.https.HttpsError('invalid-argument', 'parameter missing')
     }
     try {
-      const parkingFee = await calculateParkingFeeByGateRecord(params.gateRecordId)
+      const parkingFeeTotal = (await calculateParkingFeeByGateRecord(params.gateRecordId)).total * 100 // Stripe uses minimum amount as unit
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: parkingFee,
-        currency: 'hkd',
+        amount: parkingFeeTotal,
+        currency: 'hkd'
       });
       return {
         success: true,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_car_park_app/pages/payment/payment_methods.dart';
+import 'package:smart_car_park_app/pages/payment/payment_summary_page.dart';
 
 class PaymentPage extends StatefulWidget {
   PaymentPage({
@@ -57,7 +57,7 @@ class _PaymentPageState extends State<PaymentPage> {
                         onPressed: (){
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => (PaymentMethodPage(gateRecordId:gateRecordId,fee:(parkingDuation/60).ceil()*20))),
+                            MaterialPageRoute(builder: (context) => (PaymentSummaryPage(gateRecordId:gateRecordId,fee:(parkingDuation/60).ceil()*20))),
                           );
                         }, 
                         splashColor: Colors.redAccent,

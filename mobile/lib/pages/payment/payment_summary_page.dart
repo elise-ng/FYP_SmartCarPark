@@ -1,17 +1,17 @@
-import 'package:awesome_card/awesome_card.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_car_park_app/models/parking_invoice.dart';
+import 'package:smart_car_park_app/pages/payment/credit_card_management_page.dart';
 import 'package:smart_car_park_app/pages/payment/pay_inperson.dart';
-import 'package:smart_car_park_app/pages/payment/credit_card.dart';
+import 'package:smart_car_park_app/utils/cloud_functions_utils.dart';
 import 'package:smart_car_park_app/widgets/progress_dialog.dart';
 
-class PaymentMethodPage extends StatefulWidget {
+class PaymentSummaryPage extends StatefulWidget {
   String gateRecordId;
   int fee;
 
-  PaymentMethodPage({
+  PaymentSummaryPage({
     key,
     gateRecordId,
     fee,
@@ -20,11 +20,11 @@ class PaymentMethodPage extends StatefulWidget {
         super(key: key);
 
   @override
-  _PaymentMethodPageState createState() => _PaymentMethodPageState();
+  _PaymentSummaryPageState createState() => _PaymentSummaryPageState();
 }
 
-class _PaymentMethodPageState extends State<PaymentMethodPage> {
-  ParkingInvoice _receipt;
+class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
+  ParkingInvoice _invoice;
 
   @override
   void initState() {
@@ -37,19 +37,9 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
   }
 
   Future<void> _getParkingFeeReceipt() async {
-    HttpsCallableResult result =
-        await CloudFunctions(app: FirebaseApp.instance, region: 'asia-east2')
-            .getHttpsCallable(functionName: "calculateParkingFee")
-            .call(<String, dynamic>{"gateRecordId": "oROtC7Jsw2APdIp2zn3e"});
-
-    Map data = result.data as Map;
-
-    if (data.containsKey("success") && !data["success"]) {
-      print("failed");
-    }
-
+    ParkingInvoice invoice = await CloudFunctionsUtils.getParkingInvoice("oROtC7Jsw2APdIp2zn3e");
     setState(() {
-      this._receipt = ParkingInvoice.fromJson(data["parkingFee"] as Map);
+      this._invoice = invoice;
     });
   }
 
@@ -72,7 +62,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
               children: <Widget>[
                 Expanded(
                   child: Text(
-                    this._receipt.license,
+                    this._invoice.license,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
@@ -83,7 +73,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                 Padding(
                   padding: const EdgeInsets.only(left: 4.0),
                   child: Text(
-                    "${this._receipt.durationInMinutes} minutes",
+                    "${this._invoice.durationInMinutes} minutes",
                     style: TextStyle(
                       fontSize: 16,
                     ),
@@ -100,7 +90,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
           Expanded(
             child: Column(
               children: this
-                  ._receipt
+                  ._invoice
                   .items
                   .map(
                     (item) => Padding(
@@ -164,7 +154,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                   ),
                 ),
                 Text(
-                  "\$${this._receipt.total}",
+                  "\$${this._invoice.total}",
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 20,
@@ -182,7 +172,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Payment method'),
+        title: Text('Summary'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
@@ -195,7 +185,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.max,
           children: <Widget>[
-            if (this._receipt != null)
+            if (this._invoice != null)
               Expanded(child: this._getParkingInvoiceWidget()),
             ListTileTheme(
               contentPadding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -207,9 +197,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                   ListTile(
                     onTap: () {
                       this._pushRoute(
-                        CardPage(
-                          gateRecordId: widget.gateRecordId,
-                          fee: widget.fee,
+                        CreditCardManagementPage(
+                          parkingInvoice: this._invoice,
                         ),
                       );
                     },

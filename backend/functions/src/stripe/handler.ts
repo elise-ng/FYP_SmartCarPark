@@ -7,12 +7,14 @@ const db = admin.firestore()
 const normalHourFee = 20
 const busyHourFee = 50
 
-interface ParkingFee {
+interface ParkingInvoice {
   total: number
+  durationInMinutes: number
+  license: string
   items: Array<object>
 }
 
-async function calculateParkingFeeByGateRecord(gateRecordId: string): Promise<ParkingFee> {
+async function calculateParkingFeeByGateRecord(gateRecordId: string): Promise<ParkingInvoice> {
   // Get gate record
   const docRef = await db.collection('gateRecords').doc(gateRecordId)
   const doc = await docRef.get()
@@ -40,15 +42,17 @@ async function calculateParkingFeeByGateRecord(gateRecordId: string): Promise<Pa
 
   return {
     total: total,
+    license: docData.vehicleId,
+    durationInMinutes: parkingDurationInMinutes,
     items: [
       {
-        name: "Normal hour",
+        name: "First two hours",
         quantity: numberOfNormalHours,
         fee: normalHourFee,
         subtotal: normalSubtotal
       },
       {
-        name: "Busy hour",
+        name: "Third hour and thereafter",
         quantity: numberOfBusyHours,
         fee: busyHourFee,
         subtotal: busySubtotal

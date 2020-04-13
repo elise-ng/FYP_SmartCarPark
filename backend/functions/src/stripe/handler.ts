@@ -142,11 +142,18 @@ export const createPaymentIntent = functions
       throw new functions.https.HttpsError('invalid-argument', 'parameter missing')
     }
     try {
+      const userRecord = await db.collection('userRecords').doc(context.auth.uid).get()
+      const userRecordData = userRecord.data()
+      if (!userRecord.exists || !userRecordData) {
+        throw new Error("User record does not exist")
+      }
+      const customerId = userRecordData.stripe_customerId;
       const invoice = await calculateParkingInvoice(params.gateRecordId) // Stripe uses minimum amount as unit
       const parkingFeeTotal = invoice.total * 100
       const paymentIntent = await stripe.paymentIntents.create({
         amount: parkingFeeTotal,
         currency: 'hkd',
+        customer: customerId,
         payment_method_types: ['card'],
         metadata: {
           gateRecordId: params.gateRecordId,

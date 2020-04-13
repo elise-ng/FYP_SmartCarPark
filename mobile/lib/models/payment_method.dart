@@ -1,4 +1,3 @@
-import 'package:awesome_card/awesome_card.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:stripe_sdk/stripe_sdk_ui.dart';
 

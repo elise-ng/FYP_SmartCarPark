@@ -146,7 +146,11 @@ export const createPaymentIntent = functions
       const parkingFeeTotal = invoice.total * 100
       const paymentIntent = await stripe.paymentIntents.create({
         amount: parkingFeeTotal,
-        currency: 'hkd'
+        currency: 'hkd',
+        payment_method_types: ['card'],
+        metadata: {
+          gateRecordId: params.gateRecordId,
+        },
       });
       return {
         success: true,

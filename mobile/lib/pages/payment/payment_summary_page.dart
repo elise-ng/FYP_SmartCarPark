@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:smart_car_park_app/models/payment_intent.dart';
 import 'package:smart_car_park_app/models/payment_method.dart';
 import 'package:smart_car_park_app/widgets/parking_invoice_widget.dart';
+import 'package:smart_car_park_app/widgets/progress_dialog.dart';
+import 'package:stripe_sdk/stripe_sdk.dart';
 
 class PaymentSummaryPage extends StatefulWidget {
   /// Used for card payment
@@ -25,6 +27,7 @@ class PaymentSummaryPage extends StatefulWidget {
 class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
 
   bool _needUpdateCreditCards() => widget.updateCreditCards != null;
+  bool _isUsingPaymentIntent() => widget.paymentIntent != null;
 
   Future<bool> _pop() async {
     if(this._needUpdateCreditCards()) {
@@ -34,7 +37,11 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
   }
 
   void _pay() async {
-
+    ProgressDialog.show(context, message: "Confirming payment...");
+    if(this._isUsingPaymentIntent()) {
+      print(await Stripe.instance.confirmPayment(widget.paymentIntent.clientSecret, widget.paymentMethod.id));
+    }
+    ProgressDialog.hide(context);
   }
 
   String _getPaymentMethodText() {

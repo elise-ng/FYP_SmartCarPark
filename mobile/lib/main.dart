@@ -1,8 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_car_park_app/global_variables.dart';
-import 'package:smart_car_park_app/home_page.dart';
 import 'package:smart_car_park_app/splash_page.dart';
 import 'package:stripe_sdk/stripe_sdk.dart';
 
@@ -21,7 +19,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    Stripe.init(publishableKey, returnUrlForSca: "smartcarpark://sca/");
+    Stripe.init(publishableKey, returnUrlForSca: "smartcarpark://sca");
     StripeApi.init(publishableKey);
   }
 

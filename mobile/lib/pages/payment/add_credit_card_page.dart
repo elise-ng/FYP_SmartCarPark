@@ -12,12 +12,12 @@ import 'package:stripe_sdk/stripe_sdk_ui.dart';
 
 class AddCreditCardPage extends StatefulWidget {
   final PaymentIntent paymentIntent;
-  final Function updatePaymentMethods;
+  final Function updateCreditCards;
 
   AddCreditCardPage({
     key,
     this.paymentIntent,
-    this.updatePaymentMethods,
+    this.updateCreditCards,
   }) : super(key: key);
 
   @override
@@ -60,7 +60,7 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
     return this._card.validateCard();
   }
 
-  void _payWithCard() async {
+  void _continue() async {
     ProgressDialog.show(context);
     var rawPaymentMethod =
         await StripeApi.instance.createPaymentMethodFromCard(this._card);
@@ -73,7 +73,9 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => PaymentSummaryPage(
-          method: paymentMethod,
+          paymentIntent: widget.paymentIntent,
+          paymentMethod: paymentMethod,
+
         ),
       ),
     );
@@ -83,7 +85,7 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Credit Card'),
+        title: Text('Add New Credit Card'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
@@ -110,7 +112,11 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
                     cardHolderName: this._card.name ?? "",
                     cvv: this._card.cvc ?? "",
                     showBackSide: this._cvvFocusNode.hasFocus,
-                    frontBackground: card.CardBackgrounds.black,
+                    frontBackground: Container(
+                      width: double.maxFinite,
+                      height: double.maxFinite,
+                      color: Colors.indigoAccent,
+                    ),
                     backBackground: card.CardBackgrounds.white,
                     frontTextColor: Colors.white,
                     showShadow: true,
@@ -217,21 +223,26 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
                   ),
                 ),
                 Container(
-                  margin: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                  margin: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                   child: RaisedButton(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(36),
+                    ),
                     color: Theme.of(context).primaryColor,
                     textColor: Colors.white,
                     child: Row(
+                      mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Text("Pay Now with Credit Card"),
+                        Text("Continue"),
                         Icon(Icons.navigate_next)
                       ],
                     ),
-                    onPressed: this._isCardValid() ? this._payWithCard : null,
-                    splashColor: Colors.redAccent,
+                    onPressed: this._isCardValid() ? this._continue : null,
+                    splashColor: Colors.indigoAccent,
                   ),
-                )
+                ),
               ],
             ),
           ),

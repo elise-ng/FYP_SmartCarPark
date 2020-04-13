@@ -64,7 +64,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.max,
           children: <Widget>[
-            if (this._paymentIntent.invoice != null)
+            if (this._paymentIntent != null)
               Expanded(
                 child: ParkingInvoiceWidget(
                   invoice: this._paymentIntent.invoice,

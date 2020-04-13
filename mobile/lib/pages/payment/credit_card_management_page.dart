@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_car_park_app/models/payment_intent.dart';
 import 'package:smart_car_park_app/models/payment_method.dart';
 import 'package:smart_car_park_app/pages/payment/add_credit_card_page.dart';
+import 'package:smart_car_park_app/pages/payment/payment_summary_page.dart';
 import 'package:smart_car_park_app/utils/cloud_functions_utils.dart';
 import 'package:smart_car_park_app/widgets/progress_dialog.dart';
 import 'package:stripe_sdk/stripe_sdk.dart';
@@ -44,7 +45,18 @@ class _CreditCardManagementPageState extends State<CreditCardManagementPage> {
       MaterialPageRoute(
         builder: (context) => AddCreditCardPage(
           paymentIntent: widget.paymentIntent,
-          updatePaymentMethods: this._updatePaymentMethods,
+          updateCreditCards: this._updatePaymentMethods,
+        ),
+      ),
+    );
+  }
+
+  void _payWithExisting(PaymentMethod method) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PaymentSummaryPage(
+          paymentIntent: widget.paymentIntent,
+          paymentMethod: method,
         ),
       ),
     );
@@ -100,15 +112,22 @@ class _CreditCardManagementPageState extends State<CreditCardManagementPage> {
                   ),
                 );
               } else {
-                //TODO: existing card widget
-                return Container(
-                  constraints: BoxConstraints(minHeight: 80),
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.payment,
-                      size: 40,
+                PaymentMethod method = this._paymentMethod[index];
+                return InkWell(
+                  onTap: () {
+                    this._payWithExisting(method);
+                  },
+                  child: Container(
+                    constraints: BoxConstraints(minHeight: 80),
+                    alignment: Alignment.center,
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.payment,
+                        size: 40,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      title: Text(method.card.getCardDescription()),
                     ),
-                    title: Text("Credit Card"),
                   ),
                 );
               }

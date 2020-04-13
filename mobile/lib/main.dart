@@ -15,11 +15,14 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+
+  static const publishableKey = "pk_test_Kbnp8sRWTtMqKaXJdOKIO2hK00y1OinDK1";
+
   @override
   void initState() {
     super.initState();
-    Stripe.init("pk_test_Kbnp8sRWTtMqKaXJdOKIO2hK00y1OinDK1",
-        returnUrlForSca: "smartcarpark://sca/");
+    Stripe.init(publishableKey, returnUrlForSca: "smartcarpark://sca/");
+    StripeApi.init(publishableKey);
   }
 
   @override

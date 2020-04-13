@@ -58,7 +58,7 @@ dependencies:
   mask_text_input_formatter: ^1.0.6
 
   # Stripe SDK
-  stripe_sdk: ^2.5.1
+  stripe_sdk: ^2.5.2
 
   # Deep link handling
   uni_links: ^0.2.0
@@ -72,6 +72,15 @@ dependencies:
   # JSON
   json_annotation: ^3.0.0
 
+  # Handle In App URL
+  url_launcher: ^5.4.2
+
+  # Platform-aware dialog
+  flutter_dialogs: ^1.0.3
+
+  # Lottie animations
+  lottie: ^0.3.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -84,7 +93,8 @@ dev_dependencies:
 # The following section is specific to Flutter.
 flutter:
   assets:
-    - assets/
+    - assets/images/
+    - assets/lottie/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

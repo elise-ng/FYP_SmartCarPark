@@ -94,7 +94,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                     leading: Image(
                       width: 40,
                       height: 40,
-                      image: AssetImage("assets/alipay.png"),
+                      image: AssetImage("assets/images/alipay.png"),
                     ),
                     trailing: Icon(Icons.arrow_forward_ios),
                     title: Text("Alipay"),
@@ -105,7 +105,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                     leading: Image(
                       width: 40,
                       height: 40,
-                      image: AssetImage("assets/wechatpay.png"),
+                      image: AssetImage("assets/images/wechatpay.png"),
                     ),
                     trailing: Icon(Icons.arrow_forward_ios),
                     title: Text("WeChat Pay"),

@@ -21,6 +21,7 @@ class _SplashPageState extends State<SplashPage> {
     await this._initUserState();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
+        settings: RouteSettings(name: "/home"),
         builder: (context) => HomePage(),
       ),
     );

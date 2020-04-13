@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_car_park_app/models/parking_invoice.dart';
+import 'package:smart_car_park_app/models/payment_intent.dart';
 import 'package:smart_car_park_app/pages/payment/credit_card_management_page.dart';
 import 'package:smart_car_park_app/pages/payment/pay_inperson.dart';
 import 'package:smart_car_park_app/utils/cloud_functions_utils.dart';
@@ -19,7 +20,7 @@ class PaymentMethodsPage extends StatefulWidget {
 }
 
 class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
-  ParkingInvoice _invoice;
+  PaymentIntent _paymentIntent;
 
   @override
   void initState() {
@@ -32,10 +33,10 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   }
 
   Future<void> _getParkingFeeReceipt() async {
-    ParkingInvoice invoice =
-        await CloudFunctionsUtils.getParkingInvoice("oROtC7Jsw2APdIp2zn3e");
+    PaymentIntent _intent =
+        await CloudFunctionsUtils.createPaymentIntent("oROtC7Jsw2APdIp2zn3e");
     setState(() {
-      this._invoice = invoice;
+      this._paymentIntent = _intent;
     });
   }
 
@@ -63,10 +64,10 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.max,
           children: <Widget>[
-            if (this._invoice != null)
+            if (this._paymentIntent.invoice != null)
               Expanded(
                 child: ParkingInvoiceWidget(
-                  invoice: this._invoice,
+                  invoice: this._paymentIntent.invoice,
                 ),
               ),
             ListTileTheme(
@@ -78,11 +79,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                   this._getDivider(),
                   ListTile(
                     onTap: () {
-                      this._pushRoute(
-                        CreditCardManagementPage(
-                          parkingInvoice: this._invoice,
-                        ),
-                      );
+                      this._handleCreditCardPayment();
                     },
                     leading: Icon(
                       Icons.payment,
@@ -144,6 +141,14 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
       context,
       MaterialPageRoute(
         builder: (context) => page,
+      ),
+    );
+  }
+
+  void _handleCreditCardPayment() async {
+    this._pushRoute(
+      CreditCardManagementPage(
+        paymentIntent: this._paymentIntent,
       ),
     );
   }

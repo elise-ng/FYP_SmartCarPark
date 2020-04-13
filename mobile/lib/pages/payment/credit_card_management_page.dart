@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:smart_car_park_app/models/parking_invoice.dart';
+import 'package:smart_car_park_app/models/payment_intent.dart';
 import 'package:smart_car_park_app/models/payment_method.dart';
 import 'package:smart_car_park_app/pages/payment/add_credit_card_page.dart';
 import 'package:smart_car_park_app/utils/cloud_functions_utils.dart';
 import 'package:smart_car_park_app/widgets/progress_dialog.dart';
 import 'package:stripe_sdk/stripe_sdk.dart';
-import 'package:stripe_sdk/stripe_sdk_ui.dart';
 
 class CreditCardManagementPage extends StatefulWidget {
-  final ParkingInvoice parkingInvoice;
+  final PaymentIntent paymentIntent;
 
   CreditCardManagementPage({
-    this.parkingInvoice,
+    this.paymentIntent,
   });
 
   @override
@@ -26,9 +25,7 @@ class _CreditCardManagementPageState extends State<CreditCardManagementPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      ProgressDialog.show(context);
       await this._initCustomerSession();
-      ProgressDialog.hide(context);
     });
   }
 
@@ -36,21 +33,31 @@ class _CreditCardManagementPageState extends State<CreditCardManagementPage> {
     CustomerSession.initCustomerSession(
         (apiVersion) => CloudFunctionsUtils.getEphemeralKey(apiVersion),
         apiVersion: "2020-03-02");
+    await this._updatePaymentMethods();
+    if (this._paymentMethod.isEmpty) {
+      this._addCard();
+    }
+  }
+
+  void _addCard() async {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AddCreditCardPage(
+          paymentIntent: widget.paymentIntent,
+          updatePaymentMethods: this._updatePaymentMethods,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updatePaymentMethods() async {
+    ProgressDialog.show(context);
     List data = (await CustomerSession.instance.listPaymentMethods())["data"];
     setState(() {
       this._paymentMethod =
           data.map((map) => PaymentMethod.fromJson(map)).toList();
     });
-  }
-
-  void _addCard() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AddCreditCardPage(),
-      ),
-    );
-
-
+    ProgressDialog.hide(context);
   }
 
   @override

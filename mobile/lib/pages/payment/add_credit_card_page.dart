@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:awesome_card/awesome_card.dart' as card;
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:smart_car_park_app/models/payment_intent.dart';
 import 'package:smart_car_park_app/models/payment_method.dart';
 import 'package:smart_car_park_app/pages/payment/payment_summary_page.dart';
 import 'package:smart_car_park_app/widgets/progress_dialog.dart';
@@ -10,11 +11,13 @@ import 'package:stripe_sdk/stripe_sdk.dart';
 import 'package:stripe_sdk/stripe_sdk_ui.dart';
 
 class AddCreditCardPage extends StatefulWidget {
-  final String gateRecordId;
+  final PaymentIntent paymentIntent;
+  final Function updatePaymentMethods;
 
   AddCreditCardPage({
     key,
-    this.gateRecordId,
+    this.paymentIntent,
+    this.updatePaymentMethods,
   }) : super(key: key);
 
   @override

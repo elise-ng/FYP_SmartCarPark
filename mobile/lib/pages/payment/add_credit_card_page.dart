@@ -22,6 +22,9 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
   String cvv = "";
   FocusNode _cvvFocusNode = FocusNode();
 
+  MaskedTextController _cardNumberTextController =
+      MaskedTextController(mask: '0000 0000 0000 0000');
+
   MaskedTextController _expiryTextController =
       MaskedTextController(mask: '00/00');
 
@@ -83,7 +86,8 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
                   child: Column(
                     children: <Widget>[
                       TextFormField(
-                        decoration: InputDecoration(labelText: "Card Number"),
+                        decoration: InputDecoration(labelText: "Card Number", counterText: ""),
+                        controller: this._cardNumberTextController,
                         maxLength: 19,
                         keyboardType: TextInputType.number,
                         onChanged: (value) {
@@ -113,7 +117,7 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
                               child: TextFormField(
                                 controller: this._expiryTextController,
                                 decoration:
-                                    InputDecoration(labelText: "Expiry Date"),
+                                    InputDecoration(labelText: "Expiry Date", counterText: ""),
                                 keyboardType: TextInputType.number,
                                 maxLength: 5,
                                 onChanged: (value) {
@@ -130,7 +134,7 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
                               padding: const EdgeInsets.only(left: 4.0),
                               child: TextFormField(
                                 focusNode: this._cvvFocusNode,
-                                decoration: InputDecoration(labelText: "CVV"),
+                                decoration: InputDecoration(labelText: "CVV", counterText: ""),
                                 keyboardType: TextInputType.number,
                                 maxLength: 3,
                                 onChanged: (value) {

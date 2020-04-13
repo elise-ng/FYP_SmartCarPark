@@ -14,6 +14,7 @@ class PaymentMethod {
   Map<String, dynamic> toJson() => _$PaymentMethodToJson(this);
 }
 
+/// Representation of a credit card object inside a payment method
 @JsonSerializable(anyMap: true)
 class Card {
   Card();

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smart_car_park_app/models/parking_invoice.dart';
 import 'package:smart_car_park_app/models/payment_method.dart';
+import 'package:smart_car_park_app/pages/payment/add_credit_card_page.dart';
 import 'package:smart_car_park_app/utils/cloud_functions_utils.dart';
 import 'package:smart_car_park_app/widgets/progress_dialog.dart';
 import 'package:stripe_sdk/stripe_sdk.dart';
@@ -42,6 +43,16 @@ class _CreditCardManagementPageState extends State<CreditCardManagementPage> {
     });
   }
 
+  void _addCard() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AddCreditCardPage(),
+      ),
+    );
+
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,7 +77,9 @@ class _CreditCardManagementPageState extends State<CreditCardManagementPage> {
             itemBuilder: (context, index) {
               if (index == this._paymentMethod.length) {
                 return InkWell(
-                  onTap: () {},
+                  onTap: () {
+                    this._addCard();
+                  },
                   child: Container(
                     constraints: BoxConstraints(minHeight: 80),
                     alignment: Alignment.center,

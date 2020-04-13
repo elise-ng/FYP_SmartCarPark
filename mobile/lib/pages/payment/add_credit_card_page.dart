@@ -2,7 +2,11 @@ import 'package:awesome_card/credit_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:awesome_card/awesome_card.dart' as card;
-import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:smart_car_park_app/models/payment_method.dart';
+import 'package:smart_car_park_app/pages/payment/payment_summary_page.dart';
+import 'package:smart_car_park_app/widgets/progress_dialog.dart';
+import 'package:stripe_sdk/stripe_sdk.dart';
 import 'package:stripe_sdk/stripe_sdk_ui.dart';
 
 class AddCreditCardPage extends StatefulWidget {
@@ -18,16 +22,20 @@ class AddCreditCardPage extends StatefulWidget {
 }
 
 class _AddCreditCardPageState extends State<AddCreditCardPage> {
-  StripeCard _card = StripeCard(number: "", cvc: "");
+  String _cardNumber = "";
+  String _cardExpDate = "";
+
+  StripeCard _card = StripeCard();
   FocusNode _cvvFocusNode = FocusNode();
 
   bool _saveCardDetails = true;
 
-  MaskedTextController _cardNumberTextController =
-      MaskedTextController(mask: '0000 0000 0000 0000');
-
-  MaskedTextController _expiryTextController =
-      MaskedTextController(mask: '00/00');
+  MaskTextInputFormatter _cardNumberTextFormatter = MaskTextInputFormatter(
+      mask: '#### #### #### ####', filter: {"#": RegExp(r'[0-9]')});
+  MaskTextInputFormatter _expiryTextFormatter =
+      MaskTextInputFormatter(mask: '##/##', filter: {"#": RegExp(r'[0-9]')});
+  MaskTextInputFormatter _cvvTextFormatter =
+      MaskTextInputFormatter(mask: '####', filter: {"#": RegExp(r'[0-9]')});
 
   @override
   void initState() {
@@ -49,8 +57,23 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
     return this._card.validateCard();
   }
 
-  void _payWithCard() {
-
+  void _payWithCard() async {
+    ProgressDialog.show(context);
+    var rawPaymentMethod =
+        await StripeApi.instance.createPaymentMethodFromCard(this._card);
+    if (this._saveCardDetails) {
+      rawPaymentMethod = await CustomerSession.instance
+          .attachPaymentMethod(rawPaymentMethod['id']);
+    }
+    PaymentMethod paymentMethod = PaymentMethod.fromJson(rawPaymentMethod);
+    ProgressDialog.hide(context);
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => PaymentSummaryPage(
+          method: paymentMethod,
+        ),
+      ),
+    );
   }
 
   @override
@@ -79,14 +102,14 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20.0),
                   child: CreditCard(
-                    cardNumber: this._card.number,
-                    cardExpiry: null,
-                    cardHolderName: this._card.name,
-                    cvv: this._card.cvc,
+                    cardNumber: this._cardNumber,
+                    cardExpiry: this._cardExpDate,
+                    cardHolderName: this._card.name ?? "",
+                    cvv: this._card.cvc ?? "",
                     showBackSide: this._cvvFocusNode.hasFocus,
-                    frontBackground: card.CardBackgrounds.white,
+                    frontBackground: card.CardBackgrounds.black,
                     backBackground: card.CardBackgrounds.white,
-                    frontTextColor: Colors.black,
+                    frontTextColor: Colors.white,
                     showShadow: true,
                   ),
                 ),
@@ -97,13 +120,15 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
                         child: TextFormField(
-                          decoration: InputDecoration(labelText: "Card Number", counterText: ""),
-                          controller: this._cardNumberTextController,
+                          decoration: InputDecoration(
+                              labelText: "Card Number", counterText: ""),
+                          inputFormatters: [this._cardNumberTextFormatter],
                           maxLength: 19,
                           keyboardType: TextInputType.number,
                           onChanged: (value) {
                             setState(() {
-                              this._card.number = value;
+                              this._cardNumber = value;
+                              this._card.number = value.replaceAll(" ", "");
                             });
                           },
                         ),
@@ -127,14 +152,24 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
                             child: Padding(
                               padding: const EdgeInsets.only(right: 4.0),
                               child: TextFormField(
-                                controller: this._expiryTextController,
-                                decoration:
-                                    InputDecoration(labelText: "Expiry Date", counterText: ""),
+                                inputFormatters: [this._expiryTextFormatter],
+                                decoration: InputDecoration(
+                                  labelText: "Expiry Date",
+                                  counterText: "",
+                                  hintText: "MM/YY",
+                                ),
                                 keyboardType: TextInputType.number,
                                 maxLength: 5,
                                 onChanged: (value) {
                                   setState(() {
-//                                    expiryDate = value;
+                                    this._cardExpDate = value;
+                                    List<String> splitExp = value.split("/");
+                                    if (splitExp.length >= 2) {
+                                      this._card.expMonth =
+                                          int.parse(splitExp[0]);
+                                      this._card.expYear =
+                                          int.parse(splitExp[1]) + 2000;
+                                    }
                                   });
                                 },
                               ),
@@ -146,9 +181,13 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
                               padding: const EdgeInsets.only(left: 4.0),
                               child: TextFormField(
                                 focusNode: this._cvvFocusNode,
-                                decoration: InputDecoration(labelText: "CVV", counterText: ""),
+                                inputFormatters: [this._cvvTextFormatter],
+                                decoration: InputDecoration(
+                                  labelText: "CVV",
+                                  counterText: "",
+                                ),
                                 keyboardType: TextInputType.number,
-                                maxLength: 3,
+                                maxLength: 4,
                                 onChanged: (value) {
                                   setState(() {
                                     this._card.cvc = value;

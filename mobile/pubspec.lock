@@ -307,13 +307,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_masked_text:
-    dependency: "direct main"
-    description:
-      name: flutter_masked_text
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.8.0"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -437,7 +430,7 @@ packages:
     source: hosted
     version: "0.11.4"
   mask_text_input_formatter:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: mask_text_input_formatter
       url: "https://pub.dartlang.org"

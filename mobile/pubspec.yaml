@@ -55,7 +55,7 @@ dependencies:
 
   # Credit card UI
   awesome_card: ^1.1.0
-  flutter_masked_text: ^0.8.0
+  mask_text_input_formatter: ^1.0.6
 
   # Stripe SDK
   stripe_sdk: ^2.5.1

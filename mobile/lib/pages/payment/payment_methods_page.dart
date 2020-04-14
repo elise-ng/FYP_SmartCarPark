@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:smart_car_park_app/models/parking_invoice.dart';
 import 'package:smart_car_park_app/models/payment_intent.dart';
+import 'package:smart_car_park_app/models/payment_source.dart';
 import 'package:smart_car_park_app/pages/payment/credit_card_management_page.dart';
 import 'package:smart_car_park_app/pages/payment/pay_inperson.dart';
+import 'package:smart_car_park_app/pages/payment/payment_summary_page.dart';
 import 'package:smart_car_park_app/utils/cloud_functions_utils.dart';
 import 'package:smart_car_park_app/widgets/parking_invoice_widget.dart';
 import 'package:smart_car_park_app/widgets/progress_dialog.dart';
@@ -94,21 +95,21 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                     leading: Image(
                       width: 40,
                       height: 40,
-                      image: AssetImage("assets/images/alipay.png"),
+                      image: AssetImage(PaymentSourceType.alipay.getAssetPath()),
                     ),
                     trailing: Icon(Icons.arrow_forward_ios),
-                    title: Text("Alipay"),
+                    title: Text(PaymentSourceType.alipay.getName()),
                   ),
                   this._getDivider(),
                   ListTile(
-                    onTap: this._payByWeChatPay,
+                    onTap: this._payByWechatPay,
                     leading: Image(
                       width: 40,
                       height: 40,
-                      image: AssetImage("assets/images/wechatpay.png"),
+                      image: AssetImage(PaymentSourceType.wechat.getAssetPath()),
                     ),
                     trailing: Icon(Icons.arrow_forward_ios),
-                    title: Text("WeChat Pay"),
+                    title: Text(PaymentSourceType.wechat.getName()),
                   ),
                   this._getDivider(),
                   ListTile(
@@ -136,8 +137,8 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
     );
   }
 
-  void _pushRoute(Widget page) {
-    Navigator.push(
+  Future<dynamic> _pushRoute(Widget page) {
+    return Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => page,
@@ -154,10 +155,18 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   }
 
   void _payByAlipay() {
-    // TODO:
+    this._pushRoute(
+      PaymentSummaryPage(
+        paymentSource: PaymentSource(this._paymentIntent.invoice, PaymentSourceType.alipay),
+      )
+    );
   }
 
-  void _payByWeChatPay() {
-    // TODO:
+  void _payByWechatPay() {
+    this._pushRoute(
+        PaymentSummaryPage(
+          paymentSource: PaymentSource(this._paymentIntent.invoice, PaymentSourceType.wechat),
+        )
+    );
   }
 }

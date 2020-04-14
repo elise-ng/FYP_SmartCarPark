@@ -129,7 +129,7 @@ class _ParkingPageState extends State<ParkingPage> {
                   child: RotatedBox(
                     quarterTurns: 1,
                     child: Image.asset(
-                      'assets/LG5.png',
+                      'assets/images/LG5.png',
                       fit: BoxFit.contain,
                     ),
                   ),

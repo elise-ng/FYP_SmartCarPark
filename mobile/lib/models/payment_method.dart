@@ -10,6 +10,7 @@ class PaymentMethod {
   String id;
   PaymentCard card;
   int created;
+  String customer;
 
   factory PaymentMethod.fromJson(Map json) => _$PaymentMethodFromJson(json);
 
@@ -31,9 +32,9 @@ class PaymentCard {
   String funding;
   String last4;
 
-  factory PaymentCard.fromJson(Map json) => _$CardFromJson(json);
+  factory PaymentCard.fromJson(Map json) => _$PaymentCardFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CardToJson(this);
+  Map<String, dynamic> toJson() => _$PaymentCardToJson(this);
 
   String getBrandName() {
     switch (this.brand) {

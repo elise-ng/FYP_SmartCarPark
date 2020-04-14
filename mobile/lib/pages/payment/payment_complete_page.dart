@@ -14,6 +14,10 @@ class PaymentCompletePage extends StatefulWidget {
 }
 
 class _PaymentCompletePageState extends State<PaymentCompletePage> {
+  void _pop() {
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,18 +25,52 @@ class _PaymentCompletePageState extends State<PaymentCompletePage> {
         title: Text('Completed'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: this._pop,
         ),
       ),
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            Lottie.asset("assets/lottie/completed.json"),
-            Text("You have paid \$${widget.invoice.total}"),
-
-          ],
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              Column(
+                children: <Widget>[
+                  Lottie.asset(
+                    "assets/lottie/completed.json",
+                    repeat: false,
+                    width: 200,
+                  ),
+                  Text(
+                    "You have paid \$${widget.invoice.total}",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 36),
+                child: RaisedButton(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(36),
+                  ),
+                  color: Theme.of(context).primaryColor,
+                  textColor: Colors.white,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text("Return"),
+                    ],
+                  ),
+                  onPressed: this._pop,
+                  splashColor: Colors.indigoAccent,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

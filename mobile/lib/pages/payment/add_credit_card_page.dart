@@ -75,7 +75,6 @@ class _AddCreditCardPageState extends State<AddCreditCardPage> {
         builder: (context) => PaymentSummaryPage(
           paymentIntent: widget.paymentIntent,
           paymentMethod: paymentMethod,
-
         ),
       ),
     );

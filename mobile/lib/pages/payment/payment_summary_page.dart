@@ -42,17 +42,23 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
   void _pay() async {
     Map<String, dynamic> response;
     ProgressDialog.show(context, message: "Confirming payment...");
-    if (this._isUsingPaymentIntent()) {
-      response = await Stripe.instance.confirmPayment(
-          widget.paymentIntent.clientSecret, widget.paymentMethod.id);
-      await closeWebView();
+    try {
+      if (this._isUsingPaymentIntent()) {
+        response = await Stripe.instance.confirmPayment(
+            widget.paymentIntent.clientSecret, widget.paymentMethod.id);
+        await closeWebView();
+      }
+      ProgressDialog.hide(context);
+      this._handlePaymentResponse(response);
+    } catch (e) {
+      print(e);
+      ProgressDialog.hide(context);
+      this._showPaymentErrorDialog(e.toString());
     }
-    ProgressDialog.hide(context);
-    this._handlePaymentResponse(response);
   }
 
   void _handlePaymentResponse(Map<String, dynamic> response) {
-    if (response["status"] == "succeeded") {
+    if (response == null || response["status"] == "succeeded") {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => PaymentCompletePage(
@@ -62,23 +68,31 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
         ModalRoute.withName("/home"),
       );
     } else {
-      showPlatformDialog(
-        context: context,
-        builder: (_) => BasicDialogAlert(
-          title: Text("Current Location Not Available"),
-          content:
-              Text("Your current location cannot be determined at this time."),
-          actions: <Widget>[
-            BasicDialogAction(
-              title: Text("OK"),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      );
+      this._showPaymentErrorDialog("Payment has failed");
     }
+  }
+
+  void _showPaymentErrorDialog(String message) {
+    showPlatformDialog(
+      context: context,
+      builder: (_) => BasicDialogAlert(
+        title: Text("Payment failed"),
+        content:
+        Text(message),
+        actions: <Widget>[
+          BasicDialogAction(
+            title: Text("OK"),
+            onPressed: () {
+              Navigator.pop(context);
+              if(this._isUsingPaymentIntent() && widget.paymentMethod.customer == null){
+                /// Single use card, require setup again
+                Navigator.pop(context);
+              }
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   String _getPaymentMethodText() {

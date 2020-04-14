@@ -9,8 +9,10 @@ part of 'payment_method.dart';
 PaymentMethod _$PaymentMethodFromJson(Map json) {
   return PaymentMethod()
     ..id = json['id'] as String
-    ..card = json['card'] == null ? null : PaymentCard.fromJson(json['card'] as Map)
-    ..created = json['created'] as int;
+    ..card =
+        json['card'] == null ? null : PaymentCard.fromJson(json['card'] as Map)
+    ..created = json['created'] as int
+    ..customer = json['customer'] as String;
 }
 
 Map<String, dynamic> _$PaymentMethodToJson(PaymentMethod instance) =>
@@ -18,9 +20,10 @@ Map<String, dynamic> _$PaymentMethodToJson(PaymentMethod instance) =>
       'id': instance.id,
       'card': instance.card?.toJson(),
       'created': instance.created,
+      'customer': instance.customer,
     };
 
-PaymentCard _$CardFromJson(Map json) {
+PaymentCard _$PaymentCardFromJson(Map json) {
   return PaymentCard()
     ..brand = json['brand'] as String
     ..country = json['country'] as String
@@ -31,7 +34,8 @@ PaymentCard _$CardFromJson(Map json) {
     ..last4 = json['last4'] as String;
 }
 
-Map<String, dynamic> _$CardToJson(PaymentCard instance) => <String, dynamic>{
+Map<String, dynamic> _$PaymentCardToJson(PaymentCard instance) =>
+    <String, dynamic>{
       'brand': instance.brand,
       'country': instance.country,
       'exp_month': instance.expMonth,

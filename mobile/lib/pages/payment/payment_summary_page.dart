@@ -1,3 +1,4 @@
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:smart_car_park_app/models/parking_invoice.dart';
@@ -5,6 +6,7 @@ import 'package:smart_car_park_app/models/payment_intent.dart';
 import 'package:smart_car_park_app/models/payment_method.dart';
 import 'package:smart_car_park_app/models/payment_source.dart';
 import 'package:smart_car_park_app/pages/payment/payment_complete_page.dart';
+import 'package:smart_car_park_app/utils/cloud_functions_utils.dart';
 import 'package:smart_car_park_app/widgets/parking_invoice_widget.dart';
 import 'package:smart_car_park_app/widgets/progress_dialog.dart';
 import 'package:stripe_sdk/stripe_sdk.dart';
@@ -52,7 +54,7 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
 
   void _completePaymentIntent() async {
     Map<String, dynamic> response;
-    ProgressDialog.show(context, message: "Confirming payment...");
+    ProgressDialog.show(context, message: "Processing payment...");
     try {
       response = await Stripe.instance.confirmPayment(
           widget.paymentIntent.clientSecret, widget.paymentMethod.id);
@@ -66,8 +68,12 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
     }
   }
 
-  void _createAndCompletePaymentSource() {
-
+  void _createAndCompletePaymentSource() async {
+    Map<String, dynamic> response;
+    ProgressDialog.show(context, message: "Confirming payment...");
+    response = await CloudFunctionsUtils.createPaymentSource(EnumToString.parse(widget.paymentSource.type), widget.paymentSource.gateRecordId);
+    //TODO:
+    ProgressDialog.hide(context);
   }
 
   void _handlePaymentIntentResponse(Map<String, dynamic> response) {

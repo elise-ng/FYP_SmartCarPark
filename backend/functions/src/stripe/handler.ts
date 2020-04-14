@@ -86,10 +86,7 @@ export const getParkingInvoice = functions.region('asia-east2')
         invoice: invoice
       }
     } catch (error) {
-      return {
-        success: false,
-        erorr: error
-      }
+      throw new functions.https.HttpsError('invalid-argument', error)
     }
   })
 
@@ -114,7 +111,7 @@ export const getEphemeralKey = functions
     const doc = await docRef.get()
     const docData = doc.data()
     if (!doc.exists || !docData) {
-      throw new Error("User record does not exist")
+      throw new functions.https.HttpsError('invalid-argument', 'User record does not exist')
     }
 
     const key = await stripe.ephemeralKeys.create({ customer: docData.stripe_customerId }, { stripe_version: params.stripeApiVersion })
@@ -165,9 +162,72 @@ export const createPaymentIntent = functions
         invoice: invoice,
       }
     } catch (error) {
-      return {
-        success: false,
-        erorr: error
+      throw new functions.https.HttpsError('invalid-argument', error)
+    }
+  })
+
+// Creates Stripe Payment Source (For Alipay and WechatPay)
+export const createPaymentSource = functions
+  .region('asia-east2')
+  .https
+  .onCall(async (data, context) => {
+    interface Parameters {
+      type: string,
+      gateRecordId: string,
+    }
+    // check auth
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'unauthenticated')
+    }
+    // parse params
+    const params = data as Parameters
+    if (!params.type || !params.gateRecordId) {
+      throw new functions.https.HttpsError('invalid-argument', 'parameter missing')
+    }
+
+    if (params.type !== 'alipay' && params.type !== 'wechat') {
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid payment type')
+    }
+
+    try {
+      const userRecord = await db.collection('userRecords').doc(context.auth.uid).get()
+      const userRecordData = userRecord.data()
+      if (!userRecord.exists || !userRecordData) {
+        throw new Error("User record does not exist")
       }
+      const invoice = await calculateParkingInvoice(params.gateRecordId) // Stripe uses minimum amount as unit
+      const parkingFeeTotal = invoice.total * 100
+      let sourceObject
+      if(params.type === 'alipay') {
+        sourceObject = {
+          type: params.type,
+          amount: parkingFeeTotal,
+          currency: 'hkd',
+          metadata: {
+            gateRecordId: params.gateRecordId,
+          },
+          redirect: {
+            return_url: 'smartcarpark://safepay/',
+          },
+        }  
+      } else if (params.type === 'wechat') {
+        sourceObject = {
+          type: params.type,
+          amount: parkingFeeTotal,
+          currency: 'hkd',
+          metadata: {
+            gateRecordId: params.gateRecordId,
+          },
+        }  
+      }
+
+      const paymentSource = await stripe.sources.create(sourceObject);
+      return {
+        success: true,
+        source: paymentSource,
+        invoice: invoice,
+      }
+    } catch (error) {
+      throw new functions.https.HttpsError('invalid-argument', error)
     }
   })

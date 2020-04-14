@@ -35,7 +35,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
 
   Future<void> _getParkingFeeReceipt() async {
     PaymentIntent _intent =
-        await CloudFunctionsUtils.createPaymentIntent("oROtC7Jsw2APdIp2zn3e");
+        await CloudFunctionsUtils.createPaymentIntent(widget.gateRecordId);
     setState(() {
       this._paymentIntent = _intent;
     });
@@ -95,7 +95,8 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                     leading: Image(
                       width: 40,
                       height: 40,
-                      image: AssetImage(PaymentSourceType.alipay.getAssetPath()),
+                      image:
+                          AssetImage(PaymentSourceType.alipay.getAssetPath()),
                     ),
                     trailing: Icon(Icons.arrow_forward_ios),
                     title: Text(PaymentSourceType.alipay.getName()),
@@ -106,7 +107,8 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                     leading: Image(
                       width: 40,
                       height: 40,
-                      image: AssetImage(PaymentSourceType.wechat.getAssetPath()),
+                      image:
+                          AssetImage(PaymentSourceType.wechat.getAssetPath()),
                     ),
                     trailing: Icon(Icons.arrow_forward_ios),
                     title: Text(PaymentSourceType.wechat.getName()),
@@ -157,16 +159,24 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   void _payByAlipay() {
     this._pushRoute(
       PaymentSummaryPage(
-        paymentSource: PaymentSource(this._paymentIntent.invoice, PaymentSourceType.alipay),
-      )
+        paymentSource: PaymentSource(
+          widget.gateRecordId,
+          this._paymentIntent.invoice,
+          PaymentSourceType.alipay,
+        ),
+      ),
     );
   }
 
   void _payByWechatPay() {
     this._pushRoute(
-        PaymentSummaryPage(
-          paymentSource: PaymentSource(this._paymentIntent.invoice, PaymentSourceType.wechat),
-        )
+      PaymentSummaryPage(
+        paymentSource: PaymentSource(
+          widget.gateRecordId,
+          this._paymentIntent.invoice,
+          PaymentSourceType.wechat,
+        ),
+      ),
     );
   }
 }

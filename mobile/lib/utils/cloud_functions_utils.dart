@@ -32,6 +32,11 @@ class CloudFunctionsUtils {
     return PaymentIntent(data["clientSecret"], ParkingInvoice.fromJson(data["invoice"]));
   }
 
+  static Future<PaymentIntent> createPaymentSource(String gateRecordId) async {
+    Map data = await _call("createPaymentSource", {"gateRecordId": gateRecordId});
+    return PaymentIntent(data["clientSecret"], ParkingInvoice.fromJson(data["invoice"]));
+  }
+
   static Future<String> getEphemeralKey(String apiVersion) async {
     final data =
         await _call('getEphemeralKey', {'stripeApiVersion': apiVersion});

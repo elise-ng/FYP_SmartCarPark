@@ -14,7 +14,7 @@ class _PaymentPageState extends State<PaymentPage> {
   String carPlateNum = "PK12345";
   String parkingLocation = "LG3-12";
   int parkingDuation = 130;
-  String gateRecordId = "qwer1234";
+  String gateRecordId = "oROtC7Jsw2APdIp2zn3e";
 
   @override
   Widget build(BuildContext context) {

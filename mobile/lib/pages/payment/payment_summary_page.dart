@@ -42,24 +42,32 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
     return true;
   }
 
-  void _pay() async {
+  void _pay() {
     if (this._isUsingPaymentIntent()) {
-      Map<String, dynamic> response;
-      ProgressDialog.show(context, message: "Confirming payment...");
-      try {
-        response = await Stripe.instance.confirmPayment(
-            widget.paymentIntent.clientSecret, widget.paymentMethod.id);
-        await closeWebView();
-        ProgressDialog.hide(context);
-        this._handlePaymentIntentResponse(response);
-      } catch (e) {
-        print(e);
-        ProgressDialog.hide(context);
-        this._showPaymentErrorDialog(e.toString());
-      }
+      this._completePaymentIntent();
     } else {
-
+      this._createAndCompletePaymentSource();
     }
+  }
+
+  void _completePaymentIntent() async {
+    Map<String, dynamic> response;
+    ProgressDialog.show(context, message: "Confirming payment...");
+    try {
+      response = await Stripe.instance.confirmPayment(
+          widget.paymentIntent.clientSecret, widget.paymentMethod.id);
+      await closeWebView();
+      ProgressDialog.hide(context);
+      this._handlePaymentIntentResponse(response);
+    } catch (e) {
+      print(e);
+      ProgressDialog.hide(context);
+      this._showPaymentErrorDialog(e.toString());
+    }
+  }
+
+  void _createAndCompletePaymentSource() {
+
   }
 
   void _handlePaymentIntentResponse(Map<String, dynamic> response) {
@@ -109,7 +117,7 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
   }
 
   Color _getPaymentColor() {
-    if(this._isUsingPaymentIntent()) {
+    if (this._isUsingPaymentIntent()) {
       return Theme.of(context).primaryColor;
     } else {
       return Colors.white;
@@ -117,23 +125,23 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
   }
 
   Color _getPaymentTextColor() {
-    if(this._isUsingPaymentIntent()) {
+    if (this._isUsingPaymentIntent()) {
       return Colors.white;
     } else {
       return Colors.black;
     }
   }
 
-  Color _getPaymentButtonSplashColor () {
-    if(this._isUsingPaymentIntent()) {
+  Color _getPaymentButtonSplashColor() {
+    if (this._isUsingPaymentIntent()) {
       return Colors.indigoAccent;
     } else {
       return Colors.grey[200];
     }
   }
 
-  ParkingInvoice _getParkingInvoice () {
-    if(this._isUsingPaymentIntent()) {
+  ParkingInvoice _getParkingInvoice() {
+    if (this._isUsingPaymentIntent()) {
       return widget.paymentIntent.invoice;
     } else {
       return widget.paymentSource.invoice;
@@ -176,13 +184,14 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      if(!this._isUsingPaymentIntent())
+                      if (!this._isUsingPaymentIntent())
                         Padding(
                           padding: const EdgeInsets.only(right: 16.0),
                           child: Image(
                             width: 30,
                             height: 30,
-                            image: AssetImage(widget.paymentSource.type.getAssetPath()),
+                            image: AssetImage(
+                                widget.paymentSource.type.getAssetPath()),
                           ),
                         ),
                       Text("Pay with ${this._getPaymentMethodText()}"),

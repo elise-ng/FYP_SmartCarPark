@@ -30,8 +30,9 @@ extension Members on PaymentSourceType {
 }
 
 class PaymentSource {
-  PaymentSource(this.invoice, this.type);
+  PaymentSource(this.gateRecordId, this.invoice, this.type);
 
+  String gateRecordId;
   ParkingInvoice invoice;
   PaymentSourceType type;
 }

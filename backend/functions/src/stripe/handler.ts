@@ -195,6 +195,7 @@ export const createPaymentSource = functions
       if (!userRecord.exists || !userRecordData) {
         throw new Error("User record does not exist")
       }
+      const customerId = userRecordData.stripe_customerId;
       const invoice = await calculateParkingInvoice(params.gateRecordId) // Stripe uses minimum amount as unit
       const parkingFeeTotal = invoice.total * 100
       let sourceObject
@@ -204,6 +205,7 @@ export const createPaymentSource = functions
           amount: parkingFeeTotal,
           currency: 'hkd',
           metadata: {
+            customer: customerId,
             gateRecordId: params.gateRecordId,
           },
           redirect: {
@@ -216,6 +218,7 @@ export const createPaymentSource = functions
           amount: parkingFeeTotal,
           currency: 'hkd',
           metadata: {
+            customer: customerId,
             gateRecordId: params.gateRecordId,
           },
         }  

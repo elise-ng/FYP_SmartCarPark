@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:smart_car_park_app/models/parking_invoice.dart';
 
 class PaymentCompletePage extends StatefulWidget {
-  final ParkingInvoice invoice;
+  final double amount;
 
   PaymentCompletePage({
-    this.invoice,
+    this.amount,
   });
 
   @override
@@ -41,7 +40,7 @@ class _PaymentCompletePageState extends State<PaymentCompletePage> {
                     width: 200,
                   ),
                   Text(
-                    "You have paid \$${widget.invoice.total}",
+                    "You have paid \$${widget.amount}",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

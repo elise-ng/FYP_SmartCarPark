@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:smart_car_park_app/models/parking_invoice.dart';
 import 'package:smart_car_park_app/models/payment_intent.dart';
 import 'package:smart_car_park_app/models/payment_method.dart';
@@ -73,17 +75,18 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
 
   void _createAndCompletePaymentSource() async {
     ProgressDialog.show(context, message: "Confirming payment...");
-    Map response = await CloudFunctionsUtils.createPaymentSource(EnumToString.parse(widget.paymentSource.type), widget.paymentSource.gateRecordId);
+    Map response = await CloudFunctionsUtils.createPaymentSource(
+        EnumToString.parse(widget.paymentSource.type),
+        widget.paymentSource.gateRecordId);
     Map source = response["source"];
+
     /// Init payment
-    if(widget.paymentSource.type == PaymentSourceType.alipay) {
+    if (widget.paymentSource.type == PaymentSourceType.alipay) {
       final returnUrl = Uri.parse(source['redirect']['return_url']);
       final completer = Completer();
       StreamSubscription sub;
       sub = getUriLinksStream().listen((Uri uri) async {
-        if (uri.scheme == returnUrl.scheme &&
-            uri.host == returnUrl.host) {
-          print("returned");
+        if (uri.scheme == returnUrl.scheme && uri.host == returnUrl.host) {
           await sub.cancel();
           completer.complete();
         }
@@ -91,28 +94,61 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
       await launch(source["redirect"]["url"]);
       await completer.future;
       await closeWebView();
-    } else if (widget.paymentSource.type == PaymentSourceType.wechat){
-
+    } else if (widget.paymentSource.type == PaymentSourceType.wechat) {
+      ProgressDialog.hide(context);
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: QrImage(
+              data: source["wechat"]["qr_code_url"],
+              version: QrVersions.auto,
+              size: 300,
+              gapless: false,
+            ),
+          ),
+        ),
+      );
     }
 
-    //TODO: Check payment status
-
-    ProgressDialog.hide(context);
+    StreamSubscription recordSub;
+    recordSub = Firestore.instance
+        .collection("gateRecords")
+        .document(widget.paymentSource.gateRecordId)
+        .snapshots()
+        .listen((snapshot) async {
+      print(snapshot.data);
+      if (snapshot.data["status"] == "succeeded") {
+        recordSub.cancel();
+        ProgressDialog.hide(context);
+        this._goToSuccessPage(widget.paymentSource.invoice.total);
+      }
+    });
   }
 
   void _handlePaymentIntentResponse(Map<String, dynamic> response) {
     if (response == null || response["status"] == "succeeded") {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => PaymentCompletePage(
-            invoice: widget.paymentIntent.invoice,
-          ),
-        ),
-        ModalRoute.withName("/home"),
-      );
+      this._goToSuccessPage(widget.paymentIntent.invoice.total);
     } else {
       this._showPaymentErrorDialog("Payment has failed");
     }
+  }
+
+  void _goToSuccessPage(double amount) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => PaymentCompletePage(
+          amount: amount,
+        ),
+      ),
+      ModalRoute.withName("/home"),
+    );
   }
 
   void _showPaymentErrorDialog(String message) {

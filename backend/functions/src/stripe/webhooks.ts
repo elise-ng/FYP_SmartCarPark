@@ -3,19 +3,19 @@ import * as admin from 'firebase-admin'
 import { stripe } from '../common/stripe'
 
 const db = admin.firestore()
-const endpointSecret = 'whsec_...';
+const endpointSecret = 'whsec_uyk3TTHy4HXzeIhNSg8xjOa0Upx2t5xU'
 
 // Handle stripe 
 export const stripeWebhook = functions.region('asia-east2')
   .https
-  .onRequest((req, res) => {
+  .onRequest(async (req, res) => {
     const sig = req.get('stripe-signature');
     let event;
     try {
-      if(!sig) {
+      if (!sig) {
         throw new Error("Missing stripe signature header")
       }
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
     }
     catch (err) {
       res.status(400).send(`Webhook Error: ${err.message}`);
@@ -24,16 +24,24 @@ export const stripeWebhook = functions.region('asia-east2')
     // Handle event according to type
     switch (event.type) {
       case 'payment_intent.succeeded':
-      case 'charge.succeeded':
-        const gateRecordId = event.data.object.metadata.gateRecordId;
-        console.log(gateRecordId)
-        // TODO: update 
+      case 'charge.succeeded': {
+        const gateRecordId = event.data.object.metadata.gateRecordId
+        await db.collection('gateRecords').doc(gateRecordId).update({ paymentStatus: "succeeded", paymentTime: Date.now() })
         break;
-      case 'source.chargeable':
+      }
+      case 'source.chargeable': {
         const source = event.data.object
-        console.log(source)
-        // TODO: charge
+        await stripe.charges.create({
+          amount: source.amount,
+          currency: source.currency,
+          source: source.id,
+          customer: source.metadata.customer,
+          metadata: {
+            gateRecordId: source.metadata.gateRecordId
+          }
+        })
         break;
+      }
       default:
         // Unexpected event type
         return res.status(400).end();

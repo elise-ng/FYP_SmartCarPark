@@ -1,4 +1,5 @@
 import * as functions from 'firebase-functions'
+import * as firestore from '@google-cloud/firestore'
 import * as admin from 'firebase-admin'
 import { stripe } from '../common/stripe'
 
@@ -26,7 +27,7 @@ export const stripeWebhook = functions.region('asia-east2')
       case 'payment_intent.succeeded':
       case 'charge.succeeded': {
         const gateRecordId = event.data.object.metadata.gateRecordId
-        await db.collection('gateRecords').doc(gateRecordId).update({ paymentStatus: "succeeded", paymentTime: Date.now() })
+        await db.collection('gateRecords').doc(gateRecordId).update({ paymentStatus: "succeeded", paymentTime: firestore.Timestamp.now() })
         break;
       }
       case 'source.chargeable': {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_car_park_app/widgets/signin_widget.dart';
@@ -16,40 +18,86 @@ class InformationPage extends StatefulWidget {
 
 class _InformationPageState extends State<InformationPage> {
 
-  Map<String, dynamic> _gateRecord = {};
+  Map<String, dynamic> _gateRecord;
+  String _currentLocation;
   List<Map<String, dynamic>> _iotStateChangesPrev = [];
   List<Map<String, dynamic>> _iotStateChangesNew = [];
   List<Map<String, dynamic>> _iotStateChanges = [];
 
-  final ScrollController _scrollController = ScrollController();
+  StreamSubscription _gateRecordSubscription;
+  StreamSubscription _iotStateChangesPrevSubscription;
+  StreamSubscription _iotStateChangesNewSubscription;
 
-  void getGateRecord() {
-    Firestore.instance.collection('gateRecords').where('phoneNumber', isEqualTo: '+85212345678').snapshots().listen((snapshot) {
-      this._gateRecord = (snapshot.documents..sort((a, b) => (a.data['entryScanTime'] as Timestamp).compareTo(b.data['entryScanTime'] as Timestamp))).first.data;
-      if (this._gateRecord['vehicleId'] != null) this.getIotStateChanges();
+  void listenToGateRecord() async {
+    await this._gateRecordSubscription?.cancel();
+    this._gateRecordSubscription = null;
+    this._gateRecordSubscription = Firestore.instance.collection('gateRecords').where('phoneNumber', isEqualTo: '+85212345678').snapshots().listen((snapshot) {
+      try {
+        this._gateRecord = (snapshot.documents..sort((a, b) => (a.data['entryScanTime'] as Timestamp).compareTo(b.data['entryScanTime'] as Timestamp))).first.data;
+      } catch (e) { // list empty
+        this._gateRecord = null;
+        setState(() {});
+        return;
+      }
+      debugPrint('hello1');
+      this.listenToIotStateChanges();
       setState(() {});
     });
   }
 
-  void getIotStateChanges() {
+  void listenToIotStateChanges() async {
+    await this._iotStateChangesPrevSubscription?.cancel();
+    this._iotStateChangesPrevSubscription = null;
+    await this._iotStateChangesNewSubscription?.cancel();
+    this._iotStateChangesNewSubscription = null;
+    debugPrint('hello2');
+    if (this._gateRecord == null || this._gateRecord['vehicleId'] == null) {
+      this._iotStateChangesNew = [];
+      this._iotStateChangesPrev = [];
+      this._iotStateChanges = [];
+      setState(() {});
+      return;
+    };
     final vehicleId = this._gateRecord['vehicleId'] as String;
-    if (vehicleId == null) return;
-    Firestore.instance.collection('iotStateChanges').where('previousState.vehicleId', isEqualTo: vehicleId).where('time', isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp).snapshots().listen((snapshot) {
+    debugPrint(vehicleId);
+    this._iotStateChangesPrevSubscription = Firestore.instance.collection('iotStateChanges')
+        .where('previousState.vehicleId', isEqualTo: vehicleId)
+        .where('time', isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp)
+        .where('time', isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp)
+        .snapshots().listen((snapshot) {
+      debugPrint(snapshot.documents.toString());
       this._iotStateChangesPrev = snapshot.documents.map((snapshot) => snapshot.data).toList();
       this._iotStateChanges = [... this._iotStateChangesPrev, ... this._iotStateChangesNew]..sort((a, b) => -1 * (a['time'] as Timestamp).compareTo(b['time'] as Timestamp));
+      this.refreshCurrentLocation();
       setState(() {});
     });
-    Firestore.instance.collection('iotStateChanges').where('newState.vehicleId', isEqualTo: vehicleId).where('time', isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp).snapshots().listen((snapshot) {
+    this._iotStateChangesNewSubscription = Firestore.instance.collection('iotStateChanges')
+        .where('newState.vehicleId', isEqualTo: vehicleId)
+        .where('time', isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp)
+        .where('time', isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp)
+        .snapshots().listen((snapshot) {
+      debugPrint(snapshot.documents.toString());
       this._iotStateChangesNew = snapshot.documents.map((snapshot) => snapshot.data).toList();
       this._iotStateChanges = [... this._iotStateChangesPrev, ... this._iotStateChangesNew]..sort((a, b) => -1 * (a['time'] as Timestamp).compareTo(b['time'] as Timestamp));
+      this.refreshCurrentLocation();
       setState(() {});
     });
+  }
+
+  void refreshCurrentLocation() {
+    final lastVacant = this._iotStateChanges.firstWhere((change) => change['newState']['state'] == 'vacant');
+    final lastOccupy = this._iotStateChanges.firstWhere((change) => change['newState']['state'] == 'occupied');
+    if ((lastVacant['time'] as Timestamp).compareTo(lastOccupy['time'] as Timestamp) > 0) { // vacant is later then occupy
+      _currentLocation = null;
+    } else {
+      _currentLocation = lastOccupy['deviceId'];
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    this.getGateRecord();
+    this.listenToGateRecord();
   }
 
   Widget makeTableRow(String title, String subtitle) {
@@ -127,36 +175,39 @@ class _InformationPageState extends State<InformationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body:
-      Column(
-        children: <Widget>[
-          Container(
-            color: Theme.of(context).accentColor,
-            child: SafeArea(
-              minimum: EdgeInsets.all(16.0),
-              child: Column(
-                children: <Widget>[
-                  makeTableRow('Vehicle ID', this._gateRecord['vehicleId']),
-                  makeTableRow('Parked Location', '???'),
-                  makeTableRow('Parked Duration', DateTime.now().difference((this._gateRecord['entryConfirmTime'] as Timestamp).toDate()).inMinutes.toString() + ' Minutes'),
-                  makeTableRow('Amount Due', '???'),
-                ],
+        this._gateRecord != null
+        ? Column(
+            children: <Widget>[
+              Container(
+                color: Theme.of(context).accentColor,
+                child: SafeArea(
+                  minimum: EdgeInsets.all(16.0),
+                  child: Column(
+                    children: <Widget>[
+                      makeTableRow('Vehicle ID', this._gateRecord['vehicleId'] ?? '-'),
+                      makeTableRow('Parked Location', this._currentLocation ?? '-'),
+                      makeTableRow('Parked Duration', DateTime.now().difference((this._gateRecord['entryConfirmTime'] as Timestamp).toDate()).inMinutes.toString() + ' Minutes'),
+                      makeTableRow('Amount Due', '???'),
+                    ],
+                  ),
+                )
               ),
-            )
-          ),
-          Expanded(
-            child: Timeline(
-              children: <TimelineModel>[
-                // TODO: make exit time card
-                ..._iotStateChanges.map((change) => makeTimelineModel(change)).toList(),
-                // TODO: make entry time card
-              ],
-              position: TimelinePosition.Left,
-              physics: BouncingScrollPhysics(),
-              controller: _scrollController,
-            ),
+              Expanded(
+                child: Timeline(
+                  children: <TimelineModel>[
+                    // TODO: make exit time card
+                    ..._iotStateChanges.map((change) => makeTimelineModel(change)).toList(),
+                    // TODO: make entry time card
+                  ],
+                  position: TimelinePosition.Left,
+                  physics: BouncingScrollPhysics(),
+                ),
+              )
+            ],
           )
-        ],
-      )
+        : Center(
+          child: CircularProgressIndicator(),
+        )
     );
   }
 }

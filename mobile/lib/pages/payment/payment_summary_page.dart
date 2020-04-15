@@ -101,16 +101,56 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
         barrierDismissible: false,
         child: Center(
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: QrImage(
-              data: source["wechat"]["qr_code_url"],
-              version: QrVersions.auto,
-              size: 300,
-              gapless: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                    "Take a screenshot and import into\nWeChat's QR Code Scanner",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      decoration: TextDecoration.none,
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                QrImage(
+                  data: source["wechat"]["qr_code_url"],
+                  version: QrVersions.auto,
+                  size: 300,
+                  gapless: false,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      CircularProgressIndicator(),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Text(
+                          "Checking payment...",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.normal,
+                            decoration: TextDecoration.none,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -123,10 +163,8 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
         .document(widget.paymentSource.gateRecordId)
         .snapshots()
         .listen((snapshot) async {
-      print(snapshot.data);
-      if (snapshot.data["status"] == "succeeded") {
+      if (snapshot.data["paymentStatus"] == "succeeded") {
         recordSub.cancel();
-        ProgressDialog.hide(context);
         this._goToSuccessPage(widget.paymentSource.invoice.total);
       }
     });

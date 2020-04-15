@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
@@ -10,6 +12,7 @@ import 'package:smart_car_park_app/utils/cloud_functions_utils.dart';
 import 'package:smart_car_park_app/widgets/parking_invoice_widget.dart';
 import 'package:smart_car_park_app/widgets/progress_dialog.dart';
 import 'package:stripe_sdk/stripe_sdk.dart';
+import 'package:uni_links/uni_links.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PaymentSummaryPage extends StatefulWidget {
@@ -69,10 +72,31 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
   }
 
   void _createAndCompletePaymentSource() async {
-    Map<String, dynamic> response;
     ProgressDialog.show(context, message: "Confirming payment...");
-    response = await CloudFunctionsUtils.createPaymentSource(EnumToString.parse(widget.paymentSource.type), widget.paymentSource.gateRecordId);
-    //TODO:
+    Map response = await CloudFunctionsUtils.createPaymentSource(EnumToString.parse(widget.paymentSource.type), widget.paymentSource.gateRecordId);
+    Map source = response["source"];
+    /// Init payment
+    if(widget.paymentSource.type == PaymentSourceType.alipay) {
+      final returnUrl = Uri.parse(source['redirect']['return_url']);
+      final completer = Completer();
+      StreamSubscription sub;
+      sub = getUriLinksStream().listen((Uri uri) async {
+        if (uri.scheme == returnUrl.scheme &&
+            uri.host == returnUrl.host) {
+          print("returned");
+          await sub.cancel();
+          completer.complete();
+        }
+      });
+      await launch(source["redirect"]["url"]);
+      await completer.future;
+      await closeWebView();
+    } else if (widget.paymentSource.type == PaymentSourceType.wechat){
+
+    }
+
+    //TODO: Check payment status
+
     ProgressDialog.hide(context);
   }
 

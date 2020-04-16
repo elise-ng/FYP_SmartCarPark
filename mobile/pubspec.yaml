@@ -41,6 +41,9 @@ dependencies:
   # Cloud functions
   cloud_functions: ^0.4.2+3
 
+  # CLoud Storage
+  firebase_storage: ^3.1.5
+
   # Bordered Text Widget
   bordered_text: ^1.0.0
 
@@ -86,6 +89,8 @@ dependencies:
 
   # humanize duration
   timeago: ^2.0.26
+
+  cached_network_image: ^2.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,15 +1,20 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_car_park_app/widgets/signin_widget.dart';
 import 'package:timeline_list/timeline.dart';
 import 'package:timeline_list/timeline_model.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/intl.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
 
 class InformationPage extends StatefulWidget {
+
   InformationPage({
-    key,
+    key
   }) : super(key: key);
 
   @override
@@ -27,6 +32,9 @@ class _InformationPageState extends State<InformationPage> {
   StreamSubscription _gateRecordSubscription;
   StreamSubscription _iotStateChangesPrevSubscription;
   StreamSubscription _iotStateChangesNewSubscription;
+  StreamSubscription _snapshotSubscription;
+
+  String _iotImageUrl;
 
   void listenToGateRecord() async {
     await this._gateRecordSubscription?.cancel();
@@ -39,7 +47,6 @@ class _InformationPageState extends State<InformationPage> {
         setState(() {});
         return;
       }
-      debugPrint('hello1');
       this.listenToIotStateChanges();
       setState(() {});
     });
@@ -50,7 +57,6 @@ class _InformationPageState extends State<InformationPage> {
     this._iotStateChangesPrevSubscription = null;
     await this._iotStateChangesNewSubscription?.cancel();
     this._iotStateChangesNewSubscription = null;
-    debugPrint('hello2');
     if (this._gateRecord == null || this._gateRecord['vehicleId'] == null) {
       this._iotStateChangesNew = [];
       this._iotStateChangesPrev = [];
@@ -59,13 +65,11 @@ class _InformationPageState extends State<InformationPage> {
       return;
     };
     final vehicleId = this._gateRecord['vehicleId'] as String;
-    debugPrint(vehicleId);
     this._iotStateChangesPrevSubscription = Firestore.instance.collection('iotStateChanges')
         .where('previousState.vehicleId', isEqualTo: vehicleId)
         .where('time', isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp)
         .where('time', isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp)
         .snapshots().listen((snapshot) {
-      debugPrint(snapshot.documents.toString());
       this._iotStateChangesPrev = snapshot.documents.map((snapshot) => snapshot.data).toList();
       this._iotStateChanges = [... this._iotStateChangesPrev, ... this._iotStateChangesNew]..sort((a, b) => -1 * (a['time'] as Timestamp).compareTo(b['time'] as Timestamp));
       this.refreshCurrentLocation();
@@ -76,7 +80,6 @@ class _InformationPageState extends State<InformationPage> {
         .where('time', isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp)
         .where('time', isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp)
         .snapshots().listen((snapshot) {
-      debugPrint(snapshot.documents.toString());
       this._iotStateChangesNew = snapshot.documents.map((snapshot) => snapshot.data).toList();
       this._iotStateChanges = [... this._iotStateChangesPrev, ... this._iotStateChangesNew]..sort((a, b) => -1 * (a['time'] as Timestamp).compareTo(b['time'] as Timestamp));
       this.refreshCurrentLocation();
@@ -92,6 +95,20 @@ class _InformationPageState extends State<InformationPage> {
     } else {
       _currentLocation = lastOccupy['deviceId'];
     }
+    this.listenToSnapshot();
+  }
+
+  void listenToSnapshot() async {
+    this._snapshotSubscription?.cancel();
+    this._snapshotSubscription = null;
+    if (this._currentLocation == null) return;
+    Firestore.instance.document('iotStates/${this._currentLocation}').snapshots().listen((snapshot) async {
+      debugPrint(snapshot.data.toString());
+      final ref = await FirebaseStorage.instance.getReferenceFromUrl(snapshot.data['imageUrl'] as String);
+      this._iotImageUrl = (await ref.getDownloadURL()) as String;
+      debugPrint(_iotImageUrl);
+      setState(() {});
+    });
   }
 
   @override
@@ -141,7 +158,6 @@ class _InformationPageState extends State<InformationPage> {
     } else {
       message = 'Status changed from ${iotStateChange['previousState']['state']} to ${iotStateChange['newState']['state']} at ${iotStateChange['deviceId']}';
     }
-    debugPrint(message);
     return TimelineModel(
       Container(
         width: double.maxFinite,
@@ -174,37 +190,47 @@ class _InformationPageState extends State<InformationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(DateFormat('yyyy-MM-dd').format((this._gateRecord['entryScanTime'] as Timestamp).toDate())),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.access_time),
+            onPressed: () {
+              setState(() {
+                // TODO: implement gate record list and selection
+              });
+            },
+          )
+        ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(120.0),
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              children: <Widget>[
+                CachedNetworkImage(
+                  imageUrl: this._iotImageUrl ?? '',
+                ),
+                makeTableRow('Vehicle ID', this._gateRecord['vehicleId'] ?? '-'),
+                makeTableRow('Parked Location', this._currentLocation ?? '-'),
+                makeTableRow('Parked Duration', DateTime.now().difference((this._gateRecord['entryConfirmTime'] as Timestamp).toDate()).inMinutes.toString() + ' Minutes'),
+                makeTableRow('Amount Due', '???'),
+              ],
+            ),
+          )
+        )
+      ),
       body:
         this._gateRecord != null
-        ? Column(
-            children: <Widget>[
-              Container(
-                color: Theme.of(context).accentColor,
-                child: SafeArea(
-                  minimum: EdgeInsets.all(16.0),
-                  child: Column(
-                    children: <Widget>[
-                      makeTableRow('Vehicle ID', this._gateRecord['vehicleId'] ?? '-'),
-                      makeTableRow('Parked Location', this._currentLocation ?? '-'),
-                      makeTableRow('Parked Duration', DateTime.now().difference((this._gateRecord['entryConfirmTime'] as Timestamp).toDate()).inMinutes.toString() + ' Minutes'),
-                      makeTableRow('Amount Due', '???'),
-                    ],
-                  ),
-                )
-              ),
-              Expanded(
-                child: Timeline(
-                  children: <TimelineModel>[
-                    // TODO: make exit time card
-                    ..._iotStateChanges.map((change) => makeTimelineModel(change)).toList(),
-                    // TODO: make entry time card
-                  ],
-                  position: TimelinePosition.Left,
-                  physics: BouncingScrollPhysics(),
-                ),
-              )
-            ],
-          )
+        ? Timeline(
+          children: <TimelineModel>[
+            // TODO: make exit time card
+            ..._iotStateChanges.map((change) => makeTimelineModel(change)).toList(),
+            // TODO: make entry time card
+          ],
+          position: TimelinePosition.Left,
+          physics: BouncingScrollPhysics(),
+        )
         : Center(
           child: CircularProgressIndicator(),
         )

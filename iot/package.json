@@ -10,15 +10,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/node": "^13.13.0",
     "firebase": "^7.9.1",
     "moment": "^2.24.0",
     "pi-camera-connect": "^0.2.0",
     "pigpio": "^3.0.0"
   },
   "devDependencies": {
+    "@types/pigpio": "^1.2.2",
     "@typescript-eslint/eslint-plugin": "^2.20.0",
     "@typescript-eslint/parser": "^2.20.0",
-    "@types/pigpio": "^1.2.2",
     "eslint": "^6.8.0",
     "typescript": "^3.8.2"
   }

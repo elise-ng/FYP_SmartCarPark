@@ -186,6 +186,35 @@ class _InformationPageState extends State<InformationPage> {
     );
   }
 
+  TimelineModel makeMessageTimelineModel({String message, String caption, IconData iconData}) {
+    return TimelineModel(
+        Container(
+          width: double.maxFinite,
+          child: Card(
+            child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      message,
+                      style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                    Text(
+                      caption,
+                      style: Theme.of(context).textTheme.caption,
+                    ),
+                  ],
+                )
+            ),
+          ),
+        ),
+        icon: Icon(iconData, color: Colors.white,),
+        iconBackground: Theme.of(context).accentColor,
+        position: TimelineItemPosition.left
+    );
+  }
+
   TimelineModel makeSnapshotTimelineModel(String imageUrl) {
     return TimelineModel(
         Container(
@@ -213,41 +242,6 @@ class _InformationPageState extends State<InformationPage> {
         position: TimelineItemPosition.left
     );
   }
-
-//  Widget makeIotStateChangeCardSliver(Map<String, dynamic> iotStateChange) {
-//    String message = '';
-//    if (iotStateChange['newState']['state'] == 'occupied') {
-//      message = 'Vehicle parked into ${iotStateChange['deviceId']}';
-//    } else if (iotStateChange['newState']['state'] == 'vacant') {
-//      message = 'Vehicle moved out of ${iotStateChange['deviceId']}';
-//    } else {
-//      message = 'Status changed from ${iotStateChange['previousState']['state']} to ${iotStateChange['newState']['state']} at ${iotStateChange['deviceId']}';
-//    }
-//    return SliverToBoxAdapter(
-//      child: Container(
-//        width: double.maxFinite,
-//        child: Card(
-//          child: Padding(
-//              padding: EdgeInsets.all(8.0),
-//              child: Column(
-//                crossAxisAlignment: CrossAxisAlignment.start,
-//                children: <Widget>[
-//                  Text(
-//                    message,
-//                    style: Theme.of(context).textTheme.bodyText1,
-//                  ),
-//                  Text(
-//                    timeago.format((iotStateChange['time'] as Timestamp).toDate()),
-//                    style: Theme.of(context).textTheme.caption,
-//                  ),
-//                ],
-//              )
-//          ),
-//        ),
-//      ),
-//    );
-//  }
-//
 
   @override
   Widget build(BuildContext context) {
@@ -287,7 +281,11 @@ class _InformationPageState extends State<InformationPage> {
               ? makeSnapshotTimelineModel(this._iotImageUrl)
               : Container(),
             ..._iotStateChanges.map((change) => makeChangeTimelineModel(change)).toList(),
-            // TODO: make entry time card
+            makeMessageTimelineModel(
+              message: 'Entered Park via ${this._gateRecord['entryGate']} Gate',
+              caption: timeago.format((this._gateRecord['entryScanTime'] as Timestamp).toDate()),
+              iconData: Icons.exit_to_app
+            )
           ],
           position: TimelinePosition.Left,
           physics: BouncingScrollPhysics(),

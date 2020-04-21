@@ -162,6 +162,7 @@ class _InformationPageState extends State<InformationPage> {
     }
     return TimelineModel(
       Container(
+        padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
         width: double.maxFinite,
         child: Card(
           child: Padding(
@@ -172,6 +173,9 @@ class _InformationPageState extends State<InformationPage> {
                   Text(
                     message,
                     style: Theme.of(context).textTheme.bodyText1,
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 8.0)
                   ),
                   Text(
                     timeago.format((iotStateChange['time'] as Timestamp).toDate()),
@@ -191,6 +195,7 @@ class _InformationPageState extends State<InformationPage> {
   TimelineModel makeMessageTimelineModel({String message, String caption, IconData iconData}) {
     return TimelineModel(
         Container(
+          padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
           width: double.maxFinite,
           child: Card(
             child: Padding(
@@ -201,6 +206,9 @@ class _InformationPageState extends State<InformationPage> {
                     Text(
                       message,
                       style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                    Padding(
+                        padding: EdgeInsets.only(top: 8.0)
                     ),
                     Text(
                       caption,
@@ -219,23 +227,32 @@ class _InformationPageState extends State<InformationPage> {
 
   TimelineModel makeSnapshotTimelineModel(String imageUrl) {
     return TimelineModel(
-        Container(
-          width: double.maxFinite,
-          child: Card(
-            child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Image.network(
-                      imageUrl
-                  ),
-                  Text(
-                    "Click to request new snapshot",
-                    style: Theme.of(context).textTheme.caption,
-                  ),
-                ],
-              )
+        GestureDetector(
+          onTap: () {
+            // TODO: request new image
+          },
+          child: Container(
+            padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
+            width: double.maxFinite,
+            child: Card(
+              child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Image.network(
+                          imageUrl
+                      ),
+                      Padding(
+                          padding: EdgeInsets.only(top: 8.0)
+                      ),
+                      Text(
+                        "Click to request new snapshot",
+                        style: Theme.of(context).textTheme.caption,
+                      ),
+                    ],
+                  )
+              ),
             ),
           ),
         ),

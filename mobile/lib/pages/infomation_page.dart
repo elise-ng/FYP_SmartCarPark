@@ -266,7 +266,7 @@ class _InformationPageState extends State<InformationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(DateFormat('yyyy-MM-dd').format((this._gateRecord['entryScanTime'] as Timestamp).toDate())),
+        title: this._gateRecord != null ? Text(DateFormat('yyyy-MM-dd').format((this._gateRecord['entryScanTime'] as Timestamp).toDate())) : null,
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.access_time),
@@ -277,59 +277,61 @@ class _InformationPageState extends State<InformationPage> {
             },
           )
         ],
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(180.0),
-          child: Container(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              children: <Widget>[
-                makeTableRow('Vehicle ID', this._gateRecord['vehicleId'] ?? '-'),
-                makeTableRow('Parked Location', this._currentLocation ?? '-'),
-                makeTableRow('Parked Duration', DateTime.now().difference((this._gateRecord['entryConfirmTime'] as Timestamp).toDate()).inMinutes.toString() + ' Minutes'),
-                makeTableRow('Amount Due', '???'),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      flex: 5,
-                      child: FlatButton(
-                        color: Colors.white.withAlpha(40),
-                        textColor: Colors.white,
-                        child: Text('View Snapshots'),
-                        onPressed: this._currentLocation != null
-                            ? () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SnapshotPage(
-                                    iotDeviceId: this._currentLocation,
-                                    fromDateTime: (this._gateRecord['entryScanTime'] as Timestamp)?.toDate(),
+        bottom: this._gateRecord != null
+          ? PreferredSize(
+            preferredSize: Size.fromHeight(180.0),
+            child: Container(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                children: <Widget>[
+                  makeTableRow('Vehicle ID', this._gateRecord['vehicleId'] ?? '-'),
+                  makeTableRow('Parked Location', this._currentLocation ?? '-'),
+                  makeTableRow('Parked Duration', DateTime.now().difference((this._gateRecord['entryConfirmTime'] as Timestamp).toDate()).inMinutes.toString() + ' Minutes'),
+                  makeTableRow('Amount Due', '???'),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        flex: 5,
+                        child: FlatButton(
+                          color: Colors.white.withAlpha(40),
+                          textColor: Colors.white,
+                          child: Text('View Snapshots'),
+                          onPressed: this._currentLocation != null
+                              ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SnapshotPage(
+                                      iotDeviceId: this._currentLocation,
+                                      fromDateTime: (this._gateRecord['entryScanTime'] as Timestamp)?.toDate(),
+                                    ),
                                   ),
-                                ),
-                              );
-                            }
-                            : null,
+                                );
+                              }
+                              : null,
+                        ),
                       ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(left: 8.0)
-                    ),
-                    Expanded(
-                      flex: 5,
-                      child: FlatButton(
-                        color: Colors.white.withAlpha(40),
-                        textColor: Colors.white,
-                        child: Text('Pay Amount'),
-                        onPressed: () {
-
-                        },
+                      Padding(
+                        padding: EdgeInsets.only(left: 8.0)
                       ),
-                    )
-                  ],
-                )
-              ],
-            ),
+                      Expanded(
+                        flex: 5,
+                        child: FlatButton(
+                          color: Colors.white.withAlpha(40),
+                          textColor: Colors.white,
+                          child: Text('Pay Amount'),
+                          onPressed: () {
+                            // TODO: navigate
+                          },
+                        ),
+                      )
+                    ],
+                  )
+                ],
+              ),
+            )
           )
-        ),
+        : null,
       ),
       body: this._gateRecord != null
         ? Timeline(

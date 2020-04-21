@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_car_park_app/pages/snapshot_page.dart';
 import 'package:smart_car_park_app/widgets/signin_widget.dart';
 import 'package:timeline_list/timeline.dart';
 import 'package:timeline_list/timeline_model.dart';
@@ -39,9 +40,9 @@ class _InformationPageState extends State<InformationPage> {
   void listenToGateRecord() async {
     await this._gateRecordSubscription?.cancel();
     this._gateRecordSubscription = null;
-    this._gateRecordSubscription = Firestore.instance.collection('gateRecords').where('phoneNumber', isEqualTo: '+85212345678').snapshots().listen((snapshot) {
+    this._gateRecordSubscription = Firestore.instance.collection('gateRecords').where('phoneNumber', isEqualTo: '+85212345678').orderBy('entryScanTime', descending: true).snapshots().listen((snapshot) {
       try {
-        this._gateRecord = (snapshot.documents..sort((a, b) => (a.data['entryScanTime'] as Timestamp).compareTo(b.data['entryScanTime'] as Timestamp))).first.data;
+        this._gateRecord = snapshot.documents.first.data;
       } catch (e) { // list empty
         this._gateRecord = null;
         setState(() {});
@@ -104,6 +105,7 @@ class _InformationPageState extends State<InformationPage> {
     if (this._currentLocation == null) return;
     Firestore.instance.document('iotStates/${this._currentLocation}').snapshots().listen((snapshot) async {
       debugPrint(snapshot.data.toString());
+      if (!(snapshot.data['imageUrl'] as String).startsWith('gs://')) return;
       final ref = await FirebaseStorage.instance.getReferenceFromUrl(snapshot.data['imageUrl'] as String);
       this._iotImageUrl = (await ref.getDownloadURL()) as String;
       debugPrint(_iotImageUrl);
@@ -259,7 +261,7 @@ class _InformationPageState extends State<InformationPage> {
           )
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(120.0),
+          preferredSize: Size.fromHeight(180.0),
           child: Container(
             padding: EdgeInsets.all(16.0),
             child: Column(
@@ -268,6 +270,45 @@ class _InformationPageState extends State<InformationPage> {
                 makeTableRow('Parked Location', this._currentLocation ?? '-'),
                 makeTableRow('Parked Duration', DateTime.now().difference((this._gateRecord['entryConfirmTime'] as Timestamp).toDate()).inMinutes.toString() + ' Minutes'),
                 makeTableRow('Amount Due', '???'),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 5,
+                      child: FlatButton(
+                        color: Colors.white.withAlpha(40),
+                        textColor: Colors.white,
+                        child: Text('View Snapshots'),
+                        onPressed: this._currentLocation != null
+                            ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SnapshotPage(
+                                    iotDeviceId: this._currentLocation,
+                                    fromDateTime: (this._gateRecord['entryScanTime'] as Timestamp)?.toDate(),
+                                  ),
+                                ),
+                              );
+                            }
+                            : null,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 8.0)
+                    ),
+                    Expanded(
+                      flex: 5,
+                      child: FlatButton(
+                        color: Colors.white.withAlpha(40),
+                        textColor: Colors.white,
+                        child: Text('Pay Amount'),
+                        onPressed: () {
+
+                        },
+                      ),
+                    )
+                  ],
+                )
               ],
             ),
           )
@@ -279,14 +320,14 @@ class _InformationPageState extends State<InformationPage> {
             // TODO: make exit time card
             this._iotImageUrl != null
               ? makeSnapshotTimelineModel(this._iotImageUrl)
-              : Container(),
+              : null,
             ..._iotStateChanges.map((change) => makeChangeTimelineModel(change)).toList(),
             makeMessageTimelineModel(
               message: 'Entered Park via ${this._gateRecord['entryGate']} Gate',
               caption: timeago.format((this._gateRecord['entryScanTime'] as Timestamp).toDate()),
               iconData: Icons.exit_to_app
             )
-          ],
+          ].where((elem) => elem != null).toList(),
           position: TimelinePosition.Left,
           physics: BouncingScrollPhysics(),
         )

@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment from 'moment'
 
 export enum ParkingStatus {
     Vacant,
@@ -8,14 +8,14 @@ export enum ParkingStatus {
 }
 
 export class IotState {
-    vehicleId: string;
-    parkingStatus: ParkingStatus;
-    time: moment.Moment;
+    vehicleId: string
+    parkingStatus: ParkingStatus
+    time: moment.Moment
 
     constructor(vehicleId: string, parkingStatus: ParkingStatus) {
-        this.vehicleId = vehicleId;
-        this.parkingStatus = parkingStatus;
-        this.time = moment();
+        this.vehicleId = vehicleId
+        this.parkingStatus = parkingStatus
+        this.time = moment()
     }
 
     toObj(imageUrl: string): Object {

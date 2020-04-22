@@ -1,6 +1,5 @@
 module.exports = {
     "env": {
-        "browser": true,
         "es6": true
     },
     "extends": [
@@ -20,5 +19,6 @@ module.exports = {
         "@typescript-eslint"
     ],
     "rules": {
+        "semi": [2, "never"]
     }
 };

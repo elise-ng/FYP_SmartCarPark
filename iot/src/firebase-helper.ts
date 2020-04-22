@@ -1,18 +1,18 @@
-import * as firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
-import "firebase/functions";
+import * as firebase from "firebase/app"
+import "firebase/auth"
+import "firebase/firestore"
+import "firebase/functions"
 
-import { IotState } from "./iot-state";
-import { GateState } from "./gate-state";
+import { IotState } from "./iot-state"
+import { GateState } from "./gate-state"
 
 export class FirebaseHelper {
-    deviceId: string;
-    firestore: firebase.firestore.Firestore;
-    functions: firebase.functions.Functions;
+    deviceId: string
+    firestore: firebase.firestore.Firestore
+    functions: firebase.functions.Functions
 
     constructor(deviceId) {
-        this.deviceId = deviceId;
+        this.deviceId = deviceId
     }
 
     async init() {
@@ -29,63 +29,63 @@ export class FirebaseHelper {
                 appId: "1:777981643981:web:6f215aa76849c60389ad84",
                 measurementId: "G-TRQVENNKGS"
             })
-            await firebase.auth().signInWithEmailAndPassword("iot-client@fyp-smartcarpark.com", "f]T*UjCtLGf7[#TYxJQ;vJ");
-            this.firestore = app.firestore();
-            this.functions = app.functions('asia-east2');
+            await firebase.auth().signInWithEmailAndPassword("iot-client@fyp-smartcarpark.com", "f]T*UjCtLGf7[#TYxJQvJ")
+            this.firestore = app.firestore()
+            this.functions = app.functions('asia-east2')
             console.log("Firebase initialized")
         } catch (error) {
-            console.log(error);
+            console.log(error)
         }
     }
 
     async updateIotState(iotState: IotState, jpgImageBuffer?: Buffer) {
-        let imageUrl: string;
+        let imageUrl: string
 
         if (jpgImageBuffer != null) {
             let data = {
                 deviceId: this.deviceId,
-                imageData: `data:image/jpeg;base64,${jpgImageBuffer.toString('base64')}`,
+                imageData: `data:image/jpegbase64,${jpgImageBuffer.toString('base64')}`,
                 imageTimestamp: iotState.time.toISOString()
             }
 
-            let uploadFunction = this.functions.httpsCallable('iotUploadSnapshot');
+            let uploadFunction = this.functions.httpsCallable('iotUploadSnapshot')
             try {
-                console.log("Uploading image...");
-                imageUrl = (await uploadFunction(data)).data["imageUrl"];
+                console.log("Uploading image...")
+                imageUrl = (await uploadFunction(data)).data["imageUrl"]
             } catch (error) {
-                console.log(error);
+                console.log(error)
             }
         }
 
-        console.log(`Updating state of ${this.deviceId}...`);
-        let state = iotState.toObj(imageUrl);
-        await this.updateDocument("iotStates", this.deviceId, state);
-        console.log("State updated");
+        console.log(`Updating state of ${this.deviceId}...`)
+        let state = iotState.toObj(imageUrl)
+        await this.updateDocument("iotStates", this.deviceId, state)
+        console.log("State updated")
     }
 
     
     async updateEntryGateState(gateState: GateState, jpgImageBuffer?: Buffer) {
-        let imageUrl: string;
+        let imageUrl: string
 
         if (jpgImageBuffer != null) {
             let data = {
                 deviceId: this.deviceId,
-                imageData: `data:image/jpeg;base64,${jpgImageBuffer.toString('base64')}`,
+                imageData: `data:image/jpegbase64,${jpgImageBuffer.toString('base64')}`,
                 imageTimestamp: gateState.entryScanTime.toISOString()
             }
 
-            let uploadFunction = this.functions.httpsCallable('iotUploadSnapshot');
+            let uploadFunction = this.functions.httpsCallable('iotUploadSnapshot')
             try {
-                console.log("Uploading image...");
-                imageUrl = (await uploadFunction(data)).data["imageUrl"];
+                console.log("Uploading image...")
+                imageUrl = (await uploadFunction(data)).data["imageUrl"]
             } catch (error) {
-                console.log(error);
+                console.log(error)
             }
         }
-        console.log(`Updating state of ${this.deviceId}...`);
-        let state = gateState.toObj(imageUrl);
-        await this.uploadDocument("gateRecords", state);
-        console.log("gateState updated");
+        console.log(`Updating state of ${this.deviceId}...`)
+        let state = gateState.toObj(imageUrl)
+        await this.uploadDocument("gateRecords", state)
+        console.log("gateState updated")
     }
 
 
@@ -93,13 +93,13 @@ export class FirebaseHelper {
     async updateDocument(collection: string, document: string, data: object) {
         await this.firestore.collection(collection).doc(document).set(data, {
             merge: true
-        });
+        })
     }
 
     async uploadDocument(collection: string, data: object) {
         await this.firestore.collection(collection).add(data).then(ref => {
-          console.log('Added document with ID: ', ref.id);
-        });
+          console.log('Added document with ID: ', ref.id)
+        })
     }
 
 }

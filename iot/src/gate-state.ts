@@ -1,12 +1,11 @@
 import moment from 'moment'
 
 export enum Gate {
-    southEntry,
-    northEntry,
-    southExit,
-    northExit,
+    southEntry = 'southEntry',
+    northEntry = 'northEntry',
+    southExit = 'southExit',
+    northExit = 'northExit',
 }
-
 
 export class GateState {
     vehicleId: string
@@ -22,23 +21,23 @@ export class GateState {
     constructor(vehicleId: string, gate: Gate) {
         this.vehicleId = vehicleId
         this.entryScanTime = moment()
-	this.entryGate = gate
+        this.entryGate = gate
     }
 
     toObj(imageUrl: string): Object {
-        if(imageUrl != null) {
-        console.log("imageUrl not null")    
-	return {
+        if (imageUrl != null) {
+            console.log("imageUrl not null")
+            return {
                 imageUrl: imageUrl,
                 entryScanTime: this.entryScanTime.toDate(),
                 entryGate: Gate[this.entryGate],
             }
         } else {
-	    console.log("imageUrl null")
+            console.log("imageUrl null")
             return {
                 entryScanTime: this.entryScanTime.toDate(),
                 entryGate: Gate[this.entryGate],
-           }
+            }
         }
     }
 }

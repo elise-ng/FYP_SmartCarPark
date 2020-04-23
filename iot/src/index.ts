@@ -10,10 +10,10 @@ enum Mode {
 }
 
 // Configs
-const mode: string = Mode.gate
-const deviceId: string = Gate.southEntry
-const occupiedThresholdInCm: number = 100
-const vacantThresholdInCm: number = 300
+const mode: string = process.env.mode
+const deviceId: string = process.env.deviceId
+const occupiedThresholdInCm: number = 50
+const vacantThresholdInCm: number = 250
 const stableThresholdInCm: number = 10 // TODO: find out error / noise range of reading
 
 async function main() {
@@ -49,14 +49,14 @@ async function main() {
         distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
           try {
             // if approaching && distance < threshold -> occupied, take photo
-            if (!triggered && lastDistanceInCm > distanceInCm && distanceInCm < occupiedThresholdInCm) {
+            if (!triggered && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < occupiedThresholdInCm) {
               // occupied
               triggered = true
               let imageBuffer = await camera.takeImage()
               let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied)
               await firebaseHelper.updateIotState(iotState, imageBuffer)
             // if leaving && distance > threshold -> vacant
-            } else if (!triggered && Math.abs(lastDistanceInCm - distanceInCm) < stableThresholdInCm && distanceInCm > vacantThresholdInCm) {
+            } else if (!triggered && distanceInCm > lastDistanceInCm + stableThresholdInCm && distanceInCm > vacantThresholdInCm) {
               // vacant
               triggered = true
               // let imageBuffer = await camera.takeImage()

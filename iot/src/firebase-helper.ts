@@ -35,6 +35,7 @@ export class FirebaseHelper {
             console.log("Firebase initialized")
         } catch (error) {
             console.log(error)
+            await this.init()
         }
     }
 

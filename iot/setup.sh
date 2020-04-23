@@ -1,5 +1,4 @@
 #!/bin/sh
-set -e
 # Update
 echo "Updating"
 sudo apt-get update

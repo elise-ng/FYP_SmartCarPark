@@ -12,29 +12,67 @@ enum Mode {
 // Configs
 const mode: string = Mode.gate
 const deviceId: string = Gate.southEntry
-const triggerDistanceInCm: number = 30
+const occupiedThresholdInCm: number = 30
+const vacantThresholdInCm: number = 300
+const stableThresholdInCm: number = 5 // TODO: find out error / noise range of reading
 
 async function main() {
-  let triggered = false
-  const camera = new StillCamera()
-  const firebaseHelper = new FirebaseHelper(deviceId)
-  await firebaseHelper.init()
-  const distanceHelper = new DistanceHelper()
-  distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
-      if (distanceInCm < triggerDistanceInCm && !triggered) {
-        triggered = true
-        let imageBuffer = await camera.takeImage()
-        if (mode === Mode.iot) {
-          let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied)
-          await firebaseHelper.updateIotState(iotState, imageBuffer)
-        } else if (mode === Mode.gate) {
-          let gateState = new GateState("test_vehicle_id", Gate.southEntry)
-          await firebaseHelper.updateEntryGateState(gateState, imageBuffer)
-        }
-      } else if (distanceInCm > triggerDistanceInCm && triggered) {
-        triggered = false
-      }
-  })
+  try {
+    let triggered = false
+    let lastDistanceInCm: number = Infinity
+  
+    const camera = new StillCamera()
+    const firebaseHelper = new FirebaseHelper(deviceId)
+    await firebaseHelper.init()
+    const distanceHelper = new DistanceHelper()
+  
+    switch (mode) {
+      case Mode.gate:
+        distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
+          try {
+            if (Math.abs(lastDistanceInCm - distanceInCm) < stableThresholdInCm && distanceInCm < occupiedThresholdInCm && !triggered) {
+              triggered = true
+              lastDistanceInCm = distanceInCm
+              let imageBuffer = await camera.takeImage()
+              let gateState = new GateState("test_vehicle_id", Gate.southEntry)
+              await firebaseHelper.updateEntryGateState(gateState, imageBuffer)
+            } else if (triggered) { // post trigger reset state
+              triggered = false
+            }
+          } catch (e) {
+            console.error(e)
+          }
+        })
+        break
+      case Mode.iot:
+        distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
+          try {
+            if (Math.abs(lastDistanceInCm - distanceInCm) < stableThresholdInCm && distanceInCm < occupiedThresholdInCm && !triggered) {
+              // occupied
+              triggered = true
+              lastDistanceInCm = distanceInCm
+              let imageBuffer = await camera.takeImage()
+              let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied)
+              await firebaseHelper.updateIotState(iotState, imageBuffer)
+            } else if (Math.abs(lastDistanceInCm - distanceInCm) < stableThresholdInCm && distanceInCm > vacantThresholdInCm && !triggered) {
+              // vacant
+              triggered = true
+              lastDistanceInCm = distanceInCm
+              let imageBuffer = await camera.takeImage()
+              let iotState = new IotState("test_vehicle_id", ParkingStatus.Vacant)
+              await firebaseHelper.updateIotState(iotState, imageBuffer)
+            } else if (triggered) { // post trigger reset state
+              triggered = false
+            }
+          } catch (e) {
+            console.error(e)
+          }
+        })
+        break
+    }
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 main()

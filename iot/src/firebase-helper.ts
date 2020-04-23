@@ -44,7 +44,7 @@ export class FirebaseHelper {
         if (jpgImageBuffer != null) {
             let data = {
                 deviceId: this.deviceId,
-                imageData: `data:image/jpegbase64,${jpgImageBuffer.toString('base64')}`,
+                imageData: `data:image/jpeg;base64,${jpgImageBuffer.toString('base64')}`,
                 imageTimestamp: iotState.time.toISOString()
             }
 
@@ -70,7 +70,7 @@ export class FirebaseHelper {
         if (jpgImageBuffer != null) {
             let data = {
                 deviceId: this.deviceId,
-                imageData: `data:image/jpegbase64,${jpgImageBuffer.toString('base64')}`,
+                imageData: `data:image/jpeg;base64,${jpgImageBuffer.toString('base64')}`,
                 imageTimestamp: gateState.entryScanTime.toISOString()
             }
 

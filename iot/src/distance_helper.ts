@@ -11,7 +11,7 @@ export class DistanceHelper {
     intervalInMillis: number
     triggerTimeoutId: NodeJS.Timeout
 
-    constructor(intervalInMillis: number = 10, triggerPin: number = 18, echoPin: number = 24, log: boolean = false) {
+    constructor(intervalInMillis: number = 1000, triggerPin: number = 18, echoPin: number = 24, log: boolean = false) {
         this.intervalInMillis = intervalInMillis
         this.trigger = new Gpio(triggerPin, { mode: Gpio.OUTPUT })
         this.echo = new Gpio(echoPin, { mode: Gpio.INPUT, alert: true })

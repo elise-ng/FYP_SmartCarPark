@@ -4,8 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "start": "tsc && node dist/index.js",
-    "test": "tsc && node dist/test.js"
+    "start": "tsc && sudo node dist/index.js",
+    "test": "tsc && sudo node dist/test.js"
   },
   "author": "",
   "license": "ISC",

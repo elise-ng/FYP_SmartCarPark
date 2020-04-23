@@ -14,7 +14,7 @@ const mode: string = Mode.gate
 const deviceId: string = Gate.southEntry
 const occupiedThresholdInCm: number = 100
 const vacantThresholdInCm: number = 300
-const stableThresholdInCm: number = 5 // TODO: find out error / noise range of reading
+const stableThresholdInCm: number = 10 // TODO: find out error / noise range of reading
 
 async function main() {
   try {
@@ -31,12 +31,12 @@ async function main() {
         distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
           try {
             // if arrroaching && distance < threshold -> take photo
-            if (!triggered && lastDistanceInCm > distanceInCm && distanceInCm < occupiedThresholdInCm) {
+            if (!triggered && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < occupiedThresholdInCm) {
               triggered = true
               let imageBuffer = await camera.takeImage()
               let gateState = new GateState("test_vehicle_id", Gate.southEntry)
               await firebaseHelper.updateEntryGateState(gateState, imageBuffer)
-            } else if (distanceInCm > lastDistanceInCm) { // if leaving, reset
+            } else if (triggered && distanceInCm > lastDistanceInCm + stableThresholdInCm) { // if leaving, reset
               triggered = false
             }
             lastDistanceInCm = distanceInCm

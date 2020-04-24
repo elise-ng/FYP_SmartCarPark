@@ -31,6 +31,9 @@ async function main() {
         distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
           try {
             let triggered: boolean = false
+            if (Math.abs(distanceInCm - lastDistanceInCm) > stableThresholdInCm) {
+              console.log(`Major movement: ${lastDistanceInCm} -> ${distanceInCm}`)
+            }
             // if arrroaching && distance < threshold -> take photo
             if (!triggered && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < occupiedThresholdInCm) {
               console.log(`Apprach detected, dist ${lastDistanceInCm} -> ${distanceInCm}`)
@@ -41,9 +44,6 @@ async function main() {
             } else if (triggered && distanceInCm > lastDistanceInCm + stableThresholdInCm) { // if leaving, reset
               console.log(`Departure detected, dist ${lastDistanceInCm} -> ${distanceInCm}`)
               triggered = false
-            }
-            if (Math.abs(distanceInCm - lastDistanceInCm) > stableThresholdInCm) {
-              console.log(`Major movement: ${lastDistanceInCm} -> ${distanceInCm}`)
             }
             lastDistanceInCm = distanceInCm
           } catch (e) {
@@ -56,6 +56,9 @@ async function main() {
         distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
           try {
             let lastStatus: ParkingStatus
+            if (Math.abs(distanceInCm - lastDistanceInCm) > stableThresholdInCm) {
+              console.log(`Major movement: ${lastDistanceInCm} -> ${distanceInCm}`)
+            }
             // if approaching && distance < threshold -> occupied, take photo
             if (lastStatus !== ParkingStatus.Occupied && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < occupiedThresholdInCm) {
               // occupied
@@ -72,9 +75,6 @@ async function main() {
               // let imageBuffer = await camera.takeImage()
               let iotState = new IotState(null, ParkingStatus.Vacant)
               await firebaseHelper.updateIotState(iotState, null)
-            }
-            if (Math.abs(distanceInCm - lastDistanceInCm) > stableThresholdInCm) {
-              console.log(`Major movement: ${lastDistanceInCm} -> ${distanceInCm}`)
             }
             lastDistanceInCm = distanceInCm
           } catch (e) {

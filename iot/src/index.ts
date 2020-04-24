@@ -27,17 +27,23 @@ async function main() {
   
     switch (mode) {
       case Mode.gate:
+        console.log('In Gate Mode')
         distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
           try {
             let triggered: boolean = false
             // if arrroaching && distance < threshold -> take photo
             if (!triggered && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < occupiedThresholdInCm) {
+              console.log(`Apprach detected, dist ${lastDistanceInCm} -> ${distanceInCm}`)
               triggered = true
               let imageBuffer = await camera.takeImage()
               let gateState = new GateState("test_vehicle_id", Gate.southEntry)
               await firebaseHelper.updateEntryGateState(gateState, imageBuffer)
             } else if (triggered && distanceInCm > lastDistanceInCm + stableThresholdInCm) { // if leaving, reset
+              console.log(`Departure detected, dist ${lastDistanceInCm} -> ${distanceInCm}`)
               triggered = false
+            }
+            if (Math.abs(distanceInCm - lastDistanceInCm) > stableThresholdInCm) {
+              console.log(`Major movement: ${lastDistanceInCm} -> ${distanceInCm}`)
             }
             lastDistanceInCm = distanceInCm
           } catch (e) {
@@ -46,12 +52,14 @@ async function main() {
         })
         break
       case Mode.iot:
+        console.log('In IoT (Lot) Mode')
         distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
           try {
             let lastStatus: ParkingStatus
             // if approaching && distance < threshold -> occupied, take photo
             if (lastStatus !== ParkingStatus.Occupied && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < occupiedThresholdInCm) {
               // occupied
+              console.log(`Occupied detected, last state ${lastStatus}, dist ${lastDistanceInCm} -> ${distanceInCm}`)
               lastStatus = ParkingStatus.Occupied
               let imageBuffer = await camera.takeImage()
               let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied)
@@ -59,10 +67,14 @@ async function main() {
             // if leaving && distance > threshold -> vacant
             } else if (lastStatus !== ParkingStatus.Vacant && distanceInCm > lastDistanceInCm + stableThresholdInCm && distanceInCm > vacantThresholdInCm) {
               // vacant
+              console.log(`Vacant detected, last state ${lastStatus}, dist ${lastDistanceInCm} -> ${distanceInCm}`)
               lastStatus = ParkingStatus.Vacant
               // let imageBuffer = await camera.takeImage()
               let iotState = new IotState(null, ParkingStatus.Vacant)
               await firebaseHelper.updateIotState(iotState, null)
+            }
+            if (Math.abs(distanceInCm - lastDistanceInCm) > stableThresholdInCm) {
+              console.log(`Major movement: ${lastDistanceInCm} -> ${distanceInCm}`)
             }
             lastDistanceInCm = distanceInCm
           } catch (e) {

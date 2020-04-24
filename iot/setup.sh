@@ -9,7 +9,6 @@ echo "Installing TeamViewer"
 wget https://download.teamviewer.com/download/linux/teamviewer-host_armhf.deb
 sudo dpkg -i teamviewer-host_armhf.deb
 sudo apt --fix-broken install
-sudo teamviewer setup
 
 # NodeJS
 echo "Installing NodeJS"
@@ -33,7 +32,7 @@ yarn run tsc
 echo "Setting up Daemon"
 yarn global add pm2
 sudo /home/pi/.yarn/bin/pm2 startup
-sudo /home/pi/.yarn/bin/pm2 run /home/pi/Documents/iot/dist/index.js
+sudo /home/pi/.yarn/bin/pm2 start /home/pi/Documents/iot/pm2_config.yaml
 sudo /home/pi/.yarn/bin/pm2 save
 
 echo "Setup completed"

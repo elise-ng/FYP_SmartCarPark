@@ -1124,11 +1124,6 @@ path-key@^2.0.1:
   resolved "https://registry.yarnpkg.com/path-key/-/path-key-2.0.1.tgz#411cadb574c5a140d3a4b1910d40d80cc9f40b40"
   integrity sha1-QRyttXTFoUDTpLGRDUDYDMn0C0A=
 
-pi-camera-connect@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/pi-camera-connect/-/pi-camera-connect-0.2.0.tgz#251d77e6ed497b87e2c9f315d43cadccf68d859a"
-  integrity sha512-ApPmTDNn/PAfAtkW3p+7NWONMesmoDa6aIZ4pAXYYjpaRbPWusPjREgLcyzEn7HJFGtq39I0JuZTC8OYa19bWQ==
-
 pigpio@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/pigpio/-/pigpio-3.1.0.tgz#8a9ddc056bba2111139aadeb0c43d46322560e26"

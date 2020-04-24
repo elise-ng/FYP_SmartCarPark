@@ -1,8 +1,10 @@
-import { StillCamera } from "pi-camera-connect"
 import { FirebaseHelper } from "./firebase-helper"
 import { IotState, ParkingStatus } from "./iot-state"
 import { GateState, Gate } from "./gate-state"
 import { DistanceHelper } from "./distance_helper"
+import { promisify } from 'util'
+import { exec as execCb } from 'child_process'
+const exec = promisify(execCb)
 
 enum Mode {
   iot = 'iot',
@@ -19,8 +21,6 @@ const stableThresholdInCm: number = 5 // TODO: find out error / noise range of r
 async function main() {
   try {
     let lastDistanceInCm: number = Infinity
-  
-    const camera = new StillCamera()
     const firebaseHelper = new FirebaseHelper(deviceId)
     await firebaseHelper.init()
     const distanceHelper = new DistanceHelper()
@@ -38,8 +38,14 @@ async function main() {
             if (!triggered && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < occupiedThresholdInCm) {
               console.log(`Apprach detected, dist ${lastDistanceInCm} -> ${distanceInCm}`)
               triggered = true
-              let imageBuffer = await camera.takeImage()
               let gateState = new GateState("test_vehicle_id", Gate.southEntry)
+              let imageBuffer:Buffer
+              const camera = await exec('raspistill -ISO 800 -ex sport -n -o -', { encoding: "buffer" })
+              if (camera.stdout) {
+                imageBuffer = camera.stdout
+              } else {
+                console.log(`Camera no output: ${camera.stderr}`)
+              }
               await firebaseHelper.updateEntryGateState(gateState, imageBuffer)
             } else if (triggered && distanceInCm > lastDistanceInCm + stableThresholdInCm) { // if leaving, reset
               console.log(`Departure detected, dist ${lastDistanceInCm} -> ${distanceInCm}`)
@@ -64,8 +70,14 @@ async function main() {
               // occupied
               console.log(`Occupied detected, last state ${lastStatus}, dist ${lastDistanceInCm} -> ${distanceInCm}`)
               lastStatus = ParkingStatus.Occupied
-              let imageBuffer = await camera.takeImage()
               let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied)
+              let imageBuffer:Buffer
+              const camera = await exec('raspistill -ISO 800 -ex sport -n -o -', { encoding: "buffer" })
+              if (camera.stdout) {
+                imageBuffer = camera.stdout
+              } else {
+                console.log(`Camera no output: ${camera.stderr}`)
+              }
               await firebaseHelper.updateIotState(iotState, imageBuffer)
             // if leaving && distance > threshold -> vacant
             } else if (lastStatus !== ParkingStatus.Vacant && distanceInCm > lastDistanceInCm + stableThresholdInCm && distanceInCm > vacantThresholdInCm) {
@@ -89,4 +101,3 @@ async function main() {
 }
 
 main()
-

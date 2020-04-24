@@ -56,8 +56,8 @@ export class FirebaseHelper {
             } catch (error) {
                 console.log(error)
             }
+            // TODO: call cv cloud func
         }
-
         console.log(`Updating state of ${this.deviceId}...`)
         let state = iotState.toObj(imageUrl)
         await this.updateDocument("iotStates", this.deviceId, state)
@@ -82,6 +82,7 @@ export class FirebaseHelper {
             } catch (error) {
                 console.log(error)
             }
+            // TODO: call cv cloud func
         }
         console.log(`Updating state of ${this.deviceId}...`)
         let state = gateState.toObj(imageUrl)

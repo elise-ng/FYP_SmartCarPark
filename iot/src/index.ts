@@ -40,7 +40,7 @@ async function main() {
               triggered = true
               let gateState = new GateState("test_vehicle_id", Gate.southEntry)
               let imageBuffer:Buffer
-              const camera = await exec('raspistill -ISO 800 -ex sport -n -o -', { encoding: "buffer" })
+              const camera = await exec('raspistill -ISO 800 -ex sports -n -o -', { encoding: "buffer" })
               if (camera.stdout) {
                 imageBuffer = camera.stdout
               } else {
@@ -72,7 +72,7 @@ async function main() {
               lastStatus = ParkingStatus.Occupied
               let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied)
               let imageBuffer:Buffer
-              const camera = await exec('raspistill -ISO 800 -ex sport -n -o -', { encoding: "buffer" })
+              const camera = await exec('raspistill -ISO 800 -ex sports -n -o -', { encoding: "buffer" })
               if (camera.stdout) {
                 imageBuffer = camera.stdout
               } else {

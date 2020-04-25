@@ -9,7 +9,6 @@ export class DistanceHelper {
     echo: Gpio
     log: boolean
     intervalInMillis: number
-    triggerTimeoutId: NodeJS.Timeout
 
     constructor(intervalInMillis: number = 500, triggerPin: number = 18, echoPin: number = 24, log: boolean = false) {
         this.intervalInMillis = intervalInMillis
@@ -20,38 +19,37 @@ export class DistanceHelper {
 
     async startAndSubscribeDistanceChanges(callback: DistanceCallback) {
         let startTick: number
-        let shouldIgnoreEvents: boolean = false 
-        this.trigger.digitalWrite(0) // Make sure trigger is low
-        this.echo.on('alert', async (level, tick) => {
-            if (shouldIgnoreEvents) return
-            if (!startTick && level == 1) {
+        let endTick: number
+
+        async function alertHandler (level, tick) {
+            if (!startTick && !endTick && level == 1) {
                 startTick = tick
-            } else if (startTick && level == 0) {
-                let endTick = tick
+            } else if (startTick && !endTick && level == 0) {
+                endTick = tick
                 let diff = (endTick >> 0) - (startTick >> 0) // Unsigned 32 bit arithmetic
                 let dist = diff / 2 / MICROSECDONDS_PER_CM
-                if(this.log) {
-                    console.log(`Measured Distance: ${dist} cm`)
-                }
-                this.pause()
-                shouldIgnoreEvents = true
+                if (this.log) console.log(`Measured Distance: ${dist} cm`)
                 await callback(dist)
-                startTick = undefined
-                shouldIgnoreEvents = false
-                this.resume()
             }
-        })
-        this.resume()
-    }
+        }
+        // reset level
+        this.trigger.digitalWrite(0) 
 
-    resume() {
-        // Trigger a distance measurement once per second
-        this.triggerTimeoutId = setInterval(() => {
-            this.trigger.trigger(10, 1) // Set trigger high for 10 microseconds
-        }, this.intervalInMillis)
-    }
+        // listen to sensor output
+        this.echo.addListener('alert', alertHandler)
 
-    pause() {
-        clearInterval(this.triggerTimeoutId)
+        function loop(trigger: Gpio, intervalInMillis: number) {
+            trigger.trigger(10, 1)
+            setTimeout(async () => {
+                if (!endTick) { // did not receive echo
+                    await callback(Infinity)
+                    startTick = undefined
+                    endTick = undefined
+                }
+                loop(trigger, intervalInMillis)
+            }, intervalInMillis)
+        }
+        // first trigger
+        loop(this.trigger, this.intervalInMillis)
     }
 }

@@ -19,9 +19,11 @@ export class DistanceHelper {
     }
 
     async startAndSubscribeDistanceChanges(callback: DistanceCallback) {
-        let startTick
+        let startTick: number
+        let shouldIgnoreEvents: boolean = false 
         this.trigger.digitalWrite(0) // Make sure trigger is low
         this.echo.on('alert', async (level, tick) => {
+            if (shouldIgnoreEvents) return
             if (level == 1) {
                 startTick = tick
             } else {
@@ -31,12 +33,13 @@ export class DistanceHelper {
                 if(this.log) {
                     console.log(`Measured Distance: ${dist} cm`)
                 }
-
                 this.pause()
+                shouldIgnoreEvents = true
                 await callback(dist)
+                shouldIgnoreEvents = false
                 this.resume()
             }
-        })  
+        })
         this.resume()
     }
 

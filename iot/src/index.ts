@@ -42,20 +42,25 @@ async function main() {
               triggered = true
               let gateState = new GateState("test_vehicle_id", Gate.southEntry)
               let imageBuffer:Buffer
-              const camera = await exec('raspistill -ISO 800 -ex sports -n -o /tmp/iot/snapshot.jpg',)
-              if (!camera.stderr) {
-                imageBuffer = await readFile('/tmp/iot/snapshot.jpg')
-              } else {
-                console.log(`Camera no output: ${camera.stderr}`)
+              try {
+                const camera = await exec('raspistill -ISO 800 -ex sports -n -o /tmp/iot/snapshot.jpg',)
+                if (!camera.stderr) {
+                  imageBuffer = await readFile('/tmp/iot/snapshot.jpg')
+                } else {
+                  console.log(`Camera no output: ${camera.stderr}`)
+                }
+              } catch (e) {
+                console.error(e)
               }
               await firebaseHelper.updateEntryGateState(gateState, imageBuffer)
             } else if (triggered && distanceInCm > lastDistanceInCm + stableThresholdInCm) { // if leaving, reset
               console.log(`Departure detected, dist ${lastDistanceInCm} -> ${distanceInCm}`)
               triggered = false
             }
-            lastDistanceInCm = distanceInCm
           } catch (e) {
             console.error(e)
+          } finally {
+            lastDistanceInCm = distanceInCm
           }
         })
         break
@@ -74,11 +79,15 @@ async function main() {
               lastStatus = ParkingStatus.Occupied
               let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied)
               let imageBuffer:Buffer
-              const camera = await exec('raspistill -ISO 800 -ex sports -n -o /tmp/iot/snapshot.jpg',)
-              if (!camera.stderr) {
-                imageBuffer = await readFile('/tmp/iot/snapshot.jpg')
-              } else {
-                console.log(`Camera no output: ${camera.stderr}`)
+              try {
+                const camera = await exec('raspistill -ISO 800 -ex sports -n -o /tmp/iot/snapshot.jpg',)
+                if (!camera.stderr) {
+                  imageBuffer = await readFile('/tmp/iot/snapshot.jpg')
+                } else {
+                  console.log(`Camera no output: ${camera.stderr}`)
+                }
+              } catch (e) {
+                console.error(e)
               }
               await firebaseHelper.updateIotState(iotState, imageBuffer)
             // if leaving && distance > threshold -> vacant
@@ -90,9 +99,10 @@ async function main() {
               let iotState = new IotState(null, ParkingStatus.Vacant)
               await firebaseHelper.updateIotState(iotState, null)
             }
-            lastDistanceInCm = distanceInCm
           } catch (e) {
             console.error(e)
+          } finally {
+            lastDistanceInCm = distanceInCm
           }
         })
         break

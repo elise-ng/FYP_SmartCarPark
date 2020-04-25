@@ -19,14 +19,27 @@ const deviceId: string = process.env.deviceId
 const gateThresholdInCm: number = 200
 const lotThresholdInCm: number = 100
 const stableThresholdInCm: number = 5 // TODO: find out error / noise range of reading
+const historySize: number = 3
+
+// Check if array is sorted in accending/decending order
+function isIncremental(arr: number[], accending: boolean) {
+  return arr.every(function (x, i) {
+    if (accending) {
+      return i === 0 || x > arr[i - 1]
+    } else {
+      return i === 0 || x < arr[i - 1]
+    }
+  })
+}
 
 async function main() {
   try {
     let lastDistanceInCm: number = Infinity
+    const distanceHistory: number[] = []
     const firebaseHelper = new FirebaseHelper(deviceId)
     await firebaseHelper.init()
     const distanceHelper = new DistanceHelper()
-  
+
     switch (mode) {
       case Mode.gate:
         console.log('In Gate Mode')
@@ -36,14 +49,18 @@ async function main() {
             if (Math.abs(distanceInCm - lastDistanceInCm) > stableThresholdInCm) {
               console.log(`Major movement: ${lastDistanceInCm} -> ${distanceInCm}`)
             }
+            if (distanceHistory.length >= historySize) {
+              distanceHistory.shift()
+            }
+            distanceHistory.push(distanceInCm)
             // if arrroaching && distance < threshold -> take photo
-            if (!triggered && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < gateThresholdInCm) {
-              console.log(`Apprach detected, dist ${lastDistanceInCm} -> ${distanceInCm}`)
+            if (!triggered && isIncremental(distanceHistory, false) && distanceInCm < gateThresholdInCm) {
+              console.log(`Apprach detected, dist ${distanceHistory.join(' -> ')}`)
               triggered = true
               let gateState = new GateState("test_vehicle_id", Gate.southEntry)
-              let imageBuffer:Buffer
+              let imageBuffer: Buffer
               try {
-                const camera = await exec('raspistill -ISO 800 -ex sports -n -o ./snapshot.jpg',)
+                const camera = await exec('raspistill -ISO 800 -ex sports -n -o ./snapshot.jpg')
                 if (!camera.stderr) {
                   imageBuffer = await readFile('./snapshot.jpg')
                 } else {
@@ -53,8 +70,8 @@ async function main() {
                 console.error(e)
               }
               await firebaseHelper.updateEntryGateState(gateState, imageBuffer)
-            } else if (triggered && distanceInCm > lastDistanceInCm + stableThresholdInCm) { // if leaving, reset
-              console.log(`Departure detected, dist ${lastDistanceInCm} -> ${distanceInCm}`)
+            } else if (triggered && isIncremental(distanceHistory, true)) { // if leaving, reset
+              console.log(`Departure detected, dist ${distanceHistory.join(' -> ')}`)
               triggered = false
             }
           } catch (e) {
@@ -72,15 +89,19 @@ async function main() {
             if (Math.abs(distanceInCm - lastDistanceInCm) > stableThresholdInCm) {
               console.log(`Major movement: ${lastDistanceInCm} -> ${distanceInCm}`)
             }
+            if (distanceHistory.length >= historySize) {
+              distanceHistory.shift()
+            }
+            distanceHistory.push(distanceInCm)
             // if approaching && distance < threshold -> occupied, take photo
-            if (lastStatus !== ParkingStatus.Occupied && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < lotThresholdInCm) {
+            if (lastStatus !== ParkingStatus.Occupied && isIncremental(distanceHistory, false) && distanceInCm < lotThresholdInCm) {
               // occupied
-              console.log(`Occupied detected, last state ${lastStatus}, dist ${lastDistanceInCm} -> ${distanceInCm}`)
+              console.log(`Occupied detected, last state ${lastStatus}, dist ${distanceHistory.join(' -> ')}`)
               lastStatus = ParkingStatus.Occupied
               let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied)
-              let imageBuffer:Buffer
+              let imageBuffer: Buffer
               try {
-                const camera = await exec('raspistill -ISO 800 -ex sports -n -o ./snapshot.jpg',)
+                const camera = await exec('raspistill -ISO 800 -ex sports -n -o ./snapshot.jpg')
                 if (!camera.stderr) {
                   imageBuffer = await readFile('./snapshot.jpg')
                 } else {
@@ -90,10 +111,10 @@ async function main() {
                 console.error(e)
               }
               await firebaseHelper.updateIotState(iotState, imageBuffer)
-            // if leaving && distance > threshold -> vacant
-            } else if (lastStatus !== ParkingStatus.Vacant && distanceInCm > lastDistanceInCm + stableThresholdInCm && distanceInCm > lotThresholdInCm) {
+              // if leaving && distance > threshold -> vacant
+            } else if (lastStatus !== ParkingStatus.Vacant && isIncremental(distanceHistory, true) && distanceInCm > lotThresholdInCm) {
               // vacant
-              console.log(`Vacant detected, last state ${lastStatus}, dist ${lastDistanceInCm} -> ${distanceInCm}`)
+              console.log(`Vacant detected, last state ${lastStatus}, dist ${distanceHistory.join(' -> ')}`)
               lastStatus = ParkingStatus.Vacant
               // let imageBuffer = await camera.takeImage()
               let iotState = new IotState(null, ParkingStatus.Vacant)

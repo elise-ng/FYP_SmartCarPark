@@ -16,6 +16,7 @@ enum Mode {
 // Configs
 const mode: string = process.env.mode
 const deviceId: string = process.env.deviceId
+const gateThresholdInCm: number = 100
 const occupiedThresholdInCm: number = 50
 const vacantThresholdInCm: number = 250
 const stableThresholdInCm: number = 5 // TODO: find out error / noise range of reading
@@ -37,7 +38,7 @@ async function main() {
               console.log(`Major movement: ${lastDistanceInCm} -> ${distanceInCm}`)
             }
             // if arrroaching && distance < threshold -> take photo
-            if (!triggered && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < occupiedThresholdInCm) {
+            if (!triggered && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < gateThresholdInCm) {
               console.log(`Apprach detected, dist ${lastDistanceInCm} -> ${distanceInCm}`)
               triggered = true
               let gateState = new GateState("test_vehicle_id", Gate.southEntry)

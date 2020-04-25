@@ -4,7 +4,9 @@ import { GateState, Gate } from "./gate-state"
 import { DistanceHelper } from "./distance_helper"
 import { promisify } from 'util'
 import { exec as execCb } from 'child_process'
+import { readFile as readFileCb } from 'fs'
 const exec = promisify(execCb)
+const readFile = promisify(readFileCb)
 
 enum Mode {
   iot = 'iot',
@@ -40,9 +42,9 @@ async function main() {
               triggered = true
               let gateState = new GateState("test_vehicle_id", Gate.southEntry)
               let imageBuffer:Buffer
-              const camera = await exec('raspistill -ISO 800 -ex sports -n -o -', { encoding: "buffer" })
-              if (camera.stdout) {
-                imageBuffer = camera.stdout
+              const camera = await exec('raspistill -ISO 800 -ex sports -n -o /tmp/iot/snapshot.jpg',)
+              if (!camera.stderr) {
+                imageBuffer = await readFile('/tmp/iot/snapshot.jpg')
               } else {
                 console.log(`Camera no output: ${camera.stderr}`)
               }
@@ -72,9 +74,9 @@ async function main() {
               lastStatus = ParkingStatus.Occupied
               let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied)
               let imageBuffer:Buffer
-              const camera = await exec('raspistill -ISO 800 -ex sports -n -o -', { encoding: "buffer" })
-              if (camera.stdout) {
-                imageBuffer = camera.stdout
+              const camera = await exec('raspistill -ISO 800 -ex sports -n -o /tmp/iot/snapshot.jpg',)
+              if (!camera.stderr) {
+                imageBuffer = await readFile('/tmp/iot/snapshot.jpg')
               } else {
                 console.log(`Camera no output: ${camera.stderr}`)
               }

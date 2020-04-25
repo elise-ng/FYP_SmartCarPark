@@ -24,9 +24,9 @@ export class DistanceHelper {
         this.trigger.digitalWrite(0) // Make sure trigger is low
         this.echo.on('alert', async (level, tick) => {
             if (shouldIgnoreEvents) return
-            if (level == 1) {
+            if (!startTick && level == 1) {
                 startTick = tick
-            } else {
+            } else if (startTick && level == 0) {
                 let endTick = tick
                 let diff = (endTick >> 0) - (startTick >> 0) // Unsigned 32 bit arithmetic
                 let dist = diff / 2 / MICROSECDONDS_PER_CM
@@ -36,6 +36,7 @@ export class DistanceHelper {
                 this.pause()
                 shouldIgnoreEvents = true
                 await callback(dist)
+                startTick = undefined
                 shouldIgnoreEvents = false
                 this.resume()
             }

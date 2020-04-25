@@ -23,13 +23,23 @@ export class DistanceHelper {
 
         async function alertHandler (level, tick) {
             if (!startTick && !endTick && level == 1) {
+                // console.log(`Received start tick`)
                 startTick = tick
             } else if (startTick && !endTick && level == 0) {
+                // console.log(`Received end tick`)
                 endTick = tick
                 let diff = (endTick >> 0) - (startTick >> 0) // Unsigned 32 bit arithmetic
                 let dist = diff / 2 / MICROSECDONDS_PER_CM
-                if (this.log) console.log(`Measured Distance: ${dist} cm`)
-                await callback(dist)
+                // console.log(`Measured Distance: ${dist} cm`)
+                if (dist > 2 && dist < 400) { // sanity check, supported range of sensor
+                    await callback(dist)
+                } else if (dist > 400) {
+                    await callback(Infinity)
+                }
+                startTick = undefined
+                endTick = undefined
+            } else {
+                // console.log(`Unhandled tick: startTick ${startTick}, endTick ${endTick}, level ${level}`)
             }
         }
         // reset level
@@ -38,18 +48,21 @@ export class DistanceHelper {
         // listen to sensor output
         this.echo.addListener('alert', alertHandler)
 
-        function loop(trigger: Gpio, intervalInMillis: number) {
+        function loop(trigger: Gpio, intervalInMillis: number, log: boolean) {
             trigger.trigger(10, 1)
             setTimeout(async () => {
-                if (!endTick) { // did not receive echo
+                if (startTick && !endTick) { // did not receive echo
+                    if (log) console.log(`Did not receive end tick`)
                     await callback(Infinity)
                     startTick = undefined
                     endTick = undefined
                 }
-                loop(trigger, intervalInMillis)
+                if (log) console.log(`Loop Trigger`)
+                loop(trigger, intervalInMillis, log)
             }, intervalInMillis)
         }
         // first trigger
-        loop(this.trigger, this.intervalInMillis)
+        if (this.log) console.log(`First Trigger`)
+        loop(this.trigger, this.intervalInMillis, this.log)
     }
 }

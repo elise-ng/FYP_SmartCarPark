@@ -16,9 +16,8 @@ enum Mode {
 // Configs
 const mode: string = process.env.mode
 const deviceId: string = process.env.deviceId
-const gateThresholdInCm: number = 100
-const occupiedThresholdInCm: number = 50
-const vacantThresholdInCm: number = 250
+const gateThresholdInCm: number = 200
+const lotThresholdInCm: number = 100
 const stableThresholdInCm: number = 5 // TODO: find out error / noise range of reading
 
 async function main() {
@@ -31,9 +30,9 @@ async function main() {
     switch (mode) {
       case Mode.gate:
         console.log('In Gate Mode')
+        let triggered: boolean = false
         distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
           try {
-            let triggered: boolean = false
             if (Math.abs(distanceInCm - lastDistanceInCm) > stableThresholdInCm) {
               console.log(`Major movement: ${lastDistanceInCm} -> ${distanceInCm}`)
             }
@@ -67,14 +66,14 @@ async function main() {
         break
       case Mode.iot:
         console.log('In IoT (Lot) Mode')
+        let lastStatus: ParkingStatus
         distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
           try {
-            let lastStatus: ParkingStatus
             if (Math.abs(distanceInCm - lastDistanceInCm) > stableThresholdInCm) {
               console.log(`Major movement: ${lastDistanceInCm} -> ${distanceInCm}`)
             }
             // if approaching && distance < threshold -> occupied, take photo
-            if (lastStatus !== ParkingStatus.Occupied && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < occupiedThresholdInCm) {
+            if (lastStatus !== ParkingStatus.Occupied && lastDistanceInCm > distanceInCm + stableThresholdInCm && distanceInCm < lotThresholdInCm) {
               // occupied
               console.log(`Occupied detected, last state ${lastStatus}, dist ${lastDistanceInCm} -> ${distanceInCm}`)
               lastStatus = ParkingStatus.Occupied
@@ -92,7 +91,7 @@ async function main() {
               }
               await firebaseHelper.updateIotState(iotState, imageBuffer)
             // if leaving && distance > threshold -> vacant
-            } else if (lastStatus !== ParkingStatus.Vacant && distanceInCm > lastDistanceInCm + stableThresholdInCm && distanceInCm > vacantThresholdInCm) {
+            } else if (lastStatus !== ParkingStatus.Vacant && distanceInCm > lastDistanceInCm + stableThresholdInCm && distanceInCm > lotThresholdInCm) {
               // vacant
               console.log(`Vacant detected, last state ${lastStatus}, dist ${lastDistanceInCm} -> ${distanceInCm}`)
               lastStatus = ParkingStatus.Vacant

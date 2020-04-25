@@ -43,9 +43,9 @@ async function main() {
               let gateState = new GateState("test_vehicle_id", Gate.southEntry)
               let imageBuffer:Buffer
               try {
-                const camera = await exec('raspistill -ISO 800 -ex sports -n -o /tmp/iot/snapshot.jpg',)
+                const camera = await exec('raspistill -ISO 800 -ex sports -n -o ./snapshot.jpg',)
                 if (!camera.stderr) {
-                  imageBuffer = await readFile('/tmp/iot/snapshot.jpg')
+                  imageBuffer = await readFile('./snapshot.jpg')
                 } else {
                   console.log(`Camera no output: ${camera.stderr}`)
                 }
@@ -80,9 +80,9 @@ async function main() {
               let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied)
               let imageBuffer:Buffer
               try {
-                const camera = await exec('raspistill -ISO 800 -ex sports -n -o /tmp/iot/snapshot.jpg',)
+                const camera = await exec('raspistill -ISO 800 -ex sports -n -o ./snapshot.jpg',)
                 if (!camera.stderr) {
-                  imageBuffer = await readFile('/tmp/iot/snapshot.jpg')
+                  imageBuffer = await readFile('./snapshot.jpg')
                 } else {
                   console.log(`Camera no output: ${camera.stderr}`)
                 }

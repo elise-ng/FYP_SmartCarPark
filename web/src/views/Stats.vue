@@ -29,8 +29,16 @@ export default {
   async mounted () {
     this.loaded = false
     try {
-      const snapshot = await db.collection('iotStateChanges').get()
-      console.log(JSON.stringify(snapshot))
+      const snapshot = await db
+        .collection('iotStateChanges')
+        // FIXME: for getting records of current day, index building...
+        // .where('time', '>=', Timestamp.fromDate(moment().startOf('day').toDate()))
+        // .where('time', '<=', Timestamp.fromDate(moment().endOf('day').toDate()))
+        // .where('previousState.state', '==', 'vacant')
+        // .where('newState.state', '==', 'occupied')
+        .limit(100)
+        .get()
+      snapshot.docs.forEach((doc) => console.log(doc.data()))
       // const iotStateChanges = await
       // const previousState = await db.collection('iotStateChange').doc().collection('previousState').get().then(
       //   (data) => {

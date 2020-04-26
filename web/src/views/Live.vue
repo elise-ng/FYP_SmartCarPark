@@ -34,6 +34,13 @@
       <el-table-column label='Phone Number' prop='phoneNumber' :formatter='phoneNumberFormatter' sortable></el-table-column>
       <el-table-column label='Payment' prop='paymentStatus' sortable></el-table-column>
     </el-table>
+    <div>
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        :total="1000">
+      </el-pagination>
+    </div>
   </div>
 </template>
 
@@ -72,34 +79,12 @@ export default {
       // DB Ref: https://firebase.google.com/docs/database/web/read-and-write#basic_write , use db object imported from helper above
       // remember to do try-catch and use async-await, ref GateRecordEdit cash payment part
       try {
-        // await this.$confirm(`Parked Duration: ${moment.duration(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment())).humanize()}, Amount Due: $`, 'Cash Payment', {
-        //   confirmButtonText: 'Received',
-        //   cancelButtonText: 'Cancel'
-        // })
-        // function writeUserData(userId, name, email, imageUrl) {
-        // const today = new Date()
-        // const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
-        // const time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()
-        // const dateTime = date + ' ' + time
-        // console.log(this.$refs.phoneNumber.value)
-        // console.log(this.$refs.vehicleId.value)
-        // console.log(this.$refs.gate.value)
-        // firebase.database().ref('gateRecords/' + this.$route.params.gateRecordId).set({
-        //   username: name,
-        //   email: email,
-        //   profile_picture : imageUrl
-        // });
-        // firebase.database().ref('gateRecords/' + this.$route.params.gateRecordId).set({
-        // await db.ref('gateRecords/' + this.$route.params.gateRecordId).set({
-        //   entryConfirmTime: Timestamp.fromDate(new Date()),
-        //   entryGate: this.$refs.gate.value,
-        //   phoneNumber: this.$refs.phoneNumber.value,
-        //   vehicleId: this.$refs.vehicleId.value
-        // })
-        // await db.collection('gateRecords').doc(this.$route.params.gateRecordId).update({
-        //   paymentStatus: 'succeeded',
-        //   paymentTime: Timestamp.fromDate(new Date())
-        // })
+        await db.collection('gateRecords').add({
+          phoneNumber: this.$refs.phoneNumber.value,
+          vehicleId: this.$refs.vehicleId.value,
+          entryGate: this.$refs.gate.value,
+          entryConfirmTime: Timestamp.fromDate(new Date())
+        })
         this.$message.success('Record Added Successfully')
       } catch (e) {
         console.error(e)
@@ -127,12 +112,16 @@ export default {
       }
     },
     entryScanTimeFormatter (row) {
+      console.log(JSON.stringify(row.entryScanTime))
+      // console.log(typeof (row.entryScanTime))
+      if (!row.entryScanTime) { return '' }
       const timeMoment = moment(row.entryScanTime.toDate())
-      return row.entryScanTime ? `${timeMoment.format('HH:mm')} (${moment.duration(timeMoment.diff(moment())).humanize(true)})` : ''
+      return `${timeMoment.format('HH:mm')} (${moment.duration(timeMoment.diff(moment())).humanize(true)})`
     },
     exitScanTimeFormatter (row) {
-      const timeMoment = moment(row.entryScanTime.toDate())
-      return row.exitScanTime ? `${timeMoment.format('HH:mm')} (${moment.duration(timeMoment.diff(moment())).humanize(true)})` : ''
+      if (!row.exitScanTime) { return '' }
+      const timeMoment = moment(row.exitScanTime.toDate())
+      return `${timeMoment.format('HH:mm')} (${moment.duration(timeMoment.diff(moment())).humanize(true)})`
     },
     phoneNumberFormatter (row) {
       return row.phoneNumber ? row.phoneNumber.replace('+852', '') : ''

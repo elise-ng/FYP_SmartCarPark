@@ -29,7 +29,11 @@ function isIncremental(arr: number[], accending: boolean) {
     } else {
       return i === 0 || x < arr[i - 1]
     }
-  })
+
+// Return average of all members in arr
+function average(arr: number[]) {
+  const sum = arr.reduce((a, b) => a + b, 0)
+  return (sum / arr.length) || 0
 }
 
 async function main() {
@@ -70,7 +74,7 @@ async function main() {
                 console.error(e)
               }
               await firebaseHelper.updateEntryGateState(gateState, imageBuffer)
-            } else if (triggered && isIncremental(distanceHistory, true)) { // if leaving, reset
+            } else if (triggered && isIncremental(distanceHistory, true) && distanceInCm >= gateThresholdInCm) { // if leaving, reset
               console.log(`Departure detected, dist ${distanceHistory.join(' -> ')}`)
               triggered = false
             }
@@ -93,8 +97,11 @@ async function main() {
               distanceHistory.shift()
             }
             distanceHistory.push(distanceInCm)
+            if (lastStatus === undefined && distanceHistory.length < historySize) {
+              return // Wait for distance history to fill up before analysing states 
+            }
             // if approaching && distance < threshold -> occupied, take photo
-            if (lastStatus !== ParkingStatus.Occupied && isIncremental(distanceHistory, false) && distanceInCm < lotThresholdInCm) {
+            if (lastStatus !== ParkingStatus.Occupied && average(distanceHistory) < lotThresholdInCm) {
               // occupied
               console.log(`Occupied detected, last state ${lastStatus}, dist ${distanceHistory.join(' -> ')}`)
               lastStatus = ParkingStatus.Occupied
@@ -112,7 +119,7 @@ async function main() {
               }
               await firebaseHelper.updateIotState(iotState, imageBuffer)
               // if leaving && distance > threshold -> vacant
-            } else if (lastStatus !== ParkingStatus.Vacant && isIncremental(distanceHistory, true) && distanceInCm > lotThresholdInCm) {
+            } else if (lastStatus !== ParkingStatus.Vacant && average(distanceHistory) > lotThresholdInCm) {
               // vacant
               console.log(`Vacant detected, last state ${lastStatus}, dist ${distanceHistory.join(' -> ')}`)
               lastStatus = ParkingStatus.Vacant

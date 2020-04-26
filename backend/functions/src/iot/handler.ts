@@ -19,7 +19,7 @@ export const iotUploadSnapshot = functions
     }
     // check auth
     if (!context.auth) {
-      throw new functions.https.HttpsError('unauthenticated', 'unauthenticated')
+      // throw new functions.https.HttpsError('unauthenticated', 'unauthenticated') //FIXME:
     }
     // parse params
     const params = data as Parameters
@@ -42,8 +42,7 @@ export const iotUploadSnapshot = functions
     const bucket = admin.storage().bucket('fyp-smartcarpark.appspot.com')
     const [file] = await bucket.upload(imageLocalPath, {
       destination: `iotSnapshots/${params.deviceId}/${path.parse(imageLocalPath).base}`,
-      predefinedAcl: 'bucketOwnerFullControl',
-      gzip: true
+      predefinedAcl: 'bucketOwnerFullControl'
     })
     // TODO: remove old files
     return {

@@ -1,21 +1,24 @@
-import { FirebaseHelper } from "./firebase-helper"
-import { IotState, ParkingStatus } from "./iot-state"
-import { GateState, Gate } from "./gate-state"
-import { DistanceHelper } from "./distance_helper"
 import { promisify } from 'util'
 import { exec as execCb } from 'child_process'
 import { readFile as readFileCb } from 'fs'
 const exec = promisify(execCb)
 const readFile = promisify(readFileCb)
 
+import FirebaseHelper, { ParkingStatus } from './firebaseHelper'
+import { GateMode } from './gateRecord'
+import DistanceHelper from './distanceHelper'
+
 enum Mode {
+  // eslint-disable-next-line no-unused-vars
   iot = 'iot',
+  // eslint-disable-next-line no-unused-vars
   gate = 'gate'
 }
 
 // Configs
 const mode: string = process.env.mode
 const deviceId: string = process.env.deviceId
+const gateMode: string = process.env.gateMode
 const gateThresholdInCm: number = 200
 const lotThresholdInCm: number = 100
 const stableThresholdInCm: number = 5 // TODO: find out error / noise range of reading
@@ -29,11 +32,22 @@ function isIncremental(arr: number[], accending: boolean) {
     } else {
       return i === 0 || x < arr[i - 1]
     }
+  })
+}
 
 // Return average of all members in arr
 function average(arr: number[]) {
   const sum = arr.reduce((a, b) => a + b, 0)
   return (sum / arr.length) || 0
+}
+
+async function takePicture() : Promise<Buffer> {
+  const camera = await exec('raspistill -q 10 -ISO 800 -ex sports -n -o ./snapshot.jpg')
+  if (!camera.stderr) {
+    return await readFile('./snapshot.jpg')
+  } else {
+    console.log(`Camera no output: ${camera.stderr}`)
+  }
 }
 
 async function main() {
@@ -45,7 +59,7 @@ async function main() {
     const distanceHelper = new DistanceHelper()
 
     switch (mode) {
-      case Mode.gate:
+      case Mode.gate: {
         console.log('In Gate Mode')
         let triggered: boolean = false
         distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
@@ -61,19 +75,25 @@ async function main() {
             if (!triggered && isIncremental(distanceHistory, false) && distanceInCm < gateThresholdInCm) {
               console.log(`Apprach detected, dist ${distanceHistory.join(' -> ')}`)
               triggered = true
-              let gateState = new GateState("test_vehicle_id", Gate.southEntry)
               let imageBuffer: Buffer
               try {
-                const camera = await exec('raspistill -ISO 800 -ex sports -n -o ./snapshot.jpg')
-                if (!camera.stderr) {
-                  imageBuffer = await readFile('./snapshot.jpg')
-                } else {
-                  console.log(`Camera no output: ${camera.stderr}`)
-                }
+                imageBuffer = await takePicture()
               } catch (e) {
                 console.error(e)
               }
-              await firebaseHelper.updateEntryGateState(gateState, imageBuffer)
+              const imageUrl = await firebaseHelper.uploadJpgImage(imageBuffer)
+              // TODO: Call CV for license plate
+              switch (gateMode) {
+                case GateMode.entry: {
+                  await firebaseHelper.createEntryGateRecord('test_vehicle_id', imageUrl)
+                  break
+                }
+                case GateMode.exit: {
+                  // TODO: try to retreive existing gate record by license plate, otherwise create new
+                  await firebaseHelper.updateElseCreateExitGateRecord('test_vehicle_id', imageUrl)
+                  break
+                }
+              }
             } else if (triggered && isIncremental(distanceHistory, true) && distanceInCm >= gateThresholdInCm) { // if leaving, reset
               console.log(`Departure detected, dist ${distanceHistory.join(' -> ')}`)
               triggered = false
@@ -85,7 +105,8 @@ async function main() {
           }
         })
         break
-      case Mode.iot:
+      }
+      case Mode.iot: {
         console.log('In IoT (Lot) Mode')
         let lastStatus: ParkingStatus
         distanceHelper.startAndSubscribeDistanceChanges(async (distanceInCm) => {
@@ -101,31 +122,32 @@ async function main() {
               return // Wait for distance history to fill up before analysing states 
             }
             // if approaching && distance < threshold -> occupied, take photo
-            if (lastStatus !== ParkingStatus.Occupied && average(distanceHistory) < lotThresholdInCm) {
+            if (lastStatus !== ParkingStatus.occupied && average(distanceHistory) < lotThresholdInCm) {
               // occupied
               console.log(`Occupied detected, last state ${lastStatus}, dist ${distanceHistory.join(' -> ')}`)
-              lastStatus = ParkingStatus.Occupied
-              let iotState = new IotState("test_vehicle_id", ParkingStatus.Occupied)
+              lastStatus = ParkingStatus.occupied
               let imageBuffer: Buffer
               try {
-                const camera = await exec('raspistill -ISO 800 -ex sports -n -o ./snapshot.jpg')
-                if (!camera.stderr) {
-                  imageBuffer = await readFile('./snapshot.jpg')
-                } else {
-                  console.log(`Camera no output: ${camera.stderr}`)
-                }
+                imageBuffer = await takePicture()
               } catch (e) {
                 console.error(e)
               }
-              await firebaseHelper.updateIotState(iotState, imageBuffer)
+              const imageUrl = await firebaseHelper.uploadJpgImage(imageBuffer)
+              // TODO: call CV for vehicle id
+              await firebaseHelper.updateIotState(lastStatus, 'test_vehicle_id', imageUrl)
               // if leaving && distance > threshold -> vacant
-            } else if (lastStatus !== ParkingStatus.Vacant && average(distanceHistory) > lotThresholdInCm) {
+            } else if (lastStatus !== ParkingStatus.vacant && average(distanceHistory) > lotThresholdInCm) {
               // vacant
               console.log(`Vacant detected, last state ${lastStatus}, dist ${distanceHistory.join(' -> ')}`)
-              lastStatus = ParkingStatus.Vacant
-              // let imageBuffer = await camera.takeImage()
-              let iotState = new IotState(null, ParkingStatus.Vacant)
-              await firebaseHelper.updateIotState(iotState, null)
+              lastStatus = ParkingStatus.vacant
+              let imageBuffer: Buffer
+              try {
+                imageBuffer = await takePicture()
+              } catch (e) {
+                console.error(e)
+              }
+              const imageUrl = await firebaseHelper.uploadJpgImage(imageBuffer)
+              await firebaseHelper.updateIotState(lastStatus, null, imageUrl)
             }
           } catch (e) {
             console.error(e)
@@ -134,6 +156,7 @@ async function main() {
           }
         })
         break
+      }
     }
   } catch (e) {
     console.error(e)

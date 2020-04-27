@@ -39,15 +39,17 @@ export const iotUploadSnapshot = functions
       throw new functions.https.HttpsError('invalid-argument', 'failed to decode image data')
     }
     // upload file to cloud storage
-    const bucket = admin.storage().bucket('fyp-smartcarpark.appspot.com')
-    const [file] = await bucket.upload(imageLocalPath, {
-      destination: `iotSnapshots/${params.deviceId}/${path.parse(imageLocalPath).base}`,
+    const bucketName = 'fyp-smartcarpark.appspot.com'
+    const fileRef = `iotSnapshots/${params.deviceId}/${path.parse(imageLocalPath).base}`
+    const bucket = admin.storage().bucket(bucketName)
+    await bucket.upload(imageLocalPath, {
+      destination: fileRef,
       predefinedAcl: 'bucketOwnerFullControl'
     })
     // TODO: remove old files
     return {
       success: true,
-      imageUrl: file.metadata.mediaLink
+      imageUrl: `gs://${bucketName}/${fileRef}`
     }
   })
 

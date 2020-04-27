@@ -90,7 +90,6 @@ class _LoginPageState extends State<LoginPage> {
           _forceResendingToken = forceResendingToken;
           setState(() {
             _smsCodeState = SmsCodeState.codeSent;
-            _smsCodeFocus.requestFocus();
           });
         },
         codeAutoRetrievalTimeout: (verificationId) {
@@ -206,9 +205,6 @@ class _LoginPageState extends State<LoginPage> {
                       child: TextFormField(
                         controller: _phoneNumberTextEditingController,
                         focusNode: _phoneNumberFocus,
-                        onChanged: (text) {
-                          print(text);
-                        },
                         keyboardType: TextInputType.numberWithOptions(
                           signed: false,
                           decimal: false,
@@ -289,7 +285,9 @@ class _LoginPageState extends State<LoginPage> {
                                   color: Colors.blueAccent,
                                   textColor: Colors.white,
                                   onPressed: _smsCodeState ==
-                                          SmsCodeState.codeSent
+                                              SmsCodeState.codeSent &&
+                                          _smsCodeTextEditingController
+                                              .value.text.isNotEmpty
                                       ? () {
                                           signIn(_smsCodeTextEditingController
                                               .text);

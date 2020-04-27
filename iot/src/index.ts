@@ -82,15 +82,16 @@ async function main() {
                 console.error(e)
               }
               const imageUrl = await firebaseHelper.uploadJpgImage(imageBuffer)
+              const vehicleId = await firebaseHelper.recognizeLicensePlate(imageUrl)
               // TODO: Call CV for license plate
               switch (gateMode) {
                 case GateMode.entry: {
-                  await firebaseHelper.createEntryGateRecord('test_vehicle_id', imageUrl)
+                  await firebaseHelper.createEntryGateRecord(vehicleId, imageUrl)
                   break
                 }
                 case GateMode.exit: {
                   // TODO: try to retreive existing gate record by license plate, otherwise create new
-                  await firebaseHelper.updateElseCreateExitGateRecord('test_vehicle_id', imageUrl)
+                  await firebaseHelper.updateElseCreateExitGateRecord(vehicleId, imageUrl)
                   break
                 }
               }
@@ -133,8 +134,8 @@ async function main() {
                 console.error(e)
               }
               const imageUrl = await firebaseHelper.uploadJpgImage(imageBuffer)
-              // TODO: call CV for vehicle id
-              await firebaseHelper.updateIotState(lastStatus, 'test_vehicle_id', imageUrl)
+              const vehicleId = await firebaseHelper.recognizeLicensePlate(imageUrl)
+              await firebaseHelper.updateIotState(lastStatus, vehicleId, imageUrl)
               // if leaving && distance > threshold -> vacant
             } else if (lastStatus !== ParkingStatus.vacant && average(distanceHistory) > lotThresholdInCm) {
               // vacant

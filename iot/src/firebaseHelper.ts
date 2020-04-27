@@ -1,8 +1,8 @@
-import * as firebase from "firebase/app"
-import "firebase/auth"
-import "firebase/firestore"
-import "firebase/functions"
-import moment from "moment"
+import * as firebase from 'firebase/app'
+import 'firebase/auth'
+import 'firebase/firestore'
+import 'firebase/functions'
+import moment from 'moment'
 
 import GateRecord, { GateMode } from './gateRecord'
 
@@ -26,22 +26,22 @@ export default class FirebaseHelper {
 
     async init() {
         try {
-            console.log("Initializing Firebase...")
+            console.log('Initializing Firebase...')
             //FIXME: Security
             let app = firebase.initializeApp({
-                apiKey: "AIzaSyCJOspIynTav487E4qnKkj-o8WHTsddGIQ",
-                authDomain: "fyp-smartcarpark.firebaseapp.com",
-                databaseURL: "https://fyp-smartcarpark.firebaseio.com",
-                projectId: "fyp-smartcarpark",
-                storageBucket: "fyp-smartcarpark.appspot.com",
-                messagingSenderId: "777981643981",
-                appId: "1:777981643981:web:6f215aa76849c60389ad84",
-                measurementId: "G-TRQVENNKGS"
+                apiKey: 'AIzaSyCJOspIynTav487E4qnKkj-o8WHTsddGIQ',
+                authDomain: 'fyp-smartcarpark.firebaseapp.com',
+                databaseURL: 'https://fyp-smartcarpark.firebaseio.com',
+                projectId: 'fyp-smartcarpark',
+                storageBucket: 'fyp-smartcarpark.appspot.com',
+                messagingSenderId: '777981643981',
+                appId: '1:777981643981:web:6f215aa76849c60389ad84',
+                measurementId: 'G-TRQVENNKGS'
             })
-            await firebase.auth().signInWithEmailAndPassword("iot-client@fyp-smartcarpark.com", "f]T*UjCtLGf7[#TYxJQ;vJ")
+            await firebase.auth().signInWithEmailAndPassword('iot-client@fyp-smartcarpark.com', 'f]T*UjCtLGf7[#TYxJQ;vJ')
             this.firestore = app.firestore()
             this.functions = app.functions('asia-east2')
-            console.log("Firebase initialized")
+            console.log('Firebase initialized')
         } catch (error) {
             console.log(error)
             await this.init()
@@ -55,9 +55,19 @@ export default class FirebaseHelper {
             imageTimestamp: moment().toISOString()
         }
 
-        const uploadFunction = this.functions.httpsCallable('iotUploadSnapshot')
-        console.log("Uploading image...")
-        return (await uploadFunction(data)).data["imageUrl"]
+        const func = this.functions.httpsCallable('iotUploadSnapshot')
+        console.log('Uploading image...')
+        return (await func(data)).data['imageUrl']
+    }
+
+    async recognizeLicensePlate(imageUrl: string) : Promise<string> {
+        const data = {
+            imageGsPath: imageUrl
+        }
+
+        const func = this.functions.httpsCallable('recognizeLicensePlate')
+        console.log('Recognizing license plate...')
+        return (await func(data)).data['license']
     }
 
     async updateIotState(state: ParkingStatus, vehicleId: string, imageUrl: string) {
@@ -70,7 +80,7 @@ export default class FirebaseHelper {
             time: firebase.firestore.Timestamp.fromDate(new Date())
         }
         await this.firestore.collection('iotStates').doc(this.deviceId).set(payload, { merge: true })
-        console.log("iotState updated")
+        console.log('iotState updated')
     }
 
     async createEntryGateRecord(vehicleId: string, imageUrl: string) {

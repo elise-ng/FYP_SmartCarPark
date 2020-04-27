@@ -19,8 +19,6 @@ class _CarParkMapPageState extends State<CarParkMapPage> {
   static const FLOORS_COLLECTION = "carParkFloors";
   static const IOT_STATES_COLLECTION = "iotStates";
 
-  GoogleMapController _controller;
-
   List<CarParkFloor> carParkFloors = [];
   int currentFloorIndex = 0;
 
@@ -30,8 +28,9 @@ class _CarParkMapPageState extends State<CarParkMapPage> {
 //  Polyline navigatingPolyline;
 
   static final CameraPosition _ustParkingPosition = CameraPosition(
-    target: LatLng(22.338616, 114.263270),
-    zoom: 19.7,
+    bearing: 90.0,
+    target: LatLng(22.3385, 114.26335),
+    zoom: 21,
   );
 
   @override
@@ -42,7 +41,7 @@ class _CarParkMapPageState extends State<CarParkMapPage> {
 
   void getData() async {
     QuerySnapshot floorsSnapshot =
-        await Firestore.instance.collection(FLOORS_COLLECTION).getDocuments();
+    await Firestore.instance.collection(FLOORS_COLLECTION).getDocuments();
     this.carParkFloors = floorsSnapshot.documents
         .map((document) => CarParkFloor.fromDocument(document))
         .toList();
@@ -62,7 +61,7 @@ class _CarParkMapPageState extends State<CarParkMapPage> {
 
         CarParkSpace parkingSpace = CarParkSpace.fromDocument(change.document);
         CarParkFloor floor = this.carParkFloors.firstWhere(
-            (floor) => floor.id == parkingSpace.floorId,
+                (floor) => floor.id == parkingSpace.floorId,
             orElse: () => null);
 
         /// Cannot find floor
@@ -98,14 +97,13 @@ class _CarParkMapPageState extends State<CarParkMapPage> {
       body: Stack(
         children: <Widget>[
           GoogleMap(
+            compassEnabled: false,
             myLocationButtonEnabled: false,
             mapToolbarEnabled: false,
-            minMaxZoomPreference: MinMaxZoomPreference(19.0, 21.0),
-            mapType: MapType.normal,
+            minMaxZoomPreference: MinMaxZoomPreference(20.0, 21.0),
+            mapType: MapType.none,
             initialCameraPosition: _ustParkingPosition,
-            onMapCreated: (GoogleMapController controller) {
-              this._controller = controller;
-            },
+            cameraTargetBounds: CameraTargetBounds(LatLngBounds(northeast: LatLng(22.3385, 114.2636), southwest: LatLng(22.3382, 114.2630))),
             markers: {
               ...this._getMarkers(),
 //              Marker(

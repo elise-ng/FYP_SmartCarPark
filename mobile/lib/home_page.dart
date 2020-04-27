@@ -15,13 +15,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
 
   int _currentIndex = 0;
-  final PageStorageBucket bucket = PageStorageBucket();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageStorage(
-        child: [
+      body: IndexedStack(
+        index: this._currentIndex,
+        children: [
           ParkingPage(
             key: PageStorageKey('Parking'),
           ),
@@ -31,8 +31,7 @@ class _HomePageState extends State<HomePage> {
           PaymentPage(
             key: PageStorageKey('Payment'),
           ),
-        ][_currentIndex],
-        bucket: this.bucket,
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         onTap: onTabTapped,

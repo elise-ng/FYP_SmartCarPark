@@ -14,7 +14,7 @@ description: Mobile client for Smart Car Park project
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -23,18 +23,89 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
+  http: ^0.12.0+4
+
+  # Google Maps SDK
+  google_maps_flutter: ^0.5.22+3
+
+  # LatLong utils
+  latlong: ^0.6.1
+
+  # Firebase
+  firebase_core: ^0.4.4
+  firebase_auth: ^0.15.4
+
+  # FireStore
+  cloud_firestore: ^0.13.2+1
+
+  # Cloud functions
+  cloud_functions: ^0.4.2+3
+
+  # CLoud Storage
+  firebase_storage: ^3.1.5
+
+  # Bordered Text Widget
+  bordered_text: ^1.0.0
+
+  # Enum String conversion
+  enum_to_string: ^1.0.8
+
+  # Reduce boilerplate for object comparison
+  equatable: ^1.1.0
+
+  # Vector
+  vector_math: ^2.0.8
+
+  # Credit card UI
+  awesome_card: ^1.1.0
+  mask_text_input_formatter: ^1.0.6
+
+  # Stripe SDK
+  stripe_sdk: ^2.5.2
+
+  # Deep link handling
+  uni_links: ^0.2.0
+
+  # QR Code
+  qr_flutter: ^3.1.0
+
+  # Provider
+  provider: ^4.0.5
+
+  # JSON
+  json_annotation: ^3.0.0
+
+  # Handle In App URL
+  url_launcher: ^5.4.2
+
+  # Platform-aware dialog
+  flutter_dialogs: ^1.0.3
+
+  # Lottie animations
+  lottie: ^0.3.3
+
+  # Timeline UI
+  timeline_list: ^0.0.5
+
+  # humanize duration
+  timeago: ^2.0.26
+
+  cached_network_image: ^2.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  build_runner: ^1.0.0
+  json_serializable: ^3.2.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter.
 flutter:
-
+  assets:
+    - assets/images/
+    - assets/lottie/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

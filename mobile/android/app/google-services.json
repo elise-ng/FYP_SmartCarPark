@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "777981643981",
+    "firebase_url": "https://fyp-smartcarpark.firebaseio.com",
+    "project_id": "fyp-smartcarpark",
+    "storage_bucket": "fyp-smartcarpark.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:777981643981:android:c42d446bedaa37eb89ad84",
+        "android_client_info": {
+          "package_name": "fyp.lix2.smart_car_park_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "777981643981-3frcvsjleinfdjmus0ovuucb4jbk3fp8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwWqnZ1kkl0vI1LxRyWRMwBrHCz7SOLOY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "777981643981-3frcvsjleinfdjmus0ovuucb4jbk3fp8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

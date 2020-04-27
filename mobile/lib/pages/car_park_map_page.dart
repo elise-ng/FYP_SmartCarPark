@@ -6,16 +6,16 @@ import 'package:smart_car_park_app/models/car_park_floor.dart';
 import 'package:smart_car_park_app/models/car_park_space.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ParkingPage extends StatefulWidget {
-  ParkingPage({
+class CarParkMapPage extends StatefulWidget {
+  CarParkMapPage({
     key,
   }) : super(key: key);
 
   @override
-  _ParkingPageState createState() => _ParkingPageState();
+  _CarParkMapPageState createState() => _CarParkMapPageState();
 }
 
-class _ParkingPageState extends State<ParkingPage> {
+class _CarParkMapPageState extends State<CarParkMapPage> {
   static const FLOORS_COLLECTION = "carParkFloors";
   static const IOT_STATES_COLLECTION = "iotStates";
 

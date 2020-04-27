@@ -1,10 +1,7 @@
 import 'dart:async';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_car_park_app/pages/snapshot_page.dart';
-import 'package:smart_car_park_app/widgets/signin_widget.dart';
 import 'package:timeline_list/timeline.dart';
 import 'package:timeline_list/timeline_model.dart';
 import 'package:timeago/timeago.dart' as timeago;

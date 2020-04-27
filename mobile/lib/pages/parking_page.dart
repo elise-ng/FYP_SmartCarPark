@@ -86,6 +86,7 @@ class _ParkingPageState extends State<ParkingPage> {
       }
 
       /// Wait for changes to complete and update UI
+      setState(() {});
       await Future.wait(changeFutures);
       setState(() {});
     });

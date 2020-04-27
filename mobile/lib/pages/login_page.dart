@@ -227,6 +227,7 @@ class _LoginPageState extends State<LoginPage> {
                               signed: false,
                               decimal: false,
                             ),
+                            onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(
                               labelText: "Verification Code",
                             ),

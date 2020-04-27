@@ -1,0 +1,25 @@
+{
+  "name": "smart_car_park_iot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsc && sudo node dist/index.js",
+    "test": "tsc && sudo node dist/test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^13.13.2",
+    "firebase": "^7.9.1",
+    "moment": "^2.24.0",
+    "pigpio": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/pigpio": "^1.2.2",
+    "@typescript-eslint/eslint-plugin": "^2.20.0",
+    "@typescript-eslint/parser": "^2.20.0",
+    "eslint": "^6.8.0",
+    "typescript": "^3.8.2"
+  }
+}

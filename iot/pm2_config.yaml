@@ -1,0 +1,6 @@
+apps:
+  - script: ./dist/index.js
+    name: 'iot'
+    env:
+      mode: 'iot'
+      deviceId: 'test1'

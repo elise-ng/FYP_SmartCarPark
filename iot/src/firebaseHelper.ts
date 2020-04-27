@@ -81,4 +81,30 @@ export default class FirebaseHelper {
         const ref = await this.firestore.collection('gateRecords').add(payload)
         console.log(`gateRecord created: ${ref.id}`)
     }
+
+    async updateElseCreateExitGateRecord(vehicleId: string, imageUrl: string) {
+        const query = await this.firestore.collection('gateRecords')
+            .where('vehicleId', '==', vehicleId)
+            .where('exitScanTime', '==', null)
+            .limitToLast(1)
+            .get()
+        if (query.docs.length > 0) {
+            // previous record found
+            console.log('gateRecord found')
+            const gateRecordRef = query.docs[0].ref
+            await gateRecordRef.set({
+                exitGate: this.deviceId,
+                exitScanTime: firebase.firestore.Timestamp.fromDate(new Date()),
+                exitImageUrl: imageUrl
+            }, { merge: true })
+            console.log('gateRecord updated')
+        } else {
+            console.log('gateRecord not found, creating')
+            const payload = new GateRecord(
+                this.deviceId, GateMode.exit, vehicleId, imageUrl
+            )
+            const ref = await this.firestore.collection('gateRecords').add(payload)
+            console.log(`gateRecord created: ${ref.id}`)
+        }
+    }
 }

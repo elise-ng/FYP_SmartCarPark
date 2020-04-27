@@ -90,6 +90,7 @@ async function main() {
                 }
                 case GateMode.exit: {
                   // TODO: try to retreive existing gate record by license plate, otherwise create new
+                  await firebaseHelper.updateElseCreateExitGateRecord('test_vehicle_id', imageUrl)
                   break
                 }
               }

@@ -42,7 +42,7 @@ function average(arr: number[]) {
 }
 
 async function takePicture() : Promise<Buffer> {
-  const camera = await exec('raspistill -q 20 -ISO 800 -ex sports -n -o ./snapshot.jpg')
+  const camera = await exec('raspistill -q 10 -ISO 800 -ex sports -n -o ./snapshot.jpg')
   if (!camera.stderr) {
     return await readFile('./snapshot.jpg')
   } else {

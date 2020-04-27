@@ -34,6 +34,7 @@ class _KioskPageState extends State<KioskPage> {
 
   GateMode _gateMode = GateMode.entry;
   GateFlowState _gateFlowState = GateFlowState.submitted;
+  String _iotDeviceId = 'southEntry';
 
   GateRecord _gateRecord;
   StreamSubscription<QuerySnapshot> _gateRecordSubscription;
@@ -53,28 +54,58 @@ class _KioskPageState extends State<KioskPage> {
     setState(() {
       _gateFlowState = GateFlowState.scanning;
     });
-    _gateRecordSubscription = Firestore.instance
-      .collection('gateRecords')
-      .where('entryGate', isEqualTo: 'southEntry')
-      .where('entryConfirmTime', isNull: true)
-      .snapshots()
-      .listen(
-      (snapshot) {
-        final gateRecords = snapshot.documents
-        .map((doc) => GateRecord.fromDocumentSnapshot(doc))
-        .toList();
-        gateRecords.sort((a, b) => a.entryScanTime.compareTo(b.entryScanTime));
-        if (gateRecords.isNotEmpty) {
-          _gateRecord = gateRecords.first;
-          onScanned();
-        }
-      },
-      onError: (e) {
-        debugPrint(e.toString());
-      },
-      onDone: () {
-        debugPrint('onDone');
-      });
+    switch (_gateMode) {
+      case GateMode.entry:
+        _gateRecordSubscription = Firestore.instance
+            .collection('gateRecords')
+            .where('entryGate', isEqualTo: _iotDeviceId)
+            .where('entryConfirmTime', isNull: true)
+            .orderBy('entryScanTime', descending: false)
+            .limit(1)
+            .snapshots()
+            .listen(
+                (snapshot) {
+              final gateRecords = snapshot.documents
+                  .map((doc) => GateRecord.fromDocumentSnapshot(doc))
+                  .toList();
+              if (gateRecords.isNotEmpty) {
+                _gateRecord = gateRecords.first;
+                onScanned();
+              }
+            },
+            onError: (e) {
+              debugPrint(e.toString());
+            },
+            onDone: () {
+              debugPrint('onDone');
+            });
+        break;
+      case GateMode.exit:
+        _gateRecordSubscription = Firestore.instance
+            .collection('gateRecords')
+            .where('exitGate', isEqualTo: _iotDeviceId)
+            .where('exitConfirmTime', isNull: true)
+            .orderBy('exitScanTime', descending: false)
+            .limit(1)
+            .snapshots()
+            .listen(
+                (snapshot) {
+              final gateRecords = snapshot.documents
+                  .map((doc) => GateRecord.fromDocumentSnapshot(doc))
+                  .toList();
+              if (gateRecords.isNotEmpty) {
+                _gateRecord = gateRecords.first;
+                onScanned();
+              }
+            },
+            onError: (e) {
+              debugPrint(e.toString());
+            },
+            onDone: () {
+              debugPrint('onDone');
+            });
+        break;
+    }
   }
 
   Future<String> getLastPhoneNumber(String vehicleId) async {
@@ -90,13 +121,20 @@ class _KioskPageState extends State<KioskPage> {
   }
 
   void onScanned() async {
-    final lastPhoneNumber = await getLastPhoneNumber(_gateRecord.vehicleId);
-    setState(() {
-      _gateFlowState = GateFlowState.scanned;
-      _errorMessage = '';
-      _vehicleIdTextEditingController.text = _gateRecord.vehicleId;
-      _phoneNumberTextEditingController.text = lastPhoneNumber ?? '';
-    });
+    switch (_gateMode) {
+      case GateMode.entry:
+        final lastPhoneNumber = await getLastPhoneNumber(_gateRecord.vehicleId);
+        setState(() {
+          _gateFlowState = GateFlowState.scanned;
+          _errorMessage = '';
+          _vehicleIdTextEditingController.text = _gateRecord.vehicleId;
+          _phoneNumberTextEditingController.text = lastPhoneNumber ?? '';
+        });
+        break;
+      case GateMode.exit:
+      // TODO: Exit mode ui
+        break;
+    }
     _gateRecordSubscription.cancel();
   }
 
@@ -184,6 +222,171 @@ class _KioskPageState extends State<KioskPage> {
     });
   }
 
+  Widget availabilityUI() {
+    return Padding(
+      padding: EdgeInsets.all(48.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'Lot Availability',
+              style: Theme.of(context).textTheme.display1,
+            ),
+          ),
+          _floorStatus.keys.isNotEmpty
+              ? Table(
+              children: _floorStatus.keys.map((key) => TableRow(
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        _floorName.keys.contains(key) ? _floorName[key] : key ?? '',
+                        style: Theme.of(context).textTheme.display2,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        _floorStatus[key].toString(),
+                        style: Theme.of(context).textTheme.display2,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              )).toList()
+          )
+              : CircularProgressIndicator()
+        ],
+      ),
+    );
+  }
+
+  Widget scanningUI() {
+    return Expanded(
+        flex: 9,
+        child: Row(
+          children: <Widget>[
+            CircularProgressIndicator(),
+            Padding(padding: EdgeInsets.only(left: 16.0)),
+            Text(
+              'Scanning License Plate...',
+              style: Theme.of(context).textTheme.display1,
+            )
+          ],
+        )
+    );
+  }
+
+  Widget entryScannedUI() {
+    return Expanded(
+        flex: 9,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'Please confirm your information:',
+              style: Theme.of(context).textTheme.display1,
+            ),
+            Padding(padding: EdgeInsets.only(top: 16.0)),
+            _errorMessage.isNotEmpty
+                ? Text(
+              _errorMessage,
+              style: Theme.of(context).textTheme.headline.copyWith(color: Colors.red),
+            )
+                : Container(),
+            Padding(padding: EdgeInsets.only(top: 16.0)),
+            TextField(
+              focusNode: _vehicleIdFocus,
+              controller: _vehicleIdTextEditingController,
+              decoration: InputDecoration(labelText: "License Plate"),
+              style: Theme.of(context).textTheme.display1,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              onSubmitted: (value) {
+                _vehicleIdFocus.unfocus();
+                FocusScope.of(context).requestFocus(_phoneNumberFocus);
+              },
+            ),
+            TextField(
+              focusNode: _phoneNumberFocus,
+              controller: _phoneNumberTextEditingController,
+              decoration: InputDecoration(labelText: "Phone Number"),
+              style: Theme.of(context).textTheme.display1,
+              keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (value) {
+                _phoneNumberFocus.unfocus();
+              },
+            ),
+            Padding(padding: EdgeInsets.only(top: 40.0)),
+            Container(
+                height: 80.0,
+                width: 240.0,
+                child: RaisedButton(
+                  child: Text(
+                    'Submit',
+                    style: Theme.of(context).textTheme.display1.copyWith(color: Colors.white),
+                  ),
+                  color: Theme.of(context).primaryColor,
+                  onPressed: () {
+                    submit();
+                  },
+                )
+            )
+          ],
+        )
+    );
+  }
+
+  Widget submittingUI() {
+    return Expanded(
+        flex: 9,
+        child: Row(
+          children: <Widget>[
+            CircularProgressIndicator(),
+            Padding(padding: EdgeInsets.only(left: 16.0)),
+            Text(
+              'Submitting...',
+              style: Theme.of(context).textTheme.display1,
+            )
+          ],
+        )
+    );
+  }
+
+  Widget entrySubmittedUI() {
+    return Expanded(
+        flex: 9,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Icon(
+              Icons.check_circle,
+              size: 100.0,
+              color: Colors.green,
+            ),
+            Text(
+              'Registration Completed',
+              style: Theme.of(context).textTheme.display1,
+              textAlign: TextAlign.center,
+            ),
+            Padding(
+                padding: EdgeInsets.only(top: 80.0)
+            ),
+            Text(
+              'Check SMS for instruction to use our mobile app for payment and other services',
+              style: Theme.of(context).textTheme.display1,
+              textAlign: TextAlign.center,
+            )
+          ],
+        )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -213,45 +416,9 @@ class _KioskPageState extends State<KioskPage> {
                   //     fit: BoxFit.cover,
                   //   )
                   // ),
-                  child: Padding(
-                    padding: EdgeInsets.all(48.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text(
-                            'Lot Availability',
-                            style: Theme.of(context).textTheme.display1,
-                          ),
-                        ),
-                        _floorStatus.keys.isNotEmpty
-                        ? Table(
-                          children: _floorStatus.keys.map((key) => TableRow(
-                            children: <Widget>[
-                              Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  _floorName.keys.contains(key) ? _floorName[key] : key ?? '',
-                                  style: Theme.of(context).textTheme.display2,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  _floorStatus[key].toString(),
-                                  style: Theme.of(context).textTheme.display2,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ]
-                          )).toList()
-                        )
-                        : CircularProgressIndicator()
-                      ],
-                    ),
-                  )
+                  child: _gateMode == GateMode.entry
+                    ? availabilityUI()
+                    : Container()
                 )
               ),
               Expanded(
@@ -270,123 +437,16 @@ class _KioskPageState extends State<KioskPage> {
                           ),
                         ),
                         _gateFlowState == GateFlowState.scanning
-                        ? Expanded(
-                          flex: 9,
-                          child: Row(
-                            children: <Widget>[
-                              CircularProgressIndicator(),
-                              Padding(padding: EdgeInsets.only(left: 16.0)),
-                              Text(
-                                'Scanning License Plate...',
-                                style: Theme.of(context).textTheme.display1,
-                              )
-                            ],
-                          )
-                        )
+                        ? scanningUI()
                         : Container(),
                         _gateFlowState == GateFlowState.scanned
-                        ? Expanded(
-                          flex: 9,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                'Please confirm your information:',
-                                style: Theme.of(context).textTheme.display1,
-                              ),
-                              Padding(padding: EdgeInsets.only(top: 16.0)),
-                              _errorMessage.isNotEmpty
-                              ? Text(
-                                _errorMessage,
-                                style: Theme.of(context).textTheme.headline.copyWith(color: Colors.red),
-                              )
-                              : Container(),
-                              Padding(padding: EdgeInsets.only(top: 16.0)),
-                              TextField(
-                                focusNode: _vehicleIdFocus,
-                                controller: _vehicleIdTextEditingController,
-                                decoration: InputDecoration(labelText: "License Plate"),
-                                style: Theme.of(context).textTheme.display1,
-                                keyboardType: TextInputType.text,
-                                textInputAction: TextInputAction.next,
-                                onSubmitted: (value) {
-                                  _vehicleIdFocus.unfocus();
-                                  FocusScope.of(context).requestFocus(_phoneNumberFocus);
-                                },
-                              ),
-                              TextField(
-                                focusNode: _phoneNumberFocus,
-                                controller: _phoneNumberTextEditingController,
-                                decoration: InputDecoration(labelText: "Phone Number"),
-                                style: Theme.of(context).textTheme.display1,
-                                keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
-                                textInputAction: TextInputAction.done,
-                                onSubmitted: (value) {
-                                  _phoneNumberFocus.unfocus();
-                                },
-                              ),
-                              Padding(padding: EdgeInsets.only(top: 40.0)),
-                              Container(
-                                height: 80.0,
-                                width: 240.0,
-                                child: RaisedButton(
-                                  child: Text(
-                                    'Submit',
-                                    style: Theme.of(context).textTheme.display1.copyWith(color: Colors.white),
-                                  ),
-                                  color: Theme.of(context).primaryColor,
-                                  onPressed: () {
-                                    submit();
-                                  },
-                                )
-                              )
-                            ],
-                          )
-                        )
+                        ? _gateMode == GateMode.entry ? entryScannedUI() : Container()
                         : Container(),
                         _gateFlowState == GateFlowState.submitting
-                        ? Expanded(
-                          flex: 9,
-                          child: Row(
-                            children: <Widget>[
-                              CircularProgressIndicator(),
-                              Padding(padding: EdgeInsets.only(left: 16.0)),
-                              Text(
-                                'Submitting...',
-                                style: Theme.of(context).textTheme.display1,
-                              )
-                            ],
-                          )
-                        )
+                        ? submittingUI()
                         : Container(),
                         _gateFlowState == GateFlowState.submitted
-                        ? Expanded(
-                          flex: 9,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(
-                                Icons.check_circle,
-                                size: 100.0,
-                                color: Colors.green,
-                              ),
-                              Text(
-                                'Registration Completed',
-                                style: Theme.of(context).textTheme.display1,
-                                textAlign: TextAlign.center,
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(top: 80.0)
-                              ),
-                              Text(
-                                'Check SMS for instruction to use our mobile app for payment and other services',
-                                style: Theme.of(context).textTheme.display1,
-                                textAlign: TextAlign.center,
-                              )
-                            ],
-                          )
-                        )
+                        ? _gateMode == GateMode.entry ? entrySubmittedUI() : Container()
                         : Container()
                       ],
                     ),
@@ -397,11 +457,6 @@ class _KioskPageState extends State<KioskPage> {
           )
         ),
       ),
-    
-      
-      
-      
-    
     );
   }
 }

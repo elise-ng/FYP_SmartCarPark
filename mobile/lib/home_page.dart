@@ -3,9 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:smart_car_park_app/pages/infomation_page.dart';
 import 'package:smart_car_park_app/pages/car_park_map_page.dart';
 import 'package:smart_car_park_app/pages/login_page.dart';
-import 'package:smart_car_park_app/pages/payment_page.dart';
-
-import 'models/user_record.dart';
 import 'models/user_record.dart';
 import 'pages/car_park_map_page.dart';
 import 'pages/infomation_page.dart';
@@ -21,6 +18,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  bool _isAuthenticated = false;
+
   List<Widget> _unauthenticatedTabs = [
     CarParkMapPage(),
     LoginPage(),
@@ -52,13 +51,24 @@ class _HomePageState extends State<HomePage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    this._isAuthenticated = Provider.of<UserRecord>(context, listen: false).isAuthenticated();
+  }
+
+  @override
   Widget build(BuildContext context) {
     UserRecord _userRecord = Provider.of<UserRecord>(context);
+    if(!this._isAuthenticated && _userRecord.isAuthenticated()) {
+      /// Just logged in, change back to map view
+      WidgetsBinding.instance.addPostFrameCallback((_) => this.setState(() { this._currentIndex = 0; }));
+    }
+    this._isAuthenticated = _userRecord.isAuthenticated();
 
     return Scaffold(
       body: IndexedStack(
         index: this._currentIndex,
-        children: _userRecord.isAuthenticated() ? _authenticatedTabs : _unauthenticatedTabs,
+        children: this._isAuthenticated ? _authenticatedTabs : _unauthenticatedTabs,
       ),
       bottomNavigationBar: BottomNavigationBar(
         onTap: onTabTapped,
@@ -66,7 +76,7 @@ class _HomePageState extends State<HomePage> {
         iconSize: 20,
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
-        items: _userRecord.isAuthenticated() ? _authenticatedBarItems : _unauthenticatedBarItems,
+        items: this._isAuthenticated ? _authenticatedBarItems : _unauthenticatedBarItems,
       ),
     );
   }

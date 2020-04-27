@@ -25,5 +25,5 @@ class UserRecord with ChangeNotifier{
     this.notifyListeners();
   }
 
-  bool isAuthenticated() => this.uid == null;
+  bool isAuthenticated() => this.uid != null;
 }

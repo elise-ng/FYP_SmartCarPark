@@ -55,8 +55,9 @@ class _LoginPageState extends State<LoginPage> {
             final result = await _firebaseAuth.signInWithCredential(credential);
             if (result.user != null) {
               userRecord.update(await UserUtils.getUserRecordDocument(
-                  result.user.uid,
-                  source: Source.server));
+                result.user.uid,
+                source: Source.server,
+              ));
               // TODO: success, dismiss widget
               setState(() {
                 _signInState = SigninState.success;
@@ -89,6 +90,7 @@ class _LoginPageState extends State<LoginPage> {
           _forceResendingToken = forceResendingToken;
           setState(() {
             _smsCodeState = SmsCodeState.codeSent;
+            _smsCodeFocus.requestFocus();
           });
         },
         codeAutoRetrievalTimeout: (verificationId) {
@@ -108,6 +110,10 @@ class _LoginPageState extends State<LoginPage> {
           verificationId: _verificationId, smsCode: smsCode);
       final _result = await _firebaseAuth.signInWithCredential(credential);
       if (_result.user != null) {
+        userRecord.update(await UserUtils.getUserRecordDocument(
+          _result.user.uid,
+          source: Source.server,
+        ));
         setState(() {
           _signInState = SigninState.success;
         });
@@ -144,20 +150,23 @@ class _LoginPageState extends State<LoginPage> {
           child: _signInState == SigninState.success
               ? Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.check_circle,
-                        size: 40.0,
-                        color: Colors.green,
-                      ),
-                      Text(
-                        'Sign in success',
-                        style: Theme.of(context).textTheme.headline6,
-                      ),
-                    ],
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          size: 40.0,
+                          color: Colors.green,
+                        ),
+                        Text(
+                          'Sign in success',
+                          style: Theme.of(context).textTheme.headline6,
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : Column(

@@ -4,7 +4,7 @@ import { Gpio } from "pigpio"
 const MICROSECDONDS_PER_CM = 1e6 / 34321
 type DistanceCallback = (distanceInCm: number) => Promise<void>
 
-export class DistanceHelper {
+export default class DistanceHelper {
     trigger: Gpio
     echo: Gpio
     log: boolean

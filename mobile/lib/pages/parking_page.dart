@@ -98,6 +98,7 @@ class _ParkingPageState extends State<ParkingPage> {
       body: Stack(
         children: <Widget>[
           GoogleMap(
+            myLocationButtonEnabled: false,
             mapToolbarEnabled: false,
             minMaxZoomPreference: MinMaxZoomPreference(19.0, 21.0),
             mapType: MapType.normal,

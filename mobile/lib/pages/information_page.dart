@@ -14,6 +14,7 @@ import 'package:smart_car_park_app/global_variables.dart';
 import '../models/parking_invoice.dart';
 import '../models/user_record.dart';
 import '../utils/cloud_functions_utils.dart';
+import 'payment/payment_methods_page.dart';
 
 class InformationPage extends StatefulWidget {
   InformationPage({key}) : super(key: key);
@@ -47,7 +48,6 @@ class _InformationPageState extends State<InformationPage> {
         .limit(1)
         .snapshots()
         .listen((snapshot) async {
-      print(snapshot);
       try {
         this._gateRecord = snapshot.documents.first;
         this.requestParkingInvoice();
@@ -385,9 +385,16 @@ class _InformationPageState extends State<InformationPage> {
                               color: Colors.white.withAlpha(40),
                               textColor: Colors.white,
                               child: Text('Pay Amount'),
-                              onPressed: () {
-                                // TODO: navigate
-                              },
+                              onPressed: this._invoice != null ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PaymentMethodsPage(
+                                      gateRecordId: this._gateRecord.documentID,
+                                    ),
+                                  ),
+                                );
+                              } : null,
                             ),
                           )
                         ],

@@ -35,7 +35,7 @@ class _KioskPageState extends State<KioskPage> {
 
   GateMode _gateMode = GateMode.exit;
   String _iotDeviceId = 'southExit';
-  final String _staffOverrideCode = '123456';
+  final String _staffCode = '123456';
 
   GateFlowState _gateFlowState = GateFlowState.scanning;
 
@@ -44,7 +44,9 @@ class _KioskPageState extends State<KioskPage> {
 
   TextEditingController _vehicleIdTextEditingController = TextEditingController();
   TextEditingController _phoneNumberTextEditingController = TextEditingController();
-  TextEditingController _overrideCodeTextEditingController = TextEditingController();
+  TextEditingController _staffCodeTextEditingController = TextEditingController();
+  TextEditingController _iotDeviceIdTextEditingController = TextEditingController();
+  TextEditingController _gateModeTextEditingController = TextEditingController();
 
   FocusNode _vehicleIdFocus = FocusNode();
   FocusNode _phoneNumberFocus = FocusNode();
@@ -330,9 +332,10 @@ class _KioskPageState extends State<KioskPage> {
         showDialog(
           context: context,
           child: AlertDialog(
-            title: Text('Please enter override code'),
+            title: Text('Please enter staff code'),
             content: TextField(
-              controller: _overrideCodeTextEditingController,
+              controller: _staffCodeTextEditingController,
+              keyboardType: TextInputType.number,
             ),
             actions: <Widget>[
               FlatButton(
@@ -344,8 +347,8 @@ class _KioskPageState extends State<KioskPage> {
               FlatButton(
                 child: Text('Submit'),
                 onPressed: () {
-                  if (_overrideCodeTextEditingController.text == _staffOverrideCode) {
-                    _overrideCodeTextEditingController.text = '';
+                  if (_staffCodeTextEditingController.text == _staffCode) {
+                    _staffCodeTextEditingController.text = '';
                     Navigator.of(context).pop();
                     confirmExit();
                   }
@@ -355,6 +358,74 @@ class _KioskPageState extends State<KioskPage> {
           )
         );
       },
+    );
+  }
+
+  void showStaffMenu() {
+    _iotDeviceIdTextEditingController.text = _iotDeviceId;
+    _gateModeTextEditingController.text = _gateMode.toString().split('.').last;
+    showDialog(
+        context: context,
+        child: AlertDialog(
+          title: Text('Please enter staff code'),
+          content: TextField(
+            controller: _staffCodeTextEditingController,
+            keyboardType: TextInputType.number,
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text('Submit'),
+              onPressed: () {
+                if (_staffCodeTextEditingController.text == _staffCode) {
+                  _staffCodeTextEditingController.text = '';
+                  Navigator.of(context).pop();
+                  showDialog(
+                    context: context,
+                    child: AlertDialog(
+                      title: Text('Kiosk Config'),
+                      content: Column(
+                        children: <Widget>[
+                          TextField(
+                            controller: _iotDeviceIdTextEditingController,
+                            decoration: InputDecoration(
+                              labelText: 'IoT Device ID'
+                            ),
+                          ),
+                          TextField(
+                            controller: _gateModeTextEditingController,
+                            decoration: InputDecoration(
+                                labelText: 'Gate Mode (entry / exit)'
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: <Widget>[
+                        FlatButton(
+                          child: Text('Submit'),
+                          onPressed: () {
+                            setState(() {
+                              _iotDeviceId = _iotDeviceIdTextEditingController.text;
+                              if (_gateModeTextEditingController.text.toLowerCase() == 'entry') _gateMode = GateMode.entry;
+                              if (_gateModeTextEditingController.text.toLowerCase() == 'exit') _gateMode = GateMode.exit;
+                              onScanning();
+                            });
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    )
+                  );
+                }
+              },
+            )
+          ],
+        )
     );
   }
 
@@ -671,9 +742,12 @@ class _KioskPageState extends State<KioskPage> {
                       children: <Widget>[
                         Expanded(
                           flex: 1,
-                          child: Text(
-                            'Welcome to Smart Car Park',
-                            style: Theme.of(context).textTheme.display2,
+                          child: GestureDetector(
+                            onLongPress: () => this.showStaffMenu(),
+                            child: Text(
+                              'Welcome to Smart Car Park',
+                              style: Theme.of(context).textTheme.display2,
+                            ),
                           ),
                         ),
                         Expanded(

@@ -8,13 +8,11 @@ import GateRecord, { GateMode } from './gateRecord'
 
 export enum ParkingStatus {
     // eslint-disable-next-line no-unused-vars
-    Vacant,
+    vacant = 'vacant',
     // eslint-disable-next-line no-unused-vars
-    Occupied,
+    occupied = 'occupied',
     // eslint-disable-next-line no-unused-vars
-    Changing,
-    // eslint-disable-next-line no-unused-vars
-    Unknown
+    unknown = 'unknown'
 }
 
 export default class FirebaseHelper {

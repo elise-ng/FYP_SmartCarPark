@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:smart_car_park_app/pages/snapshot_page.dart';
 import 'package:timeline_list/timeline.dart';
 import 'package:timeline_list/timeline_model.dart';
@@ -9,6 +10,10 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:intl/intl.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:smart_car_park_app/global_variables.dart';
+
+import '../models/parking_invoice.dart';
+import '../models/user_record.dart';
+import '../utils/cloud_functions_utils.dart';
 
 class InformationPage extends StatefulWidget {
   InformationPage({key}) : super(key: key);
@@ -18,7 +23,7 @@ class InformationPage extends StatefulWidget {
 }
 
 class _InformationPageState extends State<InformationPage> {
-  Map<String, dynamic> _gateRecord;
+  DocumentSnapshot _gateRecord;
   String _currentLocation;
   List<Map<String, dynamic>> _iotStateChangesPrev = [];
   List<Map<String, dynamic>> _iotStateChangesNew = [];
@@ -30,30 +35,43 @@ class _InformationPageState extends State<InformationPage> {
   StreamSubscription _snapshotSubscription;
 
   String _iotImageUrl;
+  ParkingInvoice _invoice;
 
-  void listenToGateRecord() async {
+  Future<void> listenToGateRecord(String phoneNumber) async {
     await this._gateRecordSubscription?.cancel();
     this._gateRecordSubscription = null;
     this._gateRecordSubscription = Firestore.instance
         .collection('gateRecords')
-        .where('phoneNumber', isEqualTo: '+85212345678')
+        .where('phoneNumber', isEqualTo: phoneNumber)
         .orderBy('entryScanTime', descending: true)
+        .limit(1)
         .snapshots()
-        .listen((snapshot) {
+        .listen((snapshot) async {
+      print(snapshot);
       try {
-        this._gateRecord = snapshot.documents.first.data;
+        this._gateRecord = snapshot.documents.first;
+        this.requestParkingInvoice();
+        await this.listenToIotStateChanges();
       } catch (e) {
-        // list empty
+        print(e);
         this._gateRecord = null;
+      } finally {
         setState(() {});
-        return;
       }
-      this.listenToIotStateChanges();
-      setState(() {});
     });
   }
 
-  void listenToIotStateChanges() async {
+  void requestParkingInvoice() async {
+    if (this._gateRecord["paymentStatus"] != "succeeded") {
+      ParkingInvoice invoice = await CloudFunctionsUtils.getParkingInvoice(
+          this._gateRecord.documentID);
+      setState(() {
+        this._invoice = invoice;
+      });
+    }
+  }
+
+  Future<void> listenToIotStateChanges() async {
     await this._iotStateChangesPrevSubscription?.cancel();
     this._iotStateChangesPrevSubscription = null;
     await this._iotStateChangesNewSubscription?.cancel();
@@ -146,7 +164,9 @@ class _InformationPageState extends State<InformationPage> {
   @override
   void initState() {
     super.initState();
-    this.listenToGateRecord();
+    String phoneNumber =
+        Provider.of<UserRecord>(context, listen: false).phoneNumber;
+    this.listenToGateRecord(phoneNumber);
   }
 
   Widget makeTableRow(String title, String subtitle) {
@@ -317,15 +337,21 @@ class _InformationPageState extends State<InformationPage> {
                           'Parked Location', this._currentLocation ?? '-'),
                       makeTableRow(
                           'Parked Duration',
-                          DateTime.now()
-                                  .difference(
-                                      (this._gateRecord['entryConfirmTime']
-                                              as Timestamp)
-                                          .toDate())
-                                  .inMinutes
-                                  .toString() +
-                              ' Minutes'),
-                      makeTableRow('Amount Due', '???'),
+                          this._gateRecord['entryConfirmTime'] != null
+                              ? DateTime.now()
+                                      .difference(
+                                          (this._gateRecord['entryConfirmTime']
+                                                  as Timestamp)
+                                              .toDate())
+                                      .inMinutes
+                                      .toString() +
+                                  ' Minutes'
+                              : '-'),
+                      makeTableRow(
+                          'Amount Due',
+                          this._invoice == null
+                              ? "-"
+                              : "\$${this._invoice?.total}"),
                       Row(
                         children: <Widget>[
                           Expanded(

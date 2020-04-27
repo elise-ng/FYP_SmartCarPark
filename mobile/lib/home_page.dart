@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_car_park_app/pages/infomation_page.dart';
+import 'package:smart_car_park_app/pages/information_page.dart';
 import 'package:smart_car_park_app/pages/car_park_map_page.dart';
 import 'package:smart_car_park_app/pages/login_page.dart';
 import 'models/user_record.dart';
 import 'pages/car_park_map_page.dart';
-import 'pages/infomation_page.dart';
+import 'pages/information_page.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({

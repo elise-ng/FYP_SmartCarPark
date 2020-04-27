@@ -42,7 +42,7 @@ function average(arr: number[]) {
 }
 
 async function takePicture() : Promise<Buffer> {
-  const camera = await exec('raspistill -q 75 -ISO 800 -ex sports -n -o ./snapshot.jpg')
+  const camera = await exec('raspistill -q 20 -ISO 800 -ex sports -n -o ./snapshot.jpg')
   if (!camera.stderr) {
     return await readFile('./snapshot.jpg')
   } else {
@@ -121,18 +121,13 @@ async function main() {
               return // Wait for distance history to fill up before analysing states 
             }
             // if approaching && distance < threshold -> occupied, take photo
-            if (lastStatus !== ParkingStatus.Occupied && average(distanceHistory) < lotThresholdInCm) {
+            if (lastStatus !== ParkingStatus.occupied && average(distanceHistory) < lotThresholdInCm) {
               // occupied
               console.log(`Occupied detected, last state ${lastStatus}, dist ${distanceHistory.join(' -> ')}`)
-              lastStatus = ParkingStatus.Occupied
+              lastStatus = ParkingStatus.occupied
               let imageBuffer: Buffer
               try {
-                const camera = await exec('raspistill -q 75 -ISO 800 -ex sports -n -o ./snapshot.jpg')
-                if (!camera.stderr) {
-                  imageBuffer = await readFile('./snapshot.jpg')
-                } else {
-                  console.log(`Camera no output: ${camera.stderr}`)
-                }
+                imageBuffer = await takePicture()
               } catch (e) {
                 console.error(e)
               }
@@ -140,11 +135,18 @@ async function main() {
               // TODO: call CV for vehicle id
               await firebaseHelper.updateIotState(lastStatus, 'test_vehicle_id', imageUrl)
               // if leaving && distance > threshold -> vacant
-            } else if (lastStatus !== ParkingStatus.Vacant && average(distanceHistory) > lotThresholdInCm) {
+            } else if (lastStatus !== ParkingStatus.vacant && average(distanceHistory) > lotThresholdInCm) {
               // vacant
               console.log(`Vacant detected, last state ${lastStatus}, dist ${distanceHistory.join(' -> ')}`)
-              lastStatus = ParkingStatus.Vacant
-              await firebaseHelper.updateIotState(lastStatus, null, null)
+              lastStatus = ParkingStatus.vacant
+              let imageBuffer: Buffer
+              try {
+                imageBuffer = await takePicture()
+              } catch (e) {
+                console.error(e)
+              }
+              const imageUrl = await firebaseHelper.uploadJpgImage(imageBuffer)
+              await firebaseHelper.updateIotState(lastStatus, null, imageUrl)
             }
           } catch (e) {
             console.error(e)

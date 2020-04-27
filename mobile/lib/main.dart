@@ -47,7 +47,7 @@ class _MyAppState extends State<MyApp> {
             // TODO: auto night mode?
             brightness: Brightness.light
           ),
-          home: isKioskMode ? KioskPage() : SplashPage(),
+          home: this.widget.isKioskMode ? KioskPage() : SplashPage(),
         ),
       ),
     );

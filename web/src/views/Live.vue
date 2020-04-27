@@ -1,5 +1,30 @@
 <template>
   <div class='live'>
+    <el-row style="padding-bottom: 16px">
+      <vl-map :load-tiles-while-animating="true" :load-tiles-while-interacting="true" :default-controls="{rotate: false}"
+             data-projection="EPSG:4326" style="height: 500px; box-shadow: 0 4px 8px 0 grey">
+        <vl-view :zoom.sync="zoom" :center.sync="center" :rotation="rotation" :min-zoom="minZoom" :max-zoom="maxZoom" :extent="extent"></vl-view>
+        <!-- <vl-layer-tile id="osm">
+          <vl-source-osm></vl-source-osm>
+        </vl-layer-tile> -->
+        <vl-feature v-for="floor in carParkFloors" v-bind:key="floor.id">
+            <vl-geom-polygon :coordinates="[floor.points.map(geopoint => [geopoint.U, geopoint.V])]"/>
+            <vl-feature v-for="state in iotStates.filter(state => state.floorId === floor.id)" v-bind:key="state.id">
+                <vl-geom-polygon :coordinates="[getParkingCoordinatesFromState(state)]"/>
+                <vl-overlay :id="state.id" :position="getParkingSpaceCenter(state)" positioning="center-center">
+                  <div style="font: 16px; font-weight: bold; user-select: none" >
+                    {{ state.id.toUpperCase() }}
+                  </div>
+                </vl-overlay>
+                <vl-style-box>
+                  <vl-style-fill :color="getParkingSpaceColor(state)"/>
+                  <vl-style-stroke :color="[0, 153, 255, 1]"/>
+                  <!-- <vl-style-text :text="state.id.toUpperCase()" font="2em sans-serif"></vl-style-text> -->
+                </vl-style-box>
+          </vl-feature>
+        </vl-feature>
+      </vl-map>
+    </el-row>
     <el-row>
       <el-button @click="dialogFormVisible = true;">Manual Entry</el-button>
     </el-row>
@@ -47,6 +72,7 @@
 <script>
 import moment, { now } from 'moment'
 import { db, Timestamp } from '@/helpers/firebaseHelper'
+import { computeDestinationPoint } from 'geolib'
 export default {
   name: 'Live',
   data () {
@@ -58,11 +84,21 @@ export default {
         gate: ''
       },
       formLabelWidth: '120px',
-      gateRecords: []
+      zoom: 20.8,
+      minZoom: 20.8,
+      maxZoom: 24,
+      center: [114.26337, 22.338422],
+      extent: [114.263, 22.338, 114.264, 22.339],
+      rotation: Math.PI / -2,
+      gateRecords: [],
+      carParkFloors: [],
+      iotStates: []
     }
   },
   firestore: {
-    gateRecords: db.collection('gateRecords')
+    gateRecords: db.collection('gateRecords'),
+    carParkFloors: db.collection('carParkFloors'),
+    iotStates: db.collection('iotStates')
   },
   methods: {
     // addMessage () {
@@ -125,6 +161,42 @@ export default {
     },
     phoneNumberFormatter (row) {
       return row.phoneNumber ? row.phoneNumber.replace('+852', '') : ''
+    },
+    getParkingCoordinatesFromState (state) {
+      const width = state.widthInMeters || 2.2
+      const height = state.heightInMeters || 4.8
+      const bearing = state.bearing || 0
+      const topLeft = [state.position.U, state.position.V]
+      const topRight = computeDestinationPoint(topLeft, width, 90 - bearing)
+      const bottomLeft = computeDestinationPoint(topLeft, height, 180 - bearing)
+      const bottomRight = computeDestinationPoint(bottomLeft, width, 90 - bearing)
+      return [
+        topLeft,
+        [topRight.longitude, topRight.latitude],
+        [bottomRight.longitude, bottomRight.latitude],
+        [bottomLeft.longitude, bottomLeft.latitude]
+      ]
+    },
+    getParkingSpaceCenter (state) {
+      const width = state.widthInMeters || 2.2
+      const height = state.heightInMeters || 4.8
+      const bearing = state.bearing || 0
+      const topLeft = [state.position.U, state.position.V]
+      const center = computeDestinationPoint(topLeft, Math.hypot(width / 2, height / 2), (Math.atan2(height, width) * 180 / Math.PI) + 90 - bearing)
+      return [center.longitude, center.latitude]
+    },
+    getParkingSpaceColor (state) {
+      switch (state.state) {
+        case 'vacant':
+          return '#66bb6a'
+        case 'occupied':
+          return '#ef5350'
+        case 'changing':
+          return '#ffee58'
+        case 'disabled':
+        default:
+          return '#bdbdbd'
+      }
     }
   }
 }

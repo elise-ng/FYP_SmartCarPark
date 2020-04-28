@@ -67,12 +67,12 @@ function buildTextObject(words) {
         if ('property' in lastSymbol && 'detectedBreak' in lastSymbol.property && lastSymbol.property.detectedBreak) {
             let type = lastSymbol.property.detectedBreak.type
             if (type === "EOL_SURE_SPACE" || type === "LINE_BREAK") {
-                textArray.push((text.match(/[a-zA-Z0-9粵港]+/g) || []).join('')) // Filter out undesired character
+                textArray.push(text)
                 text = ""
             }
         }
     }
-    return textArray
+    return textArray.map((text) => (text.match(/[a-zA-Z0-9粵港]+/g) || []).join('')) // Filter out undesired character
 }
 
 export const recognizeLicensePlate = functions
@@ -130,17 +130,17 @@ export const recognizeLicensePlate = functions
         }
 
         if (!licensePlateObjects.length || !texts) {
-            /// If license plate object is not found, or no valid text blocks are identified
+            // If license plate object is not found, or no valid text blocks are identified
             return {
                 success: true,
-                license: fullTextAnnotation.text
+                license: (fullTextAnnotation.text.match(/[a-zA-Z0-9粵港]+/g) || []).join('')
             }
         }
 
         let mainlandLicense
         let chinaHKLicenseIndex = texts.findIndex(text => text.includes('粵') || text.includes('港'))
         if (chinaHKLicenseIndex > -1) {
-            mainlandLicense = texts.splice(chinaHKLicenseIndex, 1)[0]
+            mainlandLicense = `粵${(texts.splice(chinaHKLicenseIndex, 1)[0].match(/[a-zA-Z0-9]+/g) || []).join('')}港` // Reformat mainland license just in case
         }
 
         let license = texts.join('')

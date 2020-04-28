@@ -161,6 +161,38 @@ class _InformationPageState extends State<InformationPage> {
     });
   }
 
+  void logout() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Logging out'),
+            content: Text('Are you sure?'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              FlatButton(
+                child: Text(
+                  'Confirm',
+                  style: TextStyle(
+                    color: Colors.red,
+                  ),
+                ),
+                onPressed: () {
+                  FirebaseAuth.instance.signOut();
+                  userRecord.reset();
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -314,6 +346,10 @@ class _InformationPageState extends State<InformationPage> {
             ? Text(DateFormat('yyyy-MM-dd').format(
                 (this._gateRecord['entryScanTime'] as Timestamp).toDate()))
             : null,
+        leading: IconButton(
+          icon: Icon(Icons.account_circle),
+          onPressed: this.logout,
+        ),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.access_time),
@@ -322,11 +358,11 @@ class _InformationPageState extends State<InformationPage> {
                 // TODO: implement gate record list and selection
               });
             },
-          )
+          ),
         ],
         bottom: this._gateRecord != null
             ? PreferredSize(
-                preferredSize: Size.fromHeight(220.0),
+                preferredSize: Size.fromHeight(180.0),
                 child: Container(
                   padding: EdgeInsets.all(16.0),
                   child: Column(
@@ -385,61 +421,23 @@ class _InformationPageState extends State<InformationPage> {
                               color: Colors.white.withAlpha(40),
                               textColor: Colors.white,
                               child: Text('Pay Amount'),
-                              onPressed: this._invoice != null ? () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PaymentMethodsPage(
-                                      gateRecordId: this._gateRecord.documentID,
-                                    ),
-                                  ),
-                                );
-                              } : null,
+                              onPressed: this._invoice != null
+                                  ? () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              PaymentMethodsPage(
+                                            gateRecordId:
+                                                this._gateRecord.documentID,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  : null,
                             ),
                           )
                         ],
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Container(
-                          width: double.infinity,
-                          height: 40.0,
-                          child: FlatButton(
-                            child: Text("Logout"),
-                            color: Colors.white.withAlpha(40),
-                            textColor: Colors.white,
-                            onPressed: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: Text('Logout?'),
-                                      actions: <Widget>[
-                                        FlatButton(
-                                          child: Text('Cancel'),
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                        FlatButton(
-                                          child: Text(
-                                            'Confirm',
-                                            style: TextStyle(
-                                              color: Colors.red,
-                                            ),
-                                          ),
-                                          onPressed: () {
-                                            FirebaseAuth.instance.signOut();
-                                            userRecord.reset();
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  });
-                            },
-                          ),
-                        ),
                       ),
                     ],
                   ),

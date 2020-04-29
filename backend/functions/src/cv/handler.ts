@@ -104,7 +104,7 @@ export const recognizeLicensePlate = functions
                 },
             ],
             imageContext: {
-                languageHints: ["zh-Hant-HK"]
+                languageHints: ["en", "zh-Hant-HK"]
             }
         }
 

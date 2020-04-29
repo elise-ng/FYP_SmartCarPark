@@ -151,24 +151,24 @@ class _KioskPageState extends State<KioskPage> {
           });
         } else {
           _exitLicensePlateNotRecognized = false;
-        }
-        if (_gateRecord.paymentStatus == 'successful' && _gateRecord.paymentTime != null) {
-          final minutesAfterPayment = DateTime.now().difference(_gateRecord.paymentTime).inMinutes;
-          if (minutesAfterPayment > 15) {
-            // Paid but exceeded leave time
-            onContactStaff('Duration after payment: ${minutesAfterPayment} minutes');
+          if (_gateRecord.paymentStatus == 'successful' && _gateRecord.paymentTime != null) {
+            final minutesAfterPayment = DateTime.now().difference(_gateRecord.paymentTime).inMinutes;
+            if (minutesAfterPayment > 15) {
+              // Paid but exceeded leave time
+              onContactStaff('Duration after payment: ${minutesAfterPayment} minutes');
+            } else {
+              // Paid, proceed to success
+              confirmExit();
+            }
           } else {
-            // Paid, proceed to success
-            confirmExit();
+            // not paid
+            setState(() {
+              _gateFlowState = GateFlowState.scanned;
+              _exitLicensePlateNotRecognized = false;
+              _errorMessage = 'Parking fee not settled. Please pay via mobile app or contact staff.';
+              _vehicleIdTextEditingController.text = _gateRecord.vehicleId;
+            });
           }
-        } else {
-          // not paid
-          setState(() {
-            _gateFlowState = GateFlowState.scanned;
-            _exitLicensePlateNotRecognized = false;
-            _errorMessage = 'Parking fee not settled. Please pay via mobile app or contact staff.';
-            _vehicleIdTextEditingController.text = _gateRecord.vehicleId;
-          });
         }
         break;
     }

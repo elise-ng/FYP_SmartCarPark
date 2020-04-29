@@ -8,7 +8,7 @@
           <vl-source-osm></vl-source-osm>
         </vl-layer-tile> -->
         <vl-feature v-for="floor in carParkFloors" v-bind:key="floor.id">
-            <vl-geom-polygon :coordinates="[floor.points.map(geopoint => [geopoint.U, geopoint.V])]"/>
+            <vl-geom-polygon :coordinates="[floor.points.map(geopoint => [geopoint.longitude, geopoint.latitude])]"/>
             <vl-feature v-for="state in iotStates.filter(state => state.floorId === floor.id)" v-bind:key="state.id">
                 <vl-geom-polygon :coordinates="[getParkingCoordinatesFromState(state)]"/>
                 <vl-overlay :id="state.id" :position="getParkingSpaceCenter(state)" positioning="center-center">
@@ -166,7 +166,7 @@ export default {
       const width = state.widthInMeters || 2.2
       const height = state.heightInMeters || 4.8
       const bearing = state.bearing || 0
-      const topLeft = [state.position.U, state.position.V]
+      const topLeft = [state.position.longitude, state.position.latitude]
       const topRight = computeDestinationPoint(topLeft, width, 90 - bearing)
       const bottomLeft = computeDestinationPoint(topLeft, height, 180 - bearing)
       const bottomRight = computeDestinationPoint(bottomLeft, width, 90 - bearing)
@@ -181,7 +181,7 @@ export default {
       const width = state.widthInMeters || 2.2
       const height = state.heightInMeters || 4.8
       const bearing = state.bearing || 0
-      const topLeft = [state.position.U, state.position.V]
+      const topLeft = [state.position.longitude, state.position.latitude]
       const center = computeDestinationPoint(topLeft, Math.hypot(width / 2, height / 2), (Math.atan2(height, width) * 180 / Math.PI) + 90 - bearing)
       return [center.longitude, center.latitude]
     },

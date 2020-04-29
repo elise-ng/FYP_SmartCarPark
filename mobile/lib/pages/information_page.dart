@@ -39,6 +39,7 @@ class _InformationPageState extends State<InformationPage> {
   ParkingInvoice _invoice;
 
   Future<void> listenToGateRecord(String phoneNumber) async {
+    print(phoneNumber);
     await this._gateRecordSubscription?.cancel();
     this._gateRecordSubscription = null;
     this._gateRecordSubscription = Firestore.instance
@@ -48,6 +49,7 @@ class _InformationPageState extends State<InformationPage> {
         .limit(1)
         .snapshots()
         .listen((snapshot) async {
+          print(snapshot);
       try {
         this._gateRecord = snapshot.documents.first;
         this.requestParkingInvoice();
@@ -83,17 +85,21 @@ class _InformationPageState extends State<InformationPage> {
       setState(() {});
       return;
     }
-    ;
     final vehicleId = this._gateRecord['vehicleId'] as String;
+    print(_gateRecord.documentID);
+    print((_gateRecord['exitScanTime'] as Timestamp).toDate());
+    print((_gateRecord['entryScanTime'] as Timestamp).toDate());
     this._iotStateChangesPrevSubscription = Firestore.instance
         .collection('iotStateChanges')
         .where('previousState.vehicleId', isEqualTo: vehicleId)
-        .where('time',
-            isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp)
-        .where('time',
-            isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp)
+        .where(
+          'time',
+          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
+          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
+        )
         .snapshots()
         .listen((snapshot) {
+      print(snapshot);
       this._iotStateChangesPrev =
           snapshot.documents.map((snapshot) => snapshot.data).toList();
       this._iotStateChanges = [
@@ -107,12 +113,14 @@ class _InformationPageState extends State<InformationPage> {
     this._iotStateChangesNewSubscription = Firestore.instance
         .collection('iotStateChanges')
         .where('newState.vehicleId', isEqualTo: vehicleId)
-        .where('time',
-            isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp)
-        .where('time',
-            isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp)
+        .where(
+          'time',
+          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
+          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
+        )
         .snapshots()
         .listen((snapshot) {
+      print(snapshot);
       this._iotStateChangesNew =
           snapshot.documents.map((snapshot) => snapshot.data).toList();
       this._iotStateChanges = [
@@ -447,7 +455,7 @@ class _InformationPageState extends State<InformationPage> {
       ),
       body: this._gateRecord != null
           ? Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Timeline(
                 children: <TimelineModel>[
                   // TODO: make exit time card

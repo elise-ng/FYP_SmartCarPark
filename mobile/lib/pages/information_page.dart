@@ -39,7 +39,6 @@ class _InformationPageState extends State<InformationPage> {
   ParkingInvoice _invoice;
 
   Future<void> listenToGateRecord(String phoneNumber) async {
-    print(phoneNumber);
     await this._gateRecordSubscription?.cancel();
     this._gateRecordSubscription = null;
     this._gateRecordSubscription = Firestore.instance
@@ -49,7 +48,7 @@ class _InformationPageState extends State<InformationPage> {
         .limit(1)
         .snapshots()
         .listen((snapshot) async {
-          print(snapshot);
+      print(snapshot);
       try {
         this._gateRecord = snapshot.documents.first;
         this.requestParkingInvoice();
@@ -92,11 +91,13 @@ class _InformationPageState extends State<InformationPage> {
     this._iotStateChangesPrevSubscription = Firestore.instance
         .collection('iotStateChanges')
         .where('previousState.vehicleId', isEqualTo: vehicleId)
-        .where(
-          'time',
-          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
-          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
-        )
+
+        /// FIXME: Compound query cannot perform range queries on different fields
+//        .where(
+//          'time',
+//          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
+//          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
+//        )
         .snapshots()
         .listen((snapshot) {
       print(snapshot);
@@ -113,11 +114,13 @@ class _InformationPageState extends State<InformationPage> {
     this._iotStateChangesNewSubscription = Firestore.instance
         .collection('iotStateChanges')
         .where('newState.vehicleId', isEqualTo: vehicleId)
-        .where(
-          'time',
-          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
-          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
-        )
+
+        /// FIXME: Compound query cannot perform range queries on different fields
+//        .where(
+//          'time',
+//          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
+//          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
+//        )
         .snapshots()
         .listen((snapshot) {
       print(snapshot);
@@ -134,18 +137,20 @@ class _InformationPageState extends State<InformationPage> {
   }
 
   void refreshCurrentLocation() {
-    final lastVacant = this
-        ._iotStateChanges
-        .firstWhere((change) => change['newState']['state'] == 'vacant');
-    final lastOccupy = this
-        ._iotStateChanges
-        .firstWhere((change) => change['newState']['state'] == 'occupied');
-    if ((lastVacant['time'] as Timestamp)
-            .compareTo(lastOccupy['time'] as Timestamp) >
-        0) {
+    final lastVacant = this._iotStateChanges.firstWhere(
+        (change) => change['newState']['state'] == 'vacant',
+        orElse: () => null);
+    final lastOccupy = this._iotStateChanges.firstWhere(
+        (change) => change['newState']['state'] == 'occupied',
+        orElse: () => null);
+    if (lastVacant != null &&
+        lastOccupy != null &&
+        (lastVacant['time'] as Timestamp)
+                .compareTo(lastOccupy['time'] as Timestamp) >
+            0) {
       // vacant is later then occupy
       _currentLocation = null;
-    } else {
+    } else if (lastOccupy != null){
       _currentLocation = lastOccupy['deviceId'];
     }
     this.listenToSnapshot();

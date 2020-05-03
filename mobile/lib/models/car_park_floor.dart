@@ -129,7 +129,7 @@ class CarParkFloor extends Equatable {
       strokeWidth: 2.0,
       strokeColor: Colors.white,
       child: Text(
-        parkingSpace.id.toUpperCase(),
+        parkingSpace.displayName ?? parkingSpace.id.toUpperCase(),
         style: TextStyle(
           fontSize: 22,
           color: Colors.black,

@@ -17,6 +17,7 @@ enum ParkingState {
 
 class CarParkSpace extends Equatable {
   final String id;
+  final String displayName;
   final LatLng position;
   final String floorId;
   final double widthInMeters;
@@ -32,6 +33,7 @@ class CarParkSpace extends Equatable {
 
   CarParkSpace({
     this.id,
+    this.displayName,
     this.position,
     this.floorId,
     this.state,
@@ -53,6 +55,7 @@ class CarParkSpace extends Equatable {
 
   CarParkSpace.fromDocument(DocumentSnapshot document): this(
     id: document.documentID,
+    displayName: document.data["displayName"] as String,
     position: (document.data["position"] as GeoPoint).toLatLng(),
     floorId: document.data["floorId"] as String,
     state: EnumToString.fromString(ParkingState.values, document.data["state"]) ?? ParkingState.Undefined,
@@ -66,6 +69,7 @@ class CarParkSpace extends Equatable {
 
   Map<String, dynamic> toDataMap() {
     return {
+      "displayName": this.displayName,
       "position": this.position.toGeoPoint(),
       "floorId": this.floorId,
       "state": EnumToString.parse(this.state).toLowerCase(),

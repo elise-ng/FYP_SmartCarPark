@@ -2,7 +2,7 @@
 <div>
     <el-page-header @back="navGoBack" :content="`Gate Record: ${gateRecord ? gateRecord.vehicleId || '---' : '---'}`"></el-page-header>
 
-    <el-form v-if="gateRecord" :model="gateRecord" label-width="120px">
+    <el-form v-if="gateRecord" :model="gateRecord" label-width="200px">
       <el-divider content-position="left">Basic Info</el-divider>
       <el-form-item label="License Plate">
         <el-input v-model="gateRecord.vehicleId"></el-input>
@@ -15,6 +15,11 @@
       <el-form-item label="Entry Gate">
         <div class="form-field-plaintext">{{ gateRecord.entryGate || '---' }}</div>
       </el-form-item>
+      <el-form-item label="Entry Snapshot">
+        <div class="form-field-plaintext">
+          <img :src="signedEntryImageUrl" width="300"/>
+        </div>
+      </el-form-item>
       <el-form-item label="Entry Scan Time">
         <div class="form-field-plaintext">{{ formatTimestamp(gateRecord.entryScanTime) || '---' }}</div>
       </el-form-item>
@@ -23,6 +28,11 @@
       </el-form-item>
       <el-form-item label="Exit Gate">
         <div class="form-field-plaintext">{{ gateRecord.exitGate || '---' }}</div>
+      </el-form-item>
+      <el-form-item label="Exit Snapshot">
+        <div class="form-field-plaintext">
+          <img :src="signedExitImageUrl" width="300"/>
+        </div>
       </el-form-item>
       <el-form-item label="Exit Scan Time">
         <div class="form-field-plaintext">{{ formatTimestamp(gateRecord.exitScanTime) || '---' }}</div>
@@ -89,7 +99,7 @@
 
 <script>
 import moment from 'moment'
-import { db, Timestamp } from '@/helpers/firebaseHelper'
+import { db, Timestamp, storage } from '@/helpers/firebaseHelper'
 export default {
   name: 'GateRecordEdit',
   data () {
@@ -103,6 +113,24 @@ export default {
       },
       formLabelWidth: '120px',
       gateRecord: {}
+    }
+  },
+  asyncComputed: {
+    async signedEntryImageUrl () {
+      try {
+        const gsUrl = this.gateRecord.entryImageUrl
+        return gsUrl ? await storage.refFromURL(gsUrl).getDownloadURL() : null
+      } catch (e) {
+        this.$message.error(e.message || e.toString())
+      }
+    },
+    async signedExitImageUrl () {
+      try {
+        const gsUrl = this.gateRecord.exitImageUrl
+        return gsUrl ? await storage.refFromURL(gsUrl).getDownloadURL() : null
+      } catch (e) {
+        this.$message.error(e.message || e.toString())
+      }
     }
   },
   methods: {
@@ -195,6 +223,9 @@ export default {
         console.error(e)
         this.$message.warning('Gate input required')
       }
+    },
+    async getSignedUrl (gsUrl) {
+      return storage.ref(gsUrl).getSignedUrl()
     }
   },
   async mounted () {

@@ -29,7 +29,7 @@ class _CarParkMapPageState extends State<CarParkMapPage> {
 
   static final CameraPosition _ustParkingPosition = CameraPosition(
     bearing: 90.0,
-    target: LatLng(22.3385, 114.26335),
+    target: LatLng(22.3386, 114.2633),
     zoom: 21,
   );
 

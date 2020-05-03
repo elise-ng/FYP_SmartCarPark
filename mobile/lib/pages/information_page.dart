@@ -85,19 +85,9 @@ class _InformationPageState extends State<InformationPage> {
       return;
     }
     final vehicleId = this._gateRecord['vehicleId'] as String;
-    print(_gateRecord.documentID);
-    print((_gateRecord['exitScanTime'] as Timestamp).toDate());
-    print((_gateRecord['entryScanTime'] as Timestamp).toDate());
     this._iotStateChangesPrevSubscription = Firestore.instance
         .collection('iotStateChanges')
         .where('previousState.vehicleId', isEqualTo: vehicleId)
-
-        /// FIXME: Compound query cannot perform range queries on different fields
-//        .where(
-//          'time',
-//          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
-//          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
-//        )
         .snapshots()
         .listen((snapshot) {
       print(snapshot);
@@ -123,7 +113,6 @@ class _InformationPageState extends State<InformationPage> {
 //        )
         .snapshots()
         .listen((snapshot) {
-      print(snapshot);
       this._iotStateChangesNew =
           snapshot.documents.map((snapshot) => snapshot.data).toList();
       this._iotStateChanges = [
@@ -150,7 +139,7 @@ class _InformationPageState extends State<InformationPage> {
             0) {
       // vacant is later then occupy
       _currentLocation = null;
-    } else if (lastOccupy != null){
+    } else if (lastOccupy != null) {
       _currentLocation = lastOccupy['deviceId'];
     }
     this.listenToSnapshot();
@@ -216,29 +205,34 @@ class _InformationPageState extends State<InformationPage> {
 
   Widget makeTableRow(String title, String subtitle) {
     return Padding(
-        padding: EdgeInsets.only(top: 4, bottom: 4),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-                flex: 4,
-                child: Padding(
-                    padding: EdgeInsets.only(left: 8, right: 8),
-                    child: Text(
-                      title,
-                      style: Theme.of(context).primaryTextTheme.subtitle1,
-                      textAlign: TextAlign.right,
-                    ))),
-            Expanded(
-                flex: 6,
-                child: Padding(
-                    padding: EdgeInsets.only(left: 8, right: 8),
-                    child: Text(
-                      subtitle,
-                      style: Theme.of(context).primaryTextTheme.subtitle1,
-                      textAlign: TextAlign.left,
-                    ))),
-          ],
-        ));
+      padding: EdgeInsets.only(top: 4, bottom: 4),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            flex: 4,
+            child: Padding(
+              padding: EdgeInsets.only(left: 8, right: 8),
+              child: Text(
+                title,
+                style: Theme.of(context).primaryTextTheme.subtitle1,
+                textAlign: TextAlign.right,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 6,
+            child: Padding(
+              padding: EdgeInsets.only(left: 8, right: 8),
+              child: Text(
+                subtitle,
+                style: Theme.of(context).primaryTextTheme.subtitle1,
+                textAlign: TextAlign.left,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   TimelineModel makeChangeTimelineModel(Map<String, dynamic> iotStateChange) {
@@ -252,45 +246,11 @@ class _InformationPageState extends State<InformationPage> {
           'Status changed from ${iotStateChange['previousState']['state']} to ${iotStateChange['newState']['state']} at ${iotStateChange['deviceId']}';
     }
     return TimelineModel(
-        Container(
-          padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
-          width: double.maxFinite,
-          child: Card(
-            child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      message,
-                      style: Theme.of(context).textTheme.bodyText1,
-                    ),
-                    Padding(padding: EdgeInsets.only(top: 8.0)),
-                    Text(
-                      timeago.format(
-                          (iotStateChange['time'] as Timestamp).toDate()),
-                      style: Theme.of(context).textTheme.caption,
-                    ),
-                  ],
-                )),
-          ),
-        ),
-        icon: Icon(
-          Icons.history,
-          color: Colors.white,
-        ),
-        iconBackground: Theme.of(context).accentColor,
-        position: TimelineItemPosition.left);
-  }
-
-  TimelineModel makeMessageTimelineModel(
-      {String message, String caption, IconData iconData}) {
-    return TimelineModel(
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          width: double.maxFinite,
-          child: Card(
-            child: Padding(
+      Container(
+        padding: EdgeInsets.symmetric(vertical: 4.0),
+        width: double.maxFinite,
+        child: Card(
+          child: Padding(
               padding: EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,20 +261,56 @@ class _InformationPageState extends State<InformationPage> {
                   ),
                   Padding(padding: EdgeInsets.only(top: 8.0)),
                   Text(
-                    caption,
+                    timeago
+                        .format((iotStateChange['time'] as Timestamp).toDate()),
                     style: Theme.of(context).textTheme.caption,
                   ),
                 ],
-              ),
+              )),
+        ),
+      ),
+      icon: Icon(
+        Icons.history,
+        color: Colors.white,
+      ),
+      iconBackground: Theme.of(context).accentColor,
+      position: TimelineItemPosition.left,
+    );
+  }
+
+  TimelineModel makeMessageTimelineModel(
+      {String message, String caption, IconData iconData}) {
+    return TimelineModel(
+      Container(
+        padding: EdgeInsets.symmetric(vertical: 4.0),
+        width: double.infinity,
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodyText1,
+                ),
+                Padding(padding: EdgeInsets.only(top: 8.0)),
+                Text(
+                  caption,
+                  style: Theme.of(context).textTheme.caption,
+                ),
+              ],
             ),
           ),
         ),
-        icon: Icon(
-          iconData,
-          color: Colors.white,
-        ),
-        iconBackground: Theme.of(context).accentColor,
-        position: TimelineItemPosition.left);
+      ),
+      icon: Icon(
+        iconData,
+        color: Colors.white,
+      ),
+      iconBackground: Theme.of(context).accentColor,
+      position: TimelineItemPosition.left,
+    );
   }
 
   TimelineModel makeSnapshotTimelineModel(String imageUrl) {
@@ -324,22 +320,23 @@ class _InformationPageState extends State<InformationPage> {
             // TODO: request new image
           },
           child: Container(
-            padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
+            padding: EdgeInsets.symmetric(vertical: 4.0),
             width: double.maxFinite,
             child: Card(
               child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Image.network(imageUrl),
-                      Padding(padding: EdgeInsets.only(top: 8.0)),
-                      Text(
-                        "Click to request new snapshot",
-                        style: Theme.of(context).textTheme.caption,
-                      ),
-                    ],
-                  )),
+                padding: EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Image.network(imageUrl),
+                    Padding(padding: EdgeInsets.only(top: 8.0)),
+                    Text(
+                      "Click to request new snapshot",
+                      style: Theme.of(context).textTheme.caption,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

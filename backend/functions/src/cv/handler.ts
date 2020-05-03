@@ -75,6 +75,10 @@ function buildTextObject(words) {
     return textArray.map((text) => (text.match(/[a-zA-Z0-9粵港]+/g) || []).join('')) // Filter out undesired character
 }
 
+function getBoundingBoxArea(vertices) {
+    return (vertices[2].x - vertices[0].x) * (vertices[2].y - vertices[0].y)
+} 
+
 export const recognizeLicensePlate = functions
     .region('asia-east2')
     .https
@@ -111,7 +115,7 @@ export const recognizeLicensePlate = functions
         let [annotateResponse] = await visionClient.annotateImage(annotateRequest)
         let fullTextAnnotation = annotateResponse.fullTextAnnotation
         let page = fullTextAnnotation.pages[0]
-        let blocks = page.blocks
+        let blocks = page.blocks.sort((a, b) => getBoundingBoxArea(b.boundingBox.vertices) - getBoundingBoxArea(a.boundingBox.vertices)) // Sort bounding box in decending order w.r.t. area
         let width = page.width
         let height = page.height
 

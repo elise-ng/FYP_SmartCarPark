@@ -17,7 +17,7 @@
       </el-form-item>
       <el-form-item label="Entry Snapshot">
         <div class="form-field-plaintext">
-          <img :src="signedEntryImageUrl" width="300"/>
+          <el-image :src="signedEntryImageUrl" style="width: 300px"></el-image>
         </div>
       </el-form-item>
       <el-form-item label="Entry Scan Time">
@@ -31,7 +31,7 @@
       </el-form-item>
       <el-form-item label="Exit Snapshot">
         <div class="form-field-plaintext">
-          <img :src="signedExitImageUrl" width="300"/>
+          <el-image :src="signedExitImageUrl" style="width: 300px"></el-image>
         </div>
       </el-form-item>
       <el-form-item label="Exit Scan Time">

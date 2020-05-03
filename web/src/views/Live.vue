@@ -21,13 +21,13 @@
         </vl-layer-tile>
         <!-- Floor tile -->
         <div v-if="selectedFloor">
-        <vl-feature>
+        <vl-feature id="floor">
           <vl-geom-polygon
             :coordinates="[selectedFloor.points.map(geopoint => [geopoint.longitude, geopoint.latitude])]"
           />
         </vl-feature>
         <!-- Parking spaces -->
-        <vl-layer-vector id="spaces" z-index="999">
+        <vl-layer-vector id="spaces" :z-index="999">
           <vl-feature
             v-for="state in iotStates.filter(state => state.floorId === selectedFloor.id)"
             v-bind:key="state.id"
@@ -56,11 +56,37 @@
         <!--// interactions -->
       </vl-map>
     </el-row>
+    <el-dialog v-if="selectedIotState" :title="`Lot Details: ${selectedIotState.displayName || selectedIotState.id}`" :visible.sync="lotDetailsDialogFormVisible">
+      <el-form :model="form">
+        <el-form-item label="State" :label-width="formLabelWidth">
+          <div class="form-field-plaintext">
+            {{selectedIotState.state}}
+          </div>
+        </el-form-item>
+        <el-form-item label="Vehicle ID" :label-width="formLabelWidth">
+          <div class="form-field-plaintext">
+            {{selectedIotState.vehicleId || '---'}}
+          </div>
+        </el-form-item>
+        <el-form-item label="Detection Time" :label-width="formLabelWidth">
+          <div class="form-field-plaintext">
+            {{selectedLotTimeText}}
+          </div>
+        </el-form-item>
+        <el-form-item label="Snapshot">
+          <el-image :src="signedSelectedIotImageUrl" style="width: 50%"></el-image>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="selectedIotState = undefined; lotDetailsDialogFormVisible = false">Dismiss</el-button>
+      </span>
+    </el-dialog>
+
     <el-row>
-      <el-button @click="dialogFormVisible = true;">Manual Entry</el-button>
+      <el-button @click="manualEntryDialogFormVisible = true;">Manual Entry</el-button>
     </el-row>
 
-    <el-dialog title="Manual Entry" :visible.sync="dialogFormVisible">
+    <el-dialog title="Manual Entry" :visible.sync="manualEntryDialogFormVisible">
       <el-form :model="form">
         <el-form-item label="Liscense Plate" :label-width="formLabelWidth">
           <el-input v-model="form.vehicleId" autocomplete="off" ref="vehicleId"></el-input>
@@ -76,8 +102,8 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="manualEntry();dialogFormVisible = false;">Confirm</el-button>
+        <el-button @click="manualEntryDialogFormVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="manualEntry();manualEntryDialogFormVisible = false;">Confirm</el-button>
       </span>
     </el-dialog>
 
@@ -112,15 +138,16 @@
 </template>
 
 <script>
-import moment, { now } from 'moment'
-import { db, Timestamp } from '@/helpers/firebaseHelper'
+import moment from 'moment'
+import { db, Timestamp, storage } from '@/helpers/firebaseHelper'
 import { computeDestinationPoint } from 'geolib'
 import { findPointOnSurface } from 'vuelayers/lib/ol-ext'
 export default {
   name: 'Live',
   data () {
     return {
-      dialogFormVisible: false,
+      manualEntryDialogFormVisible: false,
+      lotDetailsDialogFormVisible: false,
       form: {
         vehicleId: '',
         phoneNumber: '',
@@ -147,6 +174,24 @@ export default {
     carParkFloors: function (newCarParkFloors, _) {
       if (!this.selectedFloor) {
         this.selectedFloor = newCarParkFloors[0]
+      }
+    }
+  },
+  computed: {
+    selectedLotTimeText () {
+      if (!this.selectedIotState) return ''
+      const timeMoment = moment(this.selectedIotState.time.toDate())
+      return `${timeMoment.format('HH:mm')} (${moment.duration(timeMoment.diff(moment())).humanize(true)})`
+    }
+  },
+  asyncComputed: {
+    async signedSelectedIotImageUrl () {
+      try {
+        if (!this.selectedIotState) return null
+        const gsUrl = this.selectedIotState.imageUrl
+        return gsUrl ? await storage.refFromURL(gsUrl).getDownloadURL() : null
+      } catch (e) {
+        this.$message.error(e.message || e.toString())
       }
     }
   },
@@ -255,11 +300,9 @@ export default {
       }
     },
     onParkingSpaceClick (feature) {
-      const iotStates = this.iotStates.find((state) => state.deviceId === feature.id_)
-      if (iotStates) {
-        // TODO: DO STUFF
-        console.log(iotStates)
-      }
+      if (feature.id_ === 'floor') return
+      this.selectedIotState = this.iotStates.find((state) => state.deviceId === feature.id_)
+      if (this.selectedIotState) this.lotDetailsDialogFormVisible = true
     }
   }
 }

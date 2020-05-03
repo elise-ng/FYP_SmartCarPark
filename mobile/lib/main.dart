@@ -16,7 +16,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
   static const publishableKey = "pk_test_Kbnp8sRWTtMqKaXJdOKIO2hK00y1OinDK1";
 
   @override
@@ -45,7 +44,7 @@ class _MyAppState extends State<MyApp> {
           ),
           home: SplashPage(),
         ),
-      )
+      ),
     );
   }
 }

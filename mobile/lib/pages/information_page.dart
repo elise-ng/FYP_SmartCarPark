@@ -49,7 +49,9 @@ class _InformationPageState extends State<InformationPage> {
         .snapshots(includeMetadataChanges: true)
         .listen((snapshot) async {
       try {
-        var sortedGateRecords = snapshot.documents..sort((a, b) => (a.data["entryScanTime"] as Timestamp).compareTo(b.data["entryScanTime"] as Timestamp));
+        var sortedGateRecords = snapshot.documents
+          ..sort((a, b) => (a.data["entryScanTime"] as Timestamp)
+              .compareTo(b.data["entryScanTime"] as Timestamp));
         this._gateRecord = sortedGateRecords.first;
         print(this._gateRecord);
         this.requestParkingInvoice();
@@ -89,6 +91,11 @@ class _InformationPageState extends State<InformationPage> {
     this._iotStateChangesPrevSubscription = Firestore.instance
         .collection('iotStateChanges')
         .where('previousState.vehicleId', isEqualTo: vehicleId)
+        .where(
+          'time',
+          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
+          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
+        )
         .snapshots()
         .listen((snapshot) {
       this._iotStateChangesPrev =
@@ -104,13 +111,11 @@ class _InformationPageState extends State<InformationPage> {
     this._iotStateChangesNewSubscription = Firestore.instance
         .collection('iotStateChanges')
         .where('newState.vehicleId', isEqualTo: vehicleId)
-
-        /// FIXME: Compound query cannot perform range queries on different fields
-//        .where(
-//          'time',
-//          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
-//          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
-//        )
+        .where(
+          'time',
+          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
+          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
+        )
         .snapshots()
         .listen((snapshot) {
       this._iotStateChangesNew =
@@ -360,7 +365,10 @@ class _InformationPageState extends State<InformationPage> {
             FlatButton(
               child: Text('Confirm'),
               onPressed: () async {
-                await Firestore.instance.collection("gateRecords").document(this._gateRecord.documentID).setData({"vehicleId": vehicleId}, merge: true);
+                await Firestore.instance
+                    .collection("gateRecords")
+                    .document(this._gateRecord.documentID)
+                    .setData({"vehicleId": vehicleId}, merge: true);
                 this.listenToGateRecord();
                 Navigator.of(context).pop();
               },

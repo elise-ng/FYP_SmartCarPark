@@ -49,8 +49,7 @@ class _InformationPageState extends State<InformationPage> {
         .snapshots(includeMetadataChanges: true)
         .listen((snapshot) async {
       try {
-        var sortedGateRecords = snapshot.documents;
-        sortedGateRecords.sort((a, b) => (a.data["entryScanTime"] as Timestamp).compareTo(b.data["entryScanTime"] as Timestamp));
+        var sortedGateRecords = snapshot.documents..sort((a, b) => (a.data["entryScanTime"] as Timestamp).compareTo(b.data["entryScanTime"] as Timestamp));
         this._gateRecord = sortedGateRecords.first;
         print(this._gateRecord);
         this.requestParkingInvoice();

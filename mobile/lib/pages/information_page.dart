@@ -38,19 +38,21 @@ class _InformationPageState extends State<InformationPage> {
   String _iotImageUrl;
   ParkingInvoice _invoice;
 
-  Future<void> listenToGateRecord(String phoneNumber) async {
+  Future<void> listenToGateRecord() async {
+    String phoneNumber =
+        Provider.of<UserRecord>(context, listen: false).phoneNumber;
     await this._gateRecordSubscription?.cancel();
     this._gateRecordSubscription = null;
     this._gateRecordSubscription = Firestore.instance
         .collection('gateRecords')
         .where('phoneNumber', isEqualTo: phoneNumber)
-        .orderBy('entryScanTime', descending: true)
-        .limit(1)
-        .snapshots()
+        .snapshots(includeMetadataChanges: true)
         .listen((snapshot) async {
-      print(snapshot);
       try {
-        this._gateRecord = snapshot.documents.first;
+        var sortedGateRecords = snapshot.documents;
+        sortedGateRecords.sort((a, b) => (a.data["entryScanTime"] as Timestamp).compareTo(b.data["entryScanTime"] as Timestamp));
+        this._gateRecord = sortedGateRecords.first;
+        print(this._gateRecord);
         this.requestParkingInvoice();
         await this.listenToIotStateChanges();
       } catch (e) {
@@ -90,7 +92,6 @@ class _InformationPageState extends State<InformationPage> {
         .where('previousState.vehicleId', isEqualTo: vehicleId)
         .snapshots()
         .listen((snapshot) {
-      print(snapshot);
       this._iotStateChangesPrev =
           snapshot.documents.map((snapshot) => snapshot.data).toList();
       this._iotStateChanges = [
@@ -198,9 +199,7 @@ class _InformationPageState extends State<InformationPage> {
   @override
   void initState() {
     super.initState();
-    String phoneNumber =
-        Provider.of<UserRecord>(context, listen: false).phoneNumber;
-    this.listenToGateRecord(phoneNumber);
+    this.listenToGateRecord();
   }
 
   Widget makeTableRow(String title, String subtitle) {
@@ -348,6 +347,31 @@ class _InformationPageState extends State<InformationPage> {
         position: TimelineItemPosition.left);
   }
 
+  void _showDebugChangeVehicleIdDialog() {
+    String vehicleId = "";
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Change vehicle ID"),
+          content: TextField(
+            onChanged: (text) => vehicleId = text,
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Confirm'),
+              onPressed: () async {
+                await Firestore.instance.collection("gateRecords").document(this._gateRecord.documentID).setData({"vehicleId": vehicleId}, merge: true);
+                this.listenToGateRecord();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -377,8 +401,11 @@ class _InformationPageState extends State<InformationPage> {
                   padding: EdgeInsets.all(16.0),
                   child: Column(
                     children: <Widget>[
-                      makeTableRow(
-                          'Vehicle ID', this._gateRecord['vehicleId'] ?? '-'),
+                      GestureDetector(
+                        onLongPress: this._showDebugChangeVehicleIdDialog,
+                        child: makeTableRow(
+                            'Vehicle ID', this._gateRecord['vehicleId'] ?? '-'),
+                      ),
                       makeTableRow(
                           'Parked Location', this._currentLocation ?? '-'),
                       makeTableRow(

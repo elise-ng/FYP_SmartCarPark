@@ -91,11 +91,6 @@ class _InformationPageState extends State<InformationPage> {
     this._iotStateChangesPrevSubscription = Firestore.instance
         .collection('iotStateChanges')
         .where('previousState.vehicleId', isEqualTo: vehicleId)
-        .where(
-          'time',
-          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
-          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
-        )
         .snapshots()
         .listen((snapshot) {
       this._iotStateChangesPrev =
@@ -111,15 +106,11 @@ class _InformationPageState extends State<InformationPage> {
     this._iotStateChangesNewSubscription = Firestore.instance
         .collection('iotStateChanges')
         .where('newState.vehicleId', isEqualTo: vehicleId)
-        .where(
-          'time',
-          isLessThanOrEqualTo: _gateRecord['exitScanTime'] as Timestamp,
-          isGreaterThanOrEqualTo: _gateRecord['entryScanTime'] as Timestamp,
-        )
         .snapshots()
         .listen((snapshot) {
       this._iotStateChangesNew =
-          snapshot.documents.map((snapshot) => snapshot.data).toList();
+          snapshot.documents.map((snapshot) => snapshot.data).toList()
+          ..removeWhere((data) => (data["time"] as Timestamp).toDate().isBefore((_gateRecord['entryScanTime'] as Timestamp).toDate()));
       this._iotStateChanges = [
         ...this._iotStateChangesPrev,
         ...this._iotStateChangesNew

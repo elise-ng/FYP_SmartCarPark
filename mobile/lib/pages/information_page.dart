@@ -53,7 +53,6 @@ class _InformationPageState extends State<InformationPage> {
           ..sort((a, b) => (a.data["entryScanTime"] as Timestamp)
               .compareTo(b.data["entryScanTime"] as Timestamp));
         this._gateRecord = sortedGateRecords.first;
-        print(this._gateRecord);
         this.requestParkingInvoice();
         await this.listenToIotStateChanges();
       } catch (e) {
@@ -98,8 +97,11 @@ class _InformationPageState extends State<InformationPage> {
       this._iotStateChanges = [
         ...this._iotStateChangesPrev,
         ...this._iotStateChangesNew
-      ]..sort((a, b) =>
-          -1 * (a['time'] as Timestamp).compareTo(b['time'] as Timestamp));
+      ]
+        ..sort((a, b) =>
+            -1 * (a['time'] as Timestamp).compareTo(b['time'] as Timestamp))
+        ..removeWhere((data) => !isWithinCurrentGateRecordTime(
+            (data["time"] as Timestamp).toDate()));
       this.refreshCurrentLocation();
       setState(() {});
     });
@@ -108,14 +110,21 @@ class _InformationPageState extends State<InformationPage> {
         .where('newState.vehicleId', isEqualTo: vehicleId)
         .snapshots()
         .listen((snapshot) {
-      this._iotStateChangesNew =
-          snapshot.documents.map((snapshot) => snapshot.data).toList()
-          ..removeWhere((data) => (data["time"] as Timestamp).toDate().isBefore((_gateRecord['entryScanTime'] as Timestamp).toDate()));
+      this._iotStateChangesNew = snapshot.documents
+          .map((snapshot) => snapshot.data)
+          .toList()
+            ..removeWhere((data) => (data["time"] as Timestamp)
+                .toDate()
+                .isBefore(
+                    (_gateRecord['entryScanTime'] as Timestamp).toDate()));
       this._iotStateChanges = [
         ...this._iotStateChangesPrev,
         ...this._iotStateChangesNew
-      ]..sort((a, b) =>
-          -1 * (a['time'] as Timestamp).compareTo(b['time'] as Timestamp));
+      ]
+        ..sort((a, b) =>
+            -1 * (a['time'] as Timestamp).compareTo(b['time'] as Timestamp))
+        ..removeWhere((data) => !isWithinCurrentGateRecordTime(
+            (data["time"] as Timestamp).toDate()));
       this.refreshCurrentLocation();
       setState(() {});
     });
@@ -195,6 +204,17 @@ class _InformationPageState extends State<InformationPage> {
   void initState() {
     super.initState();
     this.listenToGateRecord();
+  }
+
+  bool isWithinCurrentGateRecordTime(DateTime dateTime) {
+    return (_gateRecord['entryScanTime'] != null
+            ? dateTime
+                .isAfter((_gateRecord['entryScanTime'] as Timestamp).toDate())
+            : true) &&
+        (_gateRecord['exitScanTime'] != null
+            ? dateTime
+                .isBefore((_gateRecord['exitScanTime'] as Timestamp).toDate())
+            : true);
   }
 
   Widget makeTableRow(String title, String subtitle) {

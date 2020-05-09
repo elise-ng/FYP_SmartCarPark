@@ -50,7 +50,7 @@ class _InformationPageState extends State<InformationPage> {
         .listen((snapshot) async {
       try {
         var sortedGateRecords = snapshot.documents
-          ..sort((a, b) => (a.data["entryScanTime"] as Timestamp)
+          ..sort((a, b) => -1 * (a.data["entryScanTime"] as Timestamp)
               .compareTo(b.data["entryScanTime"] as Timestamp));
         this._gateRecord = sortedGateRecords.first;
         this.requestParkingInvoice();

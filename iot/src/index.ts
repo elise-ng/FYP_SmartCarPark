@@ -19,7 +19,7 @@ enum Mode {
 const mode: string = process.env.mode
 const deviceId: string = process.env.deviceId
 const gateMode: string = process.env.gateMode
-const gateThresholdInCm: number = 200
+const gateThresholdInCm: number = 150
 const lotThresholdInCm: number = 100
 const stableThresholdInCm: number = 5 // TODO: find out error / noise range of reading
 const historySize: number = 3
@@ -71,8 +71,9 @@ async function main() {
               distanceHistory.shift()
             }
             distanceHistory.push(distanceInCm)
+            
             // if arrroaching && distance < threshold -> take photo
-            if (!triggered && isIncremental(distanceHistory, false) && distanceInCm < gateThresholdInCm) {
+            if (!triggered && average(distanceHistory) < gateThresholdInCm) {
               console.log(`Apprach detected, dist ${distanceHistory.join(' -> ')}`)
               triggered = true
               let imageBuffer: Buffer
@@ -103,7 +104,7 @@ async function main() {
                 default:
                   console.error('Gate mode not handled')
               }
-            } else if (triggered && isIncremental(distanceHistory, true) && distanceInCm >= gateThresholdInCm) { // if leaving, reset
+            } else if (triggered && average(distanceHistory) >= gateThresholdInCm) { // if leaving, reset
               console.log(`Departure detected, dist ${distanceHistory.join(' -> ')}`)
               triggered = false
             }

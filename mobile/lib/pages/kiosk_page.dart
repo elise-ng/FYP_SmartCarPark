@@ -16,21 +16,11 @@ class KioskPage extends StatefulWidget {
   _KioskPageState createState() => _KioskPageState();
 }
 
-enum GateMode {
-  entry,
-  exit
-}
+enum GateMode { entry, exit }
 
-enum GateFlowState {
-  scanning,
-  scanned,
-  submitting,
-  submitted,
-  contactStaff
-}
+enum GateFlowState { scanning, scanned, submitting, submitted, contactStaff }
 
 class _KioskPageState extends State<KioskPage> {
-
   bool _isSignedIn = FirebaseAuth.instance.currentUser() != null;
 
   GateMode _gateMode = GateMode.exit;
@@ -42,11 +32,16 @@ class _KioskPageState extends State<KioskPage> {
   GateRecord _gateRecord;
   StreamSubscription<QuerySnapshot> _gateRecordSubscription;
 
-  TextEditingController _vehicleIdTextEditingController = TextEditingController();
-  TextEditingController _phoneNumberTextEditingController = TextEditingController();
-  TextEditingController _staffCodeTextEditingController = TextEditingController();
-  TextEditingController _iotDeviceIdTextEditingController = TextEditingController();
-  TextEditingController _gateModeTextEditingController = TextEditingController();
+  TextEditingController _vehicleIdTextEditingController =
+      TextEditingController();
+  TextEditingController _phoneNumberTextEditingController =
+      TextEditingController();
+  TextEditingController _staffCodeTextEditingController =
+      TextEditingController();
+  TextEditingController _iotDeviceIdTextEditingController =
+      TextEditingController();
+  TextEditingController _gateModeTextEditingController =
+      TextEditingController();
 
   FocusNode _vehicleIdFocus = FocusNode();
   FocusNode _phoneNumberFocus = FocusNode();
@@ -65,67 +60,68 @@ class _KioskPageState extends State<KioskPage> {
     switch (_gateMode) {
       case GateMode.entry:
         _gateRecordSubscription = Firestore.instance
-          .collection('gateRecords')
-          .where('entryGate', isEqualTo: _iotDeviceId)
-          .where('entryConfirmTime', isNull: true)
-          // Do not use orderBy otherwise live response will not work
-          .snapshots()
-          .listen(
-              (snapshot) {
-            final gateRecords = snapshot.documents
-                .map((doc) => GateRecord.fromDocumentSnapshot(doc))
-                .toList();
-            gateRecords.sort((a,b) => a.entryScanTime.compareTo(b.entryScanTime));
-            if (gateRecords.isNotEmpty) {
-              _gateRecord = gateRecords.first;
-              onScanned();
-            }
-          },
-          onError: (e) {
-            debugPrint(e.toString());
-          },
-          onDone: () {
-            debugPrint('onDone');
-          });
+            .collection('gateRecords')
+            .where('entryGate', isEqualTo: _iotDeviceId)
+            .where('entryConfirmTime', isNull: true)
+            // Do not use orderBy otherwise live response will not work
+            .snapshots()
+            .listen((snapshot) {
+          final gateRecords = snapshot.documents
+              .map((doc) => GateRecord.fromDocumentSnapshot(doc))
+              .toList();
+          gateRecords
+              .sort((a, b) => a.entryScanTime.compareTo(b.entryScanTime));
+          if (gateRecords.isNotEmpty) {
+            _gateRecord = gateRecords.first;
+            onScanned();
+          }
+        }, onError: (e) {
+          debugPrint(e.toString());
+        }, onDone: () {
+          debugPrint('onDone');
+        });
         break;
       case GateMode.exit:
         _gateRecordSubscription = Firestore.instance
-          .collection('gateRecords')
-          .where('exitGate', isEqualTo: _iotDeviceId)
-          .where('exitConfirmTime', isNull: true)
-          // Do not use orderBy otherwise live response will not work
-          .snapshots()
-          .listen(
-              (snapshot) {
-            final gateRecords = snapshot.documents
-                .map((doc) => GateRecord.fromDocumentSnapshot(doc))
-                .toList();
-            gateRecords.sort((a,b) => a.exitScanTime.compareTo(b.exitScanTime));
-            if (gateRecords.isNotEmpty) {
-              _gateRecord = gateRecords.first;
-              onScanned();
-            }
-          },
-          onError: (e) {
-            debugPrint(e.toString());
-          },
-          onDone: () {
-            debugPrint('onDone');
-          });
+            .collection('gateRecords')
+            .where('exitGate', isEqualTo: _iotDeviceId)
+            .where('exitConfirmTime', isNull: true)
+            // Do not use orderBy otherwise live response will not work
+            .snapshots()
+            .listen((snapshot) {
+          final gateRecords = snapshot.documents
+              .map((doc) => GateRecord.fromDocumentSnapshot(doc))
+              .toList();
+          gateRecords.sort((a, b) => a.exitScanTime.compareTo(b.exitScanTime));
+          if (gateRecords.isNotEmpty) {
+            _gateRecord = gateRecords.first;
+            onScanned();
+          }
+        }, onError: (e) {
+          debugPrint(e.toString());
+        }, onDone: () {
+          debugPrint('onDone');
+        });
         break;
     }
   }
 
   Future<String> getLastPhoneNumber(String vehicleId) async {
     final response = await Firestore.instance
-    .collection('gateRecords')
-    .where('vehicleId', isEqualTo: vehicleId)
-    .where('phoneNumber', isGreaterThan: '') // not null and not empty string
-    .orderBy('phoneNumber') // required by firestore, can't orderBy another field after comparison
-    .orderBy('entryScanTime', descending: true)
-    .limit(1)
-    .getDocuments();
-    return response.documents.isNotEmpty ? GateRecord.fromDocumentSnapshot(response.documents.first).phoneNumber.replaceAll('+852', '') : null;
+        .collection('gateRecords')
+        .where('vehicleId', isEqualTo: vehicleId)
+        .where('phoneNumber',
+            isGreaterThan: '') // not null and not empty string
+        .orderBy(
+            'phoneNumber') // required by firestore, can't orderBy another field after comparison
+        .orderBy('entryScanTime', descending: true)
+        .limit(1)
+        .getDocuments();
+    return response.documents.isNotEmpty
+        ? GateRecord.fromDocumentSnapshot(response.documents.first)
+            .phoneNumber
+            .replaceAll('+852', '')
+        : null;
   }
 
   void onScanned() async {
@@ -140,22 +136,26 @@ class _KioskPageState extends State<KioskPage> {
         });
         break;
       case GateMode.exit:
-      // TODO: Exit mode ui
+        // TODO: Exit mode ui
         if (_gateRecord.entryScanTime == null) {
           // failed to recognize license plate
           setState(() {
             _gateFlowState = GateFlowState.scanned;
             _exitLicensePlateNotRecognized = true;
-            _errorMessage = 'Could not find entry record, please correct license plate:';
+            _errorMessage =
+                'Could not find entry record, please correct license plate:';
             _vehicleIdTextEditingController.text = _gateRecord.vehicleId;
           });
         } else {
           _exitLicensePlateNotRecognized = false;
-          if (_gateRecord.paymentStatus == 'successful' && _gateRecord.paymentTime != null) {
-            final minutesAfterPayment = DateTime.now().difference(_gateRecord.paymentTime).inMinutes;
+          if (_gateRecord.paymentStatus == 'successful' &&
+              _gateRecord.paymentTime != null) {
+            final minutesAfterPayment =
+                DateTime.now().difference(_gateRecord.paymentTime).inMinutes;
             if (minutesAfterPayment > 15) {
               // Paid but exceeded leave time
-              onContactStaff('Duration after payment: ${minutesAfterPayment} minutes');
+              onContactStaff(
+                  'Duration after payment: ${minutesAfterPayment} minutes');
             } else {
               // Paid, proceed to success
               confirmExit();
@@ -165,7 +165,8 @@ class _KioskPageState extends State<KioskPage> {
             setState(() {
               _gateFlowState = GateFlowState.scanned;
               _exitLicensePlateNotRecognized = false;
-              _errorMessage = 'Parking fee not settled. Please pay via mobile app or contact staff.';
+              _errorMessage =
+                  'Parking fee not settled. Please pay via mobile app or contact staff.';
               _vehicleIdTextEditingController.text = _gateRecord.vehicleId;
             });
           }
@@ -186,7 +187,9 @@ class _KioskPageState extends State<KioskPage> {
       return;
     }
 
-    if (phoneNumber.isEmpty || phoneNumber.length != 8 || int.tryParse(phoneNumber) == null) {
+    if (phoneNumber.isEmpty ||
+        phoneNumber.length != 8 ||
+        int.tryParse(phoneNumber) == null) {
       setState(() {
         _errorMessage = 'Phone Number is empty or invalid';
       });
@@ -198,9 +201,9 @@ class _KioskPageState extends State<KioskPage> {
     });
     try {
       await Firestore.instance
-      .collection('gateRecords')
-      .document(_gateRecord.id)
-      .updateData(<String, dynamic>{
+          .collection('gateRecords')
+          .document(_gateRecord.id)
+          .updateData(<String, dynamic>{
         'vehicleId': vehicleId.toUpperCase(),
         'phoneNumber': '+852' + phoneNumber,
         'entryConfirmTime': Timestamp.fromDate(DateTime.now()),
@@ -221,7 +224,8 @@ class _KioskPageState extends State<KioskPage> {
     });
     if (_exitLicensePlateNotRecognized) {
       final vehicleId = _vehicleIdTextEditingController.text;
-      final query = await Firestore.instance.collection('gateRecords')
+      final query = await Firestore.instance
+          .collection('gateRecords')
           .where('vehicleId', isEqualTo: vehicleId)
           .where('exitConfirmTime', isNull: true)
           .orderBy('entryScanTime', descending: true)
@@ -231,7 +235,10 @@ class _KioskPageState extends State<KioskPage> {
         // true record found
         try {
           // remove current record
-          await Firestore.instance.collection('gateRecords').document(_gateRecord.id).delete();
+          await Firestore.instance
+              .collection('gateRecords')
+              .document(_gateRecord.id)
+              .delete();
           // load true record and resume flow
           _gateRecord = GateRecord.fromDocumentSnapshot(query.documents.first);
           setState(() {
@@ -254,7 +261,10 @@ class _KioskPageState extends State<KioskPage> {
       }
     } else {
       // refresh record and resume flow
-      final doc = await Firestore.instance.collection('gateRecords').document(_gateRecord.id).get();
+      final doc = await Firestore.instance
+          .collection('gateRecords')
+          .document(_gateRecord.id)
+          .get();
       _gateRecord = GateRecord.fromDocumentSnapshot(doc);
       onScanned();
     }
@@ -265,9 +275,10 @@ class _KioskPageState extends State<KioskPage> {
       setState(() {
         _gateFlowState = GateFlowState.submitting;
       });
-      await Firestore.instance.collection('gateRecords').document(_gateRecord.id).updateData({
-        'exitConfirmTime': Timestamp.fromDate(DateTime.now())
-      });
+      await Firestore.instance
+          .collection('gateRecords')
+          .document(_gateRecord.id)
+          .updateData({'exitConfirmTime': Timestamp.fromDate(DateTime.now())});
       onSubmitted();
     } catch (e) {
       onContactStaff(e.toString());
@@ -289,14 +300,15 @@ class _KioskPageState extends State<KioskPage> {
   }
 
   void getFloorNames() async {
-    Map<String, String> floorName = (await Firestore.instance
-    .collection('carParkFloors')
-    .getDocuments())
-    .documents
-    .map((doc) => CarParkFloor.fromDocument(doc))
-    .map((floor) => {floor.id : floor.name})
-    .reduce((val, elem) {
-      val.keys.contains(elem.keys.first) ? val[elem.keys.first] += elem.values.first : val[elem.keys.first] = elem.values.first;
+    Map<String, String> floorName =
+        (await Firestore.instance.collection('carParkFloors').getDocuments())
+            .documents
+            .map((doc) => CarParkFloor.fromDocument(doc))
+            .map((floor) => {floor.id: floor.name})
+            .reduce((val, elem) {
+      val.keys.contains(elem.keys.first)
+          ? val[elem.keys.first] += elem.values.first
+          : val[elem.keys.first] = elem.values.first;
       return val;
     });
     setState(() {
@@ -309,16 +321,16 @@ class _KioskPageState extends State<KioskPage> {
     super.initState();
     onScanning();
     getFloorNames();
-    Firestore.instance
-    .collection('iotStates')
-    .snapshots()
-    .listen((snapshot) {
+    Firestore.instance.collection('iotStates').snapshots().listen((snapshot) {
       setState(() {
         _floorStatus = snapshot.documents
-        .map((doc) => CarParkSpace.fromDocument(doc))
-        .map((space) => {space.floorId : space.state == ParkingState.Vacant ? 1 : 0})
-        .reduce((val, elem) {
-          val.keys.contains(elem.keys.first) ? val[elem.keys.first] += elem.values.first : val[elem.keys.first] = elem.values.first;
+            .map((doc) => CarParkSpace.fromDocument(doc))
+            .map((space) =>
+                {space.floorId: space.state == ParkingState.Vacant ? 1 : 0})
+            .reduce((val, elem) {
+          val.keys.contains(elem.keys.first)
+              ? val[elem.keys.first] += elem.values.first
+              : val[elem.keys.first] = elem.values.first;
           return val;
         });
       });
@@ -330,33 +342,32 @@ class _KioskPageState extends State<KioskPage> {
       child: Text('Staff Override'),
       onPressed: () {
         showDialog(
-          context: context,
-          child: AlertDialog(
-            title: Text('Please enter staff code'),
-            content: TextField(
-              controller: _staffCodeTextEditingController,
-              keyboardType: TextInputType.number,
-            ),
-            actions: <Widget>[
-              FlatButton(
-                child: Text('Cancel'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+            context: context,
+            child: AlertDialog(
+              title: Text('Please enter staff code'),
+              content: TextField(
+                controller: _staffCodeTextEditingController,
+                keyboardType: TextInputType.number,
               ),
-              FlatButton(
-                child: Text('Submit'),
-                onPressed: () {
-                  if (_staffCodeTextEditingController.text == _staffCode) {
-                    _staffCodeTextEditingController.text = '';
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
                     Navigator.of(context).pop();
-                    confirmExit();
-                  }
-                },
-              )
-            ],
-          )
-        );
+                  },
+                ),
+                FlatButton(
+                  child: Text('Submit'),
+                  onPressed: () {
+                    if (_staffCodeTextEditingController.text == _staffCode) {
+                      _staffCodeTextEditingController.text = '';
+                      Navigator.of(context).pop();
+                      confirmExit();
+                    }
+                  },
+                )
+              ],
+            ));
       },
     );
   }
@@ -386,47 +397,48 @@ class _KioskPageState extends State<KioskPage> {
                   _staffCodeTextEditingController.text = '';
                   Navigator.of(context).pop();
                   showDialog(
-                    context: context,
-                    child: AlertDialog(
-                      title: Text('Kiosk Config'),
-                      content: Column(
-                        children: <Widget>[
-                          TextField(
-                            controller: _iotDeviceIdTextEditingController,
-                            decoration: InputDecoration(
-                              labelText: 'IoT Device ID'
+                      context: context,
+                      child: AlertDialog(
+                        title: Text('Kiosk Config'),
+                        content: Column(
+                          children: <Widget>[
+                            TextField(
+                              controller: _iotDeviceIdTextEditingController,
+                              decoration:
+                                  InputDecoration(labelText: 'IoT Device ID'),
                             ),
-                          ),
-                          TextField(
-                            controller: _gateModeTextEditingController,
-                            decoration: InputDecoration(
-                                labelText: 'Gate Mode (entry / exit)'
+                            TextField(
+                              controller: _gateModeTextEditingController,
+                              decoration: InputDecoration(
+                                  labelText: 'Gate Mode (entry / exit)'),
                             ),
+                          ],
+                        ),
+                        actions: <Widget>[
+                          FlatButton(
+                            child: Text('Submit'),
+                            onPressed: () {
+                              setState(() {
+                                _iotDeviceId =
+                                    _iotDeviceIdTextEditingController.text;
+                                if (_gateModeTextEditingController.text
+                                        .toLowerCase() ==
+                                    'entry') _gateMode = GateMode.entry;
+                                if (_gateModeTextEditingController.text
+                                        .toLowerCase() ==
+                                    'exit') _gateMode = GateMode.exit;
+                                onScanning();
+                              });
+                              Navigator.of(context).pop();
+                            },
                           ),
                         ],
-                      ),
-                      actions: <Widget>[
-                        FlatButton(
-                          child: Text('Submit'),
-                          onPressed: () {
-                            setState(() {
-                              _iotDeviceId = _iotDeviceIdTextEditingController.text;
-                              if (_gateModeTextEditingController.text.toLowerCase() == 'entry') _gateMode = GateMode.entry;
-                              if (_gateModeTextEditingController.text.toLowerCase() == 'exit') _gateMode = GateMode.exit;
-                              onScanning();
-                            });
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
-                    )
-                  );
+                      ));
                 }
               },
             )
           ],
-        )
-    );
+        ));
   }
 
   Widget availabilityUI() {
@@ -444,27 +456,28 @@ class _KioskPageState extends State<KioskPage> {
           ),
           _floorStatus.keys.isNotEmpty
               ? Table(
-              children: _floorStatus.keys.map((key) => TableRow(
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text(
-                        _floorName.keys.contains(key) ? _floorName[key] : key ?? '',
-                        style: Theme.of(context).textTheme.display2,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text(
-                        _floorStatus[key].toString(),
-                        style: Theme.of(context).textTheme.display2,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ]
-              )).toList()
-          )
+                  children: _floorStatus.keys
+                      .map((key) => TableRow(children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                _floorName.keys.contains(key)
+                                    ? _floorName[key]
+                                    : key ?? '',
+                                style: Theme.of(context).textTheme.display2,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                _floorStatus[key].toString(),
+                                style: Theme.of(context).textTheme.display2,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ]))
+                      .toList())
               : CircularProgressIndicator()
         ],
       ),
@@ -496,9 +509,12 @@ class _KioskPageState extends State<KioskPage> {
         Padding(padding: EdgeInsets.only(top: 16.0)),
         _errorMessage.isNotEmpty
             ? Text(
-          _errorMessage,
-          style: Theme.of(context).textTheme.headline.copyWith(color: Colors.red),
-        )
+                _errorMessage,
+                style: Theme.of(context)
+                    .textTheme
+                    .headline
+                    .copyWith(color: Colors.red),
+              )
             : Container(),
         Padding(padding: EdgeInsets.only(top: 16.0)),
         TextField(
@@ -518,7 +534,8 @@ class _KioskPageState extends State<KioskPage> {
           controller: _phoneNumberTextEditingController,
           decoration: InputDecoration(labelText: "Phone Number"),
           style: Theme.of(context).textTheme.display1,
-          keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
+          keyboardType:
+              TextInputType.numberWithOptions(signed: false, decimal: false),
           textInputAction: TextInputAction.done,
           onSubmitted: (value) {
             _phoneNumberFocus.unfocus();
@@ -531,16 +548,17 @@ class _KioskPageState extends State<KioskPage> {
             child: RaisedButton(
               child: Text(
                 'Submit',
-                style: Theme.of(context).textTheme.display1.copyWith(color: Colors.white),
+                style: Theme.of(context)
+                    .textTheme
+                    .display1
+                    .copyWith(color: Colors.white),
               ),
               color: Theme.of(context).primaryColor,
               onPressed: () {
                 entrySubmit();
               },
-            )
-        )
+            ))
       ],
-
     );
   }
 
@@ -557,25 +575,28 @@ class _KioskPageState extends State<KioskPage> {
         Padding(padding: EdgeInsets.only(top: 16.0)),
         _errorMessage.isNotEmpty
             ? Text(
-          _errorMessage,
-          style: Theme.of(context).textTheme.headline.copyWith(color: Colors.red),
-        )
+                _errorMessage,
+                style: Theme.of(context)
+                    .textTheme
+                    .headline
+                    .copyWith(color: Colors.red),
+              )
             : Container(),
         Padding(padding: EdgeInsets.only(top: 16.0)),
         _exitLicensePlateNotRecognized
-        ? TextField(
-          focusNode: _vehicleIdFocus,
-          controller: _vehicleIdTextEditingController,
-          decoration: InputDecoration(labelText: "License Plate"),
-          style: Theme.of(context).textTheme.display1,
-          keyboardType: TextInputType.text,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (value) {
-            _vehicleIdFocus.unfocus();
-            FocusScope.of(context).requestFocus(_phoneNumberFocus);
-          },
-        )
-        : Container(),
+            ? TextField(
+                focusNode: _vehicleIdFocus,
+                controller: _vehicleIdTextEditingController,
+                decoration: InputDecoration(labelText: "License Plate"),
+                style: Theme.of(context).textTheme.display1,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.next,
+                onSubmitted: (value) {
+                  _vehicleIdFocus.unfocus();
+                  FocusScope.of(context).requestFocus(_phoneNumberFocus);
+                },
+              )
+            : Container(),
         Padding(padding: EdgeInsets.only(top: 40.0)),
         Container(
             height: 80.0,
@@ -583,19 +604,18 @@ class _KioskPageState extends State<KioskPage> {
             child: RaisedButton(
               child: Text(
                 'Retry',
-                style: Theme.of(context).textTheme.display1.copyWith(color: Colors.white),
+                style: Theme.of(context)
+                    .textTheme
+                    .display1
+                    .copyWith(color: Colors.white),
               ),
               color: Theme.of(context).primaryColor,
               onPressed: () {
                 exitSubmit();
               },
-            )
-        ),
+            )),
         Spacer(),
-        Align(
-          alignment: Alignment.bottomRight,
-          child: staffOverrideButton()
-        )
+        Align(alignment: Alignment.bottomRight, child: staffOverrideButton())
       ],
     );
   }
@@ -614,7 +634,7 @@ class _KioskPageState extends State<KioskPage> {
   }
 
   Widget entrySubmittedUI() {
-    return  Column(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Icon(
@@ -627,9 +647,7 @@ class _KioskPageState extends State<KioskPage> {
           style: Theme.of(context).textTheme.display1,
           textAlign: TextAlign.center,
         ),
-        Padding(
-            padding: EdgeInsets.only(top: 80.0)
-        ),
+        Padding(padding: EdgeInsets.only(top: 80.0)),
         Text(
           'Check SMS for instruction to use our mobile app for payment and other services',
           style: Theme.of(context).textTheme.display1,
@@ -640,7 +658,7 @@ class _KioskPageState extends State<KioskPage> {
   }
 
   Widget exitSubmittedUI() {
-    return  Column(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Icon(
@@ -653,9 +671,7 @@ class _KioskPageState extends State<KioskPage> {
           style: Theme.of(context).textTheme.display1,
           textAlign: TextAlign.center,
         ),
-        Padding(
-            padding: EdgeInsets.only(top: 80.0)
-        ),
+        Padding(padding: EdgeInsets.only(top: 80.0)),
         Text(
           'Drive Safe!',
           style: Theme.of(context).textTheme.display1,
@@ -681,9 +697,7 @@ class _KioskPageState extends State<KioskPage> {
           style: Theme.of(context).textTheme.display1,
           textAlign: TextAlign.center,
         ),
-        Padding(
-            padding: EdgeInsets.only(top: 80.0)
-        ),
+        Padding(padding: EdgeInsets.only(top: 80.0)),
         Text(
           _errorMessage,
           style: Theme.of(context).textTheme.display1,
@@ -701,77 +715,83 @@ class _KioskPageState extends State<KioskPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomSheet: _isSignedIn ? null : SigninWidget(completion: () {
-        setState(() {
-          this._isSignedIn = FirebaseAuth.instance.currentUser() != null;
-        });
-      }),
+      bottomSheet: _isSignedIn
+          ? null
+          : SigninWidget(completion: () {
+              setState(() {
+                this._isSignedIn = FirebaseAuth.instance.currentUser() != null;
+              });
+            }),
       body: SingleChildScrollView(
         physics: ClampingScrollPhysics(),
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height,
-            minHeight: MediaQuery.of(context).size.height,
-          ),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                flex: 4,
-                child: Container(
-                  color: Theme.of(context).splashColor,
-                  // JOKE: cindy photo background
-                  // decoration: BoxDecoration(
-                  //   image: DecorationImage(
-                  //     colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.2), BlendMode.dstATop),
-                  //     image: NetworkImage('https://www.cse.ust.hk/admin/people/faculty/photos/lixin.jpg'),
-                  //     fit: BoxFit.cover,
-                  //   )
-                  // ),
-                  child: _gateMode == GateMode.entry
-                    ? availabilityUI()
-                    : Container()
-                )
-              ),
-              Expanded(
-                flex: 6,
-                child: Padding(
-                  padding: EdgeInsets.all(48.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Expanded(
-                          flex: 1,
-                          child: GestureDetector(
-                            onLongPress: () => this.showStaffMenu(),
-                            child: Text(
-                              'Welcome to Smart Car Park',
-                              style: Theme.of(context).textTheme.display2,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height,
+              minHeight: MediaQuery.of(context).size.height,
+            ),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                    flex: 4,
+                    child: Container(
+                        color: Theme.of(context).splashColor,
+                        // JOKE: cindy photo background
+                        // decoration: BoxDecoration(
+                        //   image: DecorationImage(
+                        //     colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.2), BlendMode.dstATop),
+                        //     image: NetworkImage('https://www.cse.ust.hk/admin/people/faculty/photos/lixin.jpg'),
+                        //     fit: BoxFit.cover,
+                        //   )
+                        // ),
+                        child: _gateMode == GateMode.entry
+                            ? availabilityUI()
+                            : Container())),
+                Expanded(
+                    flex: 6,
+                    child: Padding(
+                      padding: EdgeInsets.all(48.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Expanded(
+                            flex: 1,
+                            child: GestureDetector(
+                              onLongPress: () => this.showStaffMenu(),
+                              child: FittedBox(
+                                fit: BoxFit.fitWidth,
+                                child: Text(
+                                  'Welcome to Smart Car Park',
+                                  style: Theme.of(context).textTheme.headline3,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          flex: 9,
-                          child: _gateFlowState == GateFlowState.scanning
-                            ? scanningUI()
-                            : _gateFlowState == GateFlowState.scanned
-                              ? _gateMode == GateMode.entry ? entryScannedUI() : exitScannedUI()
-                              : _gateFlowState == GateFlowState.submitting
-                                ? submittingUI()
-                                : _gateFlowState == GateFlowState.submitted
-                                  ? _gateMode == GateMode.entry ? entrySubmittedUI() : exitSubmittedUI()
-                                  : _gateFlowState == GateFlowState.contactStaff
-                                    ? contactStaffUI()
-                                    : Container()
-                        ),
-                      ],
-                    ),
-                )
-                
-              ),
-            ],
-          )
-        ),
+                          Expanded(
+                              flex: 9,
+                              child: _gateFlowState == GateFlowState.scanning
+                                  ? scanningUI()
+                                  : _gateFlowState == GateFlowState.scanned
+                                      ? _gateMode == GateMode.entry
+                                          ? entryScannedUI()
+                                          : exitScannedUI()
+                                      : _gateFlowState ==
+                                              GateFlowState.submitting
+                                          ? submittingUI()
+                                          : _gateFlowState ==
+                                                  GateFlowState.submitted
+                                              ? _gateMode == GateMode.entry
+                                                  ? entrySubmittedUI()
+                                                  : exitSubmittedUI()
+                                              : _gateFlowState ==
+                                                      GateFlowState.contactStaff
+                                                  ? contactStaffUI()
+                                                  : Container()),
+                        ],
+                      ),
+                    )),
+              ],
+            )),
       ),
     );
   }

@@ -53,7 +53,7 @@ class _SigninWidgetState extends State<SigninWidget> {
   @override
   void initState() {
     super.initState();
-    this._signinState = userRecord.isEmpty() ? SigninState.pending : SigninState.success;
+    this._signinState = userRecord.isAuthenticated() ? SigninState.pending : SigninState.success;
   }
 
   /// Send SMS code and try to auto-retrieve for instant sign in

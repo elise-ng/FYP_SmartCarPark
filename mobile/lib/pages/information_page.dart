@@ -200,6 +200,8 @@ class _InformationPageState extends State<InformationPage> {
         });
   }
 
+  bool _shouldPay() => this._invoice != null && this._gateRecord?.data["paymentStatus"] ?? "" != "succeeded";
+
   @override
   void initState() {
     super.initState();
@@ -476,7 +478,7 @@ class _InformationPageState extends State<InformationPage> {
                               color: Colors.white.withAlpha(40),
                               textColor: Colors.white,
                               child: Text('Pay Amount'),
-                              onPressed: this._invoice != null
+                              onPressed: this._shouldPay()
                                   ? () {
                                       Navigator.push(
                                         context,

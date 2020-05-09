@@ -200,7 +200,7 @@ class _InformationPageState extends State<InformationPage> {
         });
   }
 
-  bool _shouldPay() => this._invoice != null && this._gateRecord?.data["paymentStatus"] ?? "" != "succeeded";
+  bool _shouldPay() => this._invoice != null && (this._gateRecord?.data["paymentStatus"] ?? "") != "succeeded";
 
   @override
   void initState() {

@@ -101,7 +101,7 @@ class _CarParkMapPageState extends State<CarParkMapPage> {
             myLocationButtonEnabled: false,
             mapToolbarEnabled: false,
             minMaxZoomPreference: MinMaxZoomPreference(20.0, 21.0),
-            mapType: MapType.none,
+            mapType: MapType.normal,
             initialCameraPosition: _ustParkingPosition,
             cameraTargetBounds: CameraTargetBounds(LatLngBounds(northeast: LatLng(22.3386, 114.2636), southwest: LatLng(22.3382, 114.2630))),
             markers: {

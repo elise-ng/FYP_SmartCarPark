@@ -114,6 +114,14 @@ export const recognizeLicensePlate = functions
 
         let [annotateResponse] = await visionClient.annotateImage(annotateRequest)
         let fullTextAnnotation = annotateResponse.fullTextAnnotation
+        if(!fullTextAnnotation || !fullTextAnnotation.pages || fullTextAnnotation.pages.length <= 0) {
+            // Cannot recognise license plate
+            console.log(annotateResponse)
+            return {
+                success: false,
+                license: ''
+            }
+        }
         let page = fullTextAnnotation.pages[0]
         let blocks = page.blocks.sort((a, b) => getBoundingBoxArea(b.boundingBox.vertices) - getBoundingBoxArea(a.boundingBox.vertices)) // Sort bounding box in decending order w.r.t. area
         let width = page.width

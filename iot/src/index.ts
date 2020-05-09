@@ -24,17 +24,6 @@ const lotThresholdInCm: number = 100
 const stableThresholdInCm: number = 5 // TODO: find out error / noise range of reading
 const historySize: number = 3
 
-// Check if array is sorted in accending/decending order
-function isIncremental(arr: number[], accending: boolean) {
-  return arr.every(function (x, i) {
-    if (accending) {
-      return i === 0 || x > arr[i - 1]
-    } else {
-      return i === 0 || x < arr[i - 1]
-    }
-  })
-}
-
 // Return average of all members in arr
 function average(arr: number[]) {
   const sum = arr.reduce((a, b) => a + b, 0)
@@ -42,7 +31,7 @@ function average(arr: number[]) {
 }
 
 async function takePicture() : Promise<Buffer> {
-  const camera = await exec('raspistill -q 10 -ISO 800 -ex sports -n -o ./snapshot.jpg')
+  const camera = await exec('raspistill -q 10 -ISO 800 -ex sports -n -o ./snapshot.jpg -t 1000')
   if (!camera.stderr) {
     return await readFile('./snapshot.jpg')
   } else {

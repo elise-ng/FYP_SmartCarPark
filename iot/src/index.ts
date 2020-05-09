@@ -81,8 +81,14 @@ async function main() {
               } catch (e) {
                 console.error(e)
               }
-              const imageUrl = await firebaseHelper.uploadJpgImage(imageBuffer)
-              const vehicleId = await firebaseHelper.recognizeLicensePlate(imageUrl)
+              let imageUrl = ''
+              let vehicleId = ''
+              try {
+                imageUrl = await firebaseHelper.uploadJpgImage(imageBuffer)
+                vehicleId = await firebaseHelper.recognizeLicensePlate(imageUrl)
+              } catch (e) {
+                console.log(e)
+              }
               // TODO: Call CV for license plate
               switch (gateMode) {
                 case GateMode.entry: {
@@ -133,8 +139,14 @@ async function main() {
               } catch (e) {
                 console.error(e)
               }
-              const imageUrl = await firebaseHelper.uploadJpgImage(imageBuffer)
-              const vehicleId = await firebaseHelper.recognizeLicensePlate(imageUrl)
+              let imageUrl = ''
+              let vehicleId = ''
+              try {
+                imageUrl = await firebaseHelper.uploadJpgImage(imageBuffer)
+                vehicleId = await firebaseHelper.recognizeLicensePlate(imageUrl)
+              } catch (e) {
+                console.log(e)
+              }
               await firebaseHelper.updateIotState(lastStatus, vehicleId, imageUrl)
               // if leaving && distance > threshold -> vacant
             } else if (lastStatus !== ParkingStatus.vacant && average(distanceHistory) > lotThresholdInCm) {

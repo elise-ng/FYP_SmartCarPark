@@ -100,6 +100,8 @@ async function main() {
                   await firebaseHelper.updateElseCreateExitGateRecord(vehicleId, imageUrl)
                   break
                 }
+                default:
+                  console.error('Gate mode not handled')
               }
             } else if (triggered && isIncremental(distanceHistory, true) && distanceInCm >= gateThresholdInCm) { // if leaving, reset
               console.log(`Departure detected, dist ${distanceHistory.join(' -> ')}`)

@@ -85,9 +85,9 @@ export default class FirebaseHelper {
 
     async createEntryGateRecord(vehicleId: string, imageUrl: string) {
         console.log(`Creating gateRecord...`)
-        const payload = new GateRecord(
+        const payload = Object.assign({}, new GateRecord(
             this.deviceId, GateMode.entry, vehicleId, imageUrl
-        )
+        ))
         const ref = await this.firestore.collection('gateRecords').add(payload)
         console.log(`gateRecord created: ${ref.id}`)
     }
@@ -110,9 +110,9 @@ export default class FirebaseHelper {
             console.log('gateRecord updated')
         } else {
             console.log('gateRecord not found, creating')
-            const payload = new GateRecord(
+            const payload = Object.assign({}, new GateRecord(
                 this.deviceId, GateMode.exit, vehicleId, imageUrl
-            )
+            ))
             const ref = await this.firestore.collection('gateRecords').add(payload)
             console.log(`gateRecord created: ${ref.id}`)
         }

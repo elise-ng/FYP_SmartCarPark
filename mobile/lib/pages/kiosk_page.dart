@@ -24,8 +24,8 @@ class _KioskPageState extends State<KioskPage> {
   bool _isSignedIn = FirebaseAuth.instance.currentUser() != null;
 
   GateMode _gateMode = GateMode.exit;
-  String _iotDeviceId = 'southExit';
-  final String _staffCode = '123456';
+  String _iotDeviceId = 'demo4';
+  final String _staffCode = '0000';
 
   GateFlowState _gateFlowState = GateFlowState.scanning;
 
@@ -59,6 +59,7 @@ class _KioskPageState extends State<KioskPage> {
     });
     switch (_gateMode) {
       case GateMode.entry:
+        _gateRecordSubscription?.cancel();
         _gateRecordSubscription = Firestore.instance
             .collection('gateRecords')
             .where('entryGate', isEqualTo: _iotDeviceId)
@@ -70,7 +71,7 @@ class _KioskPageState extends State<KioskPage> {
               .map((doc) => GateRecord.fromDocumentSnapshot(doc))
               .toList();
           gateRecords
-              .sort((a, b) => a.entryScanTime.compareTo(b.entryScanTime));
+              .sort((a, b) => -1 * a.entryScanTime.compareTo(b.entryScanTime));
           if (gateRecords.isNotEmpty) {
             _gateRecord = gateRecords.first;
             onScanned();
@@ -82,6 +83,7 @@ class _KioskPageState extends State<KioskPage> {
         });
         break;
       case GateMode.exit:
+        _gateRecordSubscription?.cancel();
         _gateRecordSubscription = Firestore.instance
             .collection('gateRecords')
             .where('exitGate', isEqualTo: _iotDeviceId)
@@ -92,7 +94,7 @@ class _KioskPageState extends State<KioskPage> {
           final gateRecords = snapshot.documents
               .map((doc) => GateRecord.fromDocumentSnapshot(doc))
               .toList();
-          gateRecords.sort((a, b) => a.exitScanTime.compareTo(b.exitScanTime));
+          gateRecords.sort((a, b) => -1 * a.exitScanTime.compareTo(b.exitScanTime));
           if (gateRecords.isNotEmpty) {
             _gateRecord = gateRecords.first;
             onScanned();
@@ -173,7 +175,7 @@ class _KioskPageState extends State<KioskPage> {
         }
         break;
     }
-    _gateRecordSubscription.cancel();
+//    _gateRecordSubscription.cancel();
   }
 
   void entrySubmit() async {

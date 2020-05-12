@@ -96,6 +96,7 @@ export default class FirebaseHelper {
         const query = await this.firestore.collection('gateRecords')
             .where('vehicleId', '==', vehicleId)
             .where('exitScanTime', '==', null)
+            .orderBy('entryScanTime', 'asc')
             .limitToLast(1)
             .get()
         if (query.docs.length > 0) {

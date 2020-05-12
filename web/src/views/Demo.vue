@@ -48,7 +48,7 @@
       </el-form-item>
       <el-divider content-position="left">6. Park Exit - Gate IoT Device detects approach</el-divider>
       <el-form-item label="IoT Device ID">
-        <el-input v-model="form.entryGate"></el-input>
+        <el-input v-model="form.exitGate"></el-input>
       </el-form-item>
       <el-form-item label="License Plate">
         <el-input v-model="form.vehicleId"></el-input>
@@ -85,31 +85,171 @@ export default {
   },
   methods: {
     async emulateEntryIot () {
-      console.log()
+      try {
+        console.log('emulateEntryIot')
+        const ref = await db.collection('gateRecords').add({
+          vehicleId: this.form.vehicleId,
+          phoneNumber: null,
+          entryGate: this.form.entryGate,
+          entryScanTime: Timestamp.fromDate(new Date()),
+          entryConfirmTime: null,
+          entryImageUrl: null,
+          exitGate: null,
+          exitScanTime: null,
+          exitConfirmTime: null,
+          exitImageUrl: null,
+          paymentStatus: null,
+          paymentTime: null
+        })
+        console.log(`Created gateRecord: ${ref.id}`)
+        this.$message.success(`Created gateRecord: ${ref.id}`)
+        this.form.gateRecordId = ref.id
+      } catch (e) {
+        console.error(e)
+        this.$message.error(e.message || e.toString())
+      }
     },
     async emulateEntryKiosk () {
-      console.log()
+      try {
+        console.log('emulateEntryKiosk')
+        await db.collection('gateRecords').doc(this.form.gateRecordId).update({
+          phoneNumber: `+852${this.form.phoneNumber}`,
+          entryConfirmTime: Timestamp.fromDate(new Date())
+        })
+        console.log(`Updated gateRecord: ${this.form.gateRecordId}`)
+        this.$message.success(`Updated gateRecord: ${this.form.gateRecordId}`)
+      } catch (e) {
+        console.error(e)
+        this.$message.error(e.message || e.toString())
+      }
     },
     async emulateOccupied () {
-      console.log()
+      try {
+        console.log('emulateOccupied')
+        await db.collection('iotStates').doc(this.form.iotDeviceId).set({
+          deviceId: this.form.iotDeviceId,
+          state: 'occupied',
+          vehicleId: this.form.vehicleId,
+          imageUrl: null,
+          time: Timestamp.fromDate(new Date())
+        }, { merge: true })
+        console.log(`Upserted iotState: ${this.form.iotDeviceId}`)
+        this.$message.success(`Upserted iotState: ${this.form.iotDeviceId}`)
+      } catch (e) {
+        console.error(e)
+        this.$message.error(e.message || e.toString())
+      }
     },
     async emulateVacant () {
-      console.log()
+      try {
+        console.log('emulateVacant')
+        await db.collection('iotStates').doc(this.form.iotDeviceId).set({
+          deviceId: this.form.iotDeviceId,
+          state: 'vacant',
+          vehicleId: null,
+          imageUrl: null,
+          time: Timestamp.fromDate(new Date())
+        }, { merge: true })
+        console.log(`Upserted iotState: ${this.form.iotDeviceId}`)
+        this.$message.success(`Upserted iotState: ${this.form.iotDeviceId}`)
+      } catch (e) {
+        console.error(e)
+        this.$message.error(e.message || e.toString())
+      }
     },
     async emulatePayment () {
-      console.log()
+      try {
+        console.log('emulatePayment')
+        await db.collection('gateRecords').doc(this.form.gateRecordId).update({
+          paymentStatus: 'successful',
+          paymentTime: Timestamp.fromDate(new Date())
+        })
+        console.log(`Updated gateRecord: ${this.form.gateRecordId}`)
+        this.$message.success(`Updated gateRecord: ${this.form.gateRecordId}`)
+      } catch (e) {
+        console.error(e)
+        this.$message.error(e.message || e.toString())
+      }
     },
     async emulateUnpayment () {
-      console.log()
+      try {
+        console.log('emulateUnpayment')
+        await db.collection('gateRecords').doc(this.form.gateRecordId).update({
+          paymentStatus: null,
+          paymentTime: null
+        })
+        console.log(`Updated gateRecord: ${this.form.gateRecordId}`)
+        this.$message.success(`Updated gateRecord: ${this.form.gateRecordId}`)
+      } catch (e) {
+        console.error(e)
+        this.$message.error(e.message || e.toString())
+      }
     },
     async emulateExitIotSuccess () {
-      console.log()
+      try {
+        console.log('emulateExitIotSuccess')
+        const query = await db.collection('gateRecords')
+          .where('vehicleId', '==', this.form.vehicleId)
+          .where('exitScanTime', '==', null)
+          .orderBy('entryScanTime', 'asc')
+          .limitToLast(1)
+          .get()
+        if (query.docs.length > 0) {
+          console.log('gateRecord Found')
+          const ref = query.docs[0].ref
+          await ref.update({
+            exitGate: this.form.exitGate,
+            exitScanTime: Timestamp.fromDate(new Date()),
+            exitImageUrl: null
+          })
+          console.log(`Updated gateRecord: ${ref.id}`)
+          this.$message.success(`Updated gateRecord: ${ref.id}`)
+        } else {
+          console.log('gateRecord not found')
+          this.$message.error('gateRecord not found: license plate recognition failed?')
+        }
+      } catch (e) {
+        console.error(e)
+        this.$message.error(e.message || e.toString())
+      }
     },
     async emulateExitIotIssue () {
-      console.log()
+      try {
+        console.log('emulateExitIotIssue')
+        const ref = await db.collection('gateRecords').add({
+          vehicleId: this.form.vehicleId,
+          phoneNumber: null,
+          entryGate: null,
+          entryScanTime: null,
+          entryConfirmTime: null,
+          entryImageUrl: null,
+          exitGate: this.form.exitGate,
+          exitScanTime: Timestamp.fromDate(new Date()),
+          exitConfirmTime: null,
+          exitImageUrl: null,
+          paymentStatus: null,
+          paymentTime: null
+        })
+        console.log(`Created gateRecord: ${ref.id}`)
+        this.$message.success(`Created gateRecord: ${ref.id}`)
+        this.form.gateRecordId = ref.id
+      } catch (e) {
+        console.error(e)
+        this.$message.error(e.message || e.toString())
+      }
     },
     async emulateExitKiosk () {
-      console.log()
+      try {
+        console.log('emulateExitKiosk')
+        await db.collection('gateRecords').doc(this.form.gateRecordId).update({
+          exitConfirmTime: Timestamp.fromDate(new Date())
+        })
+        console.log(`Updated gateRecord: ${this.form.gateRecordId}`)
+        this.$message.success(`Updated gateRecord: ${this.form.gateRecordId}`)
+      } catch (e) {
+        console.error(e)
+        this.$message.error(e.message || e.toString())
+      }
     }
   }
 }

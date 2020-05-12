@@ -12,6 +12,10 @@
               <i class="el-icon-data-analysis"></i>
               <span slot="title">Statistics</span>
           </el-menu-item>
+          <el-menu-item index="/demo">
+              <i class="el-icon-magic-stick"></i>
+              <span slot="title">Demo</span>
+          </el-menu-item>
           <el-menu-item index="/auth" style="position:absolute; bottom:0; width:100%;">
               <i class="el-icon-key"></i>
               <span slot="title">Authenication</span>

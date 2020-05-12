@@ -32,6 +32,12 @@ const routes = [
     name: 'Auth',
     meta: { title: 'Authenicate' },
     component: () => import(/* webpackChunkName: "gateRecordEdit" */ '../views/Auth.vue')
+  },
+  {
+    path: '/demo',
+    name: 'Demo',
+    meta: { title: 'Demo' },
+    component: () => import(/* webpackChunkName: "gateRecordEdit" */ '../views/Demo.vue')
   }
 ]
 

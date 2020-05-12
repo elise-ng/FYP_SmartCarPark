@@ -8,6 +8,9 @@
       <el-form-item label="License Plate">
         <el-input v-model="form.vehicleId"></el-input>
       </el-form-item>
+      <el-form-item label="Image GS URL">
+        <el-input v-model="form.imageUrl"></el-input>
+      </el-form-item>
       <el-form-item>
         <el-button round type="primary" @click="emulateEntryIot">Create GateRecord</el-button>
       </el-form-item>
@@ -28,12 +31,18 @@
       <el-form-item label="License Plate">
         <el-input v-model="form.vehicleId"></el-input>
       </el-form-item>
+      <el-form-item label="Image GS URL">
+        <el-input v-model="form.imageUrl"></el-input>
+      </el-form-item>
       <el-form-item>
         <el-button round type="primary" @click="emulateOccupied">Update IotState</el-button>
       </el-form-item>
       <el-divider content-position="left">4. Parking Space Exit - IoT Device detects vacant</el-divider>
        <el-form-item label="IoT Device ID">
         <el-input v-model="form.iotDeviceId"></el-input>
+      </el-form-item>
+      <el-form-item label="Image GS URL">
+        <el-input v-model="form.imageUrl"></el-input>
       </el-form-item>
       <el-form-item>
         <el-button round type="primary" @click="emulateVacant">Update IotState</el-button>
@@ -53,11 +62,14 @@
       <el-form-item label="License Plate">
         <el-input v-model="form.vehicleId"></el-input>
       </el-form-item>
+      <el-form-item label="Image GS URL">
+        <el-input v-model="form.imageUrl"></el-input>
+      </el-form-item>
       <el-form-item>
         <el-button round type="primary" @click="emulateExitIotSuccess">Previous record found - Update GateRecord</el-button>
         <el-button round type="warning" @click="emulateExitIotIssue">Plate recognition issue - Create Temp GateRecord</el-button>
       </el-form-item>
-      <el-divider content-position="left">6. Park Exit - Kiosk confirmation</el-divider>
+      <el-divider content-position="left">7. Park Exit - Kiosk confirmation</el-divider>
       <el-form-item label="Gate Record ID">
         <el-input v-model="form.gateRecordId"></el-input>
       </el-form-item>
@@ -76,10 +88,12 @@ export default {
     return {
       form: {
         entryGate: '',
+        exitGate: '',
         vehicleId: '',
         gateRecordId: '',
         phoneNumber: '',
-        iotDeviceId: ''
+        iotDeviceId: '',
+        imageUrl: ''
       }
     }
   },
@@ -93,7 +107,7 @@ export default {
           entryGate: this.form.entryGate,
           entryScanTime: Timestamp.fromDate(new Date()),
           entryConfirmTime: null,
-          entryImageUrl: null,
+          entryImageUrl: this.form.imageUrl,
           exitGate: null,
           exitScanTime: null,
           exitConfirmTime: null,
@@ -130,7 +144,7 @@ export default {
           deviceId: this.form.iotDeviceId,
           state: 'occupied',
           vehicleId: this.form.vehicleId,
-          imageUrl: null,
+          imageUrl: this.form.imageUrl,
           time: Timestamp.fromDate(new Date())
         }, { merge: true })
         console.log(`Upserted iotState: ${this.form.iotDeviceId}`)
@@ -147,7 +161,7 @@ export default {
           deviceId: this.form.iotDeviceId,
           state: 'vacant',
           vehicleId: null,
-          imageUrl: null,
+          imageUrl: this.form.imageUrl,
           time: Timestamp.fromDate(new Date())
         }, { merge: true })
         console.log(`Upserted iotState: ${this.form.iotDeviceId}`)
@@ -200,7 +214,7 @@ export default {
           await ref.update({
             exitGate: this.form.exitGate,
             exitScanTime: Timestamp.fromDate(new Date()),
-            exitImageUrl: null
+            exitImageUrl: this.form.imageUrl
           })
           console.log(`Updated gateRecord: ${ref.id}`)
           this.$message.success(`Updated gateRecord: ${ref.id}`)
@@ -226,7 +240,7 @@ export default {
           exitGate: this.form.exitGate,
           exitScanTime: Timestamp.fromDate(new Date()),
           exitConfirmTime: null,
-          exitImageUrl: null,
+          exitImageUrl: this.form.imageUrl,
           paymentStatus: null,
           paymentTime: null
         })

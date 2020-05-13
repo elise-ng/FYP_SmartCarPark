@@ -166,6 +166,7 @@ export default {
       return moment.duration(fromMoment.diff(moment())).humanize(withSuffix)
     },
     getParkedDuration () {
+      if (!this.gateRecord || !this.gateRecord.entryConfirmTime) return ''
       return moment.duration(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment())).humanize()
     },
     getAmountDue () {
@@ -173,9 +174,11 @@ export default {
       return '$100'
     },
     getExceedDuration () {
+      if (!this.gateRecord || !this.gateRecord.paymentTime) return ''
       return moment(moment()).diff(this.gateRecord.paymentTime.toDate(), 'minutes')
     },
     getExceedDurationString () {
+      if (!this.gateRecord || !this.gateRecord.paymentTime) return ''
       return moment.duration(moment().diff(moment(this.gateRecord.paymentTime.toDate()))).humanize()
     },
     getExceedAmount () {

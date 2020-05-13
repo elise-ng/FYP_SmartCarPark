@@ -19,7 +19,7 @@ enum Mode {
 const mode: string = process.env.mode
 const deviceId: string = process.env.deviceId
 const gateMode: string = process.env.gateMode
-const gateThresholdInCm: number = 150
+const gateThresholdInCm: number = 200
 const lotThresholdInCm: number = 100
 const stableThresholdInCm: number = 5 // TODO: find out error / noise range of reading
 const historySize: number = 3
@@ -31,7 +31,7 @@ function average(arr: number[]) {
 }
 
 async function takePicture() : Promise<Buffer> {
-  const camera = await exec('raspistill -q 10 -ISO 800 -ex sports -n -o ./snapshot.jpg -t 1000')
+  const camera = await exec('raspistill -q 10 -ISO 800 -ex sports -n -o ./snapshot.jpg -t 500')
   if (!camera.stderr) {
     return await readFile('./snapshot.jpg')
   } else {

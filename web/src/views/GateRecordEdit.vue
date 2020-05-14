@@ -226,9 +226,6 @@ export default {
         console.error(e)
         this.$message.warning('Gate input required')
       }
-    },
-    async getSignedUrl (gsUrl) {
-      return storage.ref(gsUrl).getSignedUrl()
     }
   },
   async mounted () {

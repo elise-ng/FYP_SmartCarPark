@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <el-container style="height: 100%;">
-      <el-aside width="200px">
+      <el-aside width="220px">
         <el-menu :router="true" style="height: 100%;">
           <el-main>🚙 Smart Car Park</el-main>
           <el-menu-item index="/live">
@@ -15,6 +15,10 @@
           <el-menu-item index="/demo">
               <i class="el-icon-magic-stick"></i>
               <span slot="title">Demo</span>
+          </el-menu-item>
+          <el-menu-item index="/licensePlateRecognition">
+              <i class="el-icon-camera"></i>
+              <span slot="title">License Plate Recognition</span>
           </el-menu-item>
           <el-menu-item index="/auth" style="position:absolute; bottom:0; width:100%;">
               <i class="el-icon-key"></i>

@@ -31,8 +31,6 @@ async function calculateParkingInvoice(gateRecordId: string): Promise<ParkingInv
   }
   // Calculate fee
   let parkingDurationInMinutes = Math.ceil(((paytime - entryTime) / 1000) / 60)
-  // FIXME: HARDCODED MINUTES FOR TESTING
-  parkingDurationInMinutes = 128
   /// Fee: First 2 hours $20 per hour, then every hour $50
   const roundedUpParkingHours = Math.ceil(parkingDurationInMinutes / 60)
   const numberOfNormalHours = Math.min(roundedUpParkingHours, 2)

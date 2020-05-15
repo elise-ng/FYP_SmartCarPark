@@ -67,13 +67,17 @@ function buildTextObject(words) {
         if ('property' in lastSymbol && 'detectedBreak' in lastSymbol.property && lastSymbol.property.detectedBreak) {
             let type = lastSymbol.property.detectedBreak.type
             if (type === "EOL_SURE_SPACE" || type === "LINE_BREAK") {
-                textArray.push((text.match(/[a-zA-Z0-9粵港]+/g) || []).join('')) // Filter out undesired character
+                textArray.push(text)
                 text = ""
             }
         }
     }
-    return textArray
+    return textArray.map((text) => (text.match(/[a-zA-Z0-9粵港]+/g) || []).join('')) // Filter out undesired character
 }
+
+function getBoundingBoxArea(vertices) {
+    return (vertices[2].x - vertices[0].x) * (vertices[2].y - vertices[0].y)
+} 
 
 export const recognizeLicensePlate = functions
     .region('asia-east2')
@@ -104,14 +108,22 @@ export const recognizeLicensePlate = functions
                 },
             ],
             imageContext: {
-                languageHints: ["zh-Hant-HK"]
+                languageHints: ["en", "zh-Hant-HK"]
             }
         }
 
         let [annotateResponse] = await visionClient.annotateImage(annotateRequest)
         let fullTextAnnotation = annotateResponse.fullTextAnnotation
+        if(!fullTextAnnotation || !fullTextAnnotation.pages || fullTextAnnotation.pages.length <= 0) {
+            // Cannot recognise license plate
+            console.log(annotateResponse)
+            return {
+                success: false,
+                license: ''
+            }
+        }
         let page = fullTextAnnotation.pages[0]
-        let blocks = page.blocks
+        let blocks = page.blocks.sort((a, b) => getBoundingBoxArea(b.boundingBox.vertices) - getBoundingBoxArea(a.boundingBox.vertices)) // Sort bounding box in decending order w.r.t. area
         let width = page.width
         let height = page.height
 
@@ -130,17 +142,17 @@ export const recognizeLicensePlate = functions
         }
 
         if (!licensePlateObjects.length || !texts) {
-            /// If license plate object is not found, or no valid text blocks are identified
+            // If license plate object is not found, or no valid text blocks are identified
             return {
                 success: true,
-                license: fullTextAnnotation.text
+                license: (fullTextAnnotation.text.match(/[a-zA-Z0-9粵港]+/g) || []).join('')
             }
         }
 
         let mainlandLicense
         let chinaHKLicenseIndex = texts.findIndex(text => text.includes('粵') || text.includes('港'))
         if (chinaHKLicenseIndex > -1) {
-            mainlandLicense = texts.splice(chinaHKLicenseIndex, 1)[0]
+            mainlandLicense = `粵${(texts.splice(chinaHKLicenseIndex, 1)[0].match(/[a-zA-Z0-9]+/g) || []).join('')}港` // Reformat mainland license just in case
         }
 
         let license = texts.join('')

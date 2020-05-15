@@ -1,35 +1,92 @@
 <template>
-  <div class='live'>
+  <div class="live">
     <el-row style="padding-bottom: 16px">
-      <vl-map :load-tiles-while-animating="true" :load-tiles-while-interacting="true" :default-controls="{rotate: false}"
-             data-projection="EPSG:4326" style="height: 500px; box-shadow: 0 4px 8px 0 grey">
-        <vl-view :zoom.sync="zoom" :center.sync="center" :rotation="rotation" :min-zoom="minZoom" :max-zoom="maxZoom" :extent="extent"></vl-view>
-        <!-- <vl-layer-tile id="osm">
+      <vl-map
+        :load-tiles-while-animating="true"
+        :load-tiles-while-interacting="true"
+        :default-controls="{rotate: false}"
+        data-projection="EPSG:4326"
+        style="height: 500px; box-shadow: 0 4px 8px 0 grey"
+      >
+        <vl-view
+          :zoom.sync="zoom"
+          :center.sync="center"
+          :rotation="rotation"
+          :min-zoom="minZoom"
+          :max-zoom="maxZoom"
+          :extent="extent"
+        ></vl-view>
+        <vl-layer-tile id="osm">
           <vl-source-osm></vl-source-osm>
-        </vl-layer-tile> -->
-        <vl-feature v-for="floor in carParkFloors" v-bind:key="floor.id">
-            <vl-geom-polygon :coordinates="[floor.points.map(geopoint => [geopoint.U, geopoint.V])]"/>
-            <vl-feature v-for="state in iotStates.filter(state => state.floorId === floor.id)" v-bind:key="state.id">
-                <vl-geom-polygon :coordinates="[getParkingCoordinatesFromState(state)]"/>
-                <vl-overlay :id="state.id" :position="getParkingSpaceCenter(state)" positioning="center-center">
-                  <div style="font: 16px; font-weight: bold; user-select: none" >
-                    {{ state.id.toUpperCase() }}
-                  </div>
-                </vl-overlay>
-                <vl-style-box>
-                  <vl-style-fill :color="getParkingSpaceColor(state)"/>
-                  <vl-style-stroke :color="[0, 153, 255, 1]"/>
-                  <!-- <vl-style-text :text="state.id.toUpperCase()" font="2em sans-serif"></vl-style-text> -->
-                </vl-style-box>
-          </vl-feature>
+        </vl-layer-tile>
+        <!-- Floor tile -->
+        <div v-if="selectedFloor">
+        <vl-feature id="floor">
+          <vl-geom-polygon
+            :coordinates="[selectedFloor.points.map(geopoint => [geopoint.longitude, geopoint.latitude])]"
+          />
         </vl-feature>
+        <!-- Parking spaces -->
+        <vl-layer-vector id="spaces" :z-index="999">
+          <vl-feature
+            v-for="state in iotStates.filter(state => state.floorId === selectedFloor.id)"
+            v-bind:key="state.id"
+            :id="state.id"
+          >
+            <vl-geom-polygon :coordinates="[getParkingCoordinatesFromState(state)]" />
+            <vl-overlay
+              :id="state.id"
+              :position="getParkingSpaceCenter(state)"
+              positioning="center-center"
+            >
+              <div
+                style="font: 16px; font-weight: bold; user-select: none"
+              >{{ state.displayName || state.id.toUpperCase() }}</div>
+            </vl-overlay>
+            <vl-style-box>
+              <vl-style-fill :color="getParkingSpaceColor(state)" />
+              <vl-style-stroke :color="[0, 153, 255, 1]" />
+              <!-- <vl-style-text :text="state.id.toUpperCase()" font="2em sans-serif"></vl-style-text> -->
+            </vl-style-box>
+          </vl-feature>
+        </vl-layer-vector>
+        </div>
+        <!-- interactions -->
+        <vl-interaction-select v-if="drawType == null" :filter="onParkingSpaceClick"/>
+        <!--// interactions -->
       </vl-map>
     </el-row>
+    <el-dialog v-if="selectedIotState" :title="`Lot Details: ${selectedIotState.displayName || selectedIotState.id}`" :visible.sync="lotDetailsDialogFormVisible">
+      <el-form :model="form">
+        <el-form-item label="State" :label-width="formLabelWidth">
+          <div class="form-field-plaintext">
+            {{selectedIotState.state}}
+          </div>
+        </el-form-item>
+        <el-form-item label="Vehicle ID" :label-width="formLabelWidth">
+          <div class="form-field-plaintext">
+            {{selectedIotState.vehicleId || '---'}}
+          </div>
+        </el-form-item>
+        <el-form-item label="Detection Time" :label-width="formLabelWidth">
+          <div class="form-field-plaintext">
+            {{selectedLotTimeText}}
+          </div>
+        </el-form-item>
+        <el-form-item label="Snapshot">
+          <el-image :src="signedSelectedIotImageUrl" style="width: 50%"></el-image>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="selectedIotState = undefined; lotDetailsDialogFormVisible = false">Dismiss</el-button>
+      </span>
+    </el-dialog>
+
     <el-row>
-      <el-button @click="dialogFormVisible = true;">Manual Entry</el-button>
+      <el-button @click="manualEntryDialogFormVisible = true;">Manual Entry</el-button>
     </el-row>
 
-    <el-dialog title="Manual Entry" :visible.sync="dialogFormVisible">
+    <el-dialog title="Manual Entry" :visible.sync="manualEntryDialogFormVisible">
       <el-form :model="form">
         <el-form-item label="Liscense Plate" :label-width="formLabelWidth">
           <el-input v-model="form.vehicleId" autocomplete="off" ref="vehicleId"></el-input>
@@ -45,39 +102,52 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="manualEntry();dialogFormVisible = false;">Confirm</el-button>
+        <el-button @click="manualEntryDialogFormVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="manualEntry();manualEntryDialogFormVisible = false;">Confirm</el-button>
       </span>
     </el-dialog>
 
-    <el-table :data='gateRecords' @row-click='navPushToGateRecord'>
-      <el-table-column label='License Plate' prop='vehicleId' sortable></el-table-column>
-      <el-table-column label='Entry Gate' prop='entryGate' :formatter='entryGateFormatter' sortable></el-table-column>
-      <el-table-column label='Entry Scan Time' prop='entryScanTime' :formatter='entryScanTimeFormatter' sortable></el-table-column>
-      <el-table-column label='Exit Gate' prop='exitGate' :formatter='exitGateFormatter' sortable></el-table-column>
-      <el-table-column label='Exit Scan Time' prop='exitScanTime' :formatter='exitScanTimeFormatter' sortable></el-table-column>
-      <el-table-column label='Phone Number' prop='phoneNumber' :formatter='phoneNumberFormatter' sortable></el-table-column>
-      <el-table-column label='Payment' prop='paymentStatus' sortable></el-table-column>
+    <el-table :data="gateRecords" @row-click="navPushToGateRecord">
+      <el-table-column label="License Plate" prop="vehicleId" sortable></el-table-column>
+      <el-table-column label="Entry Gate" prop="entryGate" :formatter="entryGateFormatter" sortable></el-table-column>
+      <el-table-column
+        label="Entry Scan Time"
+        prop="entryScanTime"
+        :formatter="entryScanTimeFormatter"
+        sortable
+      ></el-table-column>
+      <el-table-column label="Exit Gate" prop="exitGate" :formatter="exitGateFormatter" sortable></el-table-column>
+      <el-table-column
+        label="Exit Scan Time"
+        prop="exitScanTime"
+        :formatter="exitScanTimeFormatter"
+        sortable
+      ></el-table-column>
+      <el-table-column
+        label="Phone Number"
+        prop="phoneNumber"
+        :formatter="phoneNumberFormatter"
+        sortable
+      ></el-table-column>
+      <el-table-column label="Payment" prop="paymentStatus" sortable></el-table-column>
     </el-table>
     <div>
-      <el-pagination
-        background
-        layout="prev, pager, next"
-        :total="1000">
-      </el-pagination>
+      <el-pagination background layout="prev, pager, next" :total="1000"></el-pagination>
     </div>
   </div>
 </template>
 
 <script>
-import moment, { now } from 'moment'
-import { db, Timestamp } from '@/helpers/firebaseHelper'
+import moment from 'moment'
+import { db, Timestamp, storage } from '@/helpers/firebaseHelper'
 import { computeDestinationPoint } from 'geolib'
+import { findPointOnSurface } from 'vuelayers/lib/ol-ext'
 export default {
   name: 'Live',
   data () {
     return {
-      dialogFormVisible: false,
+      manualEntryDialogFormVisible: false,
+      lotDetailsDialogFormVisible: false,
       form: {
         vehicleId: '',
         phoneNumber: '',
@@ -85,14 +155,44 @@ export default {
       },
       formLabelWidth: '120px',
       zoom: 20.8,
-      minZoom: 20.8,
+      // minZoom: 20.8,
+      minZoom: 0,
       maxZoom: 24,
       center: [114.26337, 22.338422],
       extent: [114.263, 22.338, 114.264, 22.339],
       rotation: Math.PI / -2,
       gateRecords: [],
       carParkFloors: [],
-      iotStates: []
+      iotStates: [],
+      selectedIotState: undefined,
+      selectedFloor: undefined,
+      drawType: undefined
+    }
+  },
+  watch: {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    carParkFloors: function (newCarParkFloors, _) {
+      if (!this.selectedFloor) {
+        this.selectedFloor = newCarParkFloors[0]
+      }
+    }
+  },
+  computed: {
+    selectedLotTimeText () {
+      if (!this.selectedIotState) return ''
+      const timeMoment = moment(this.selectedIotState.time.toDate())
+      return `${timeMoment.format('HH:mm')} (${moment.duration(timeMoment.diff(moment())).humanize(true)})`
+    }
+  },
+  asyncComputed: {
+    async signedSelectedIotImageUrl () {
+      try {
+        if (!this.selectedIotState) return null
+        const gsUrl = this.selectedIotState.imageUrl
+        return gsUrl ? await storage.refFromURL(gsUrl).getDownloadURL() : null
+      } catch (e) {
+        this.$message.error(e.message || e.toString())
+      }
     }
   },
   firestore: {
@@ -106,6 +206,7 @@ export default {
     //   console.log('phoneNumber' + this.phoneNumber)
     //   console.log('vehicleId' + this.vehicleId)
     // },
+    pointOnSurface: findPointOnSurface,
     navPushToGateRecord (row, _, __) {
       this.$router.push(`/gateRecord/${row.id}`)
     },
@@ -166,7 +267,7 @@ export default {
       const width = state.widthInMeters || 2.2
       const height = state.heightInMeters || 4.8
       const bearing = state.bearing || 0
-      const topLeft = [state.position.U, state.position.V]
+      const topLeft = [state.position.longitude, state.position.latitude]
       const topRight = computeDestinationPoint(topLeft, width, 90 - bearing)
       const bottomLeft = computeDestinationPoint(topLeft, height, 180 - bearing)
       const bottomRight = computeDestinationPoint(bottomLeft, width, 90 - bearing)
@@ -181,7 +282,7 @@ export default {
       const width = state.widthInMeters || 2.2
       const height = state.heightInMeters || 4.8
       const bearing = state.bearing || 0
-      const topLeft = [state.position.U, state.position.V]
+      const topLeft = [state.position.longitude, state.position.latitude]
       const center = computeDestinationPoint(topLeft, Math.hypot(width / 2, height / 2), (Math.atan2(height, width) * 180 / Math.PI) + 90 - bearing)
       return [center.longitude, center.latitude]
     },
@@ -197,6 +298,11 @@ export default {
         default:
           return '#bdbdbd'
       }
+    },
+    onParkingSpaceClick (feature) {
+      if (feature.id_ === 'floor') return
+      this.selectedIotState = this.iotStates.find((state) => state.deviceId === feature.id_)
+      if (this.selectedIotState) this.lotDetailsDialogFormVisible = true
     }
   }
 }

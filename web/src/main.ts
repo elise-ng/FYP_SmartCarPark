@@ -7,12 +7,14 @@ import locale from 'element-ui/lib/locale/lang/en'
 import { firestorePlugin } from 'vuefire'
 import VueLayers from 'vuelayers'
 import 'vuelayers/lib/style.css'
+import AsyncComputed from 'vue-async-computed'
 
 Vue.config.productionTip = false
 
 Vue.use(ElementUI, { locale })
 Vue.use(firestorePlugin)
 Vue.use(VueLayers)
+Vue.use(AsyncComputed)
 
 new Vue({
   router,

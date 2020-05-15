@@ -2,7 +2,7 @@
 <div>
     <el-page-header @back="navGoBack" :content="`Gate Record: ${gateRecord ? gateRecord.vehicleId || '---' : '---'}`"></el-page-header>
 
-    <el-form v-if="gateRecord" :model="gateRecord" label-width="120px">
+    <el-form v-if="gateRecord" :model="gateRecord" label-width="200px">
       <el-divider content-position="left">Basic Info</el-divider>
       <el-form-item label="License Plate">
         <el-input v-model="gateRecord.vehicleId"></el-input>
@@ -15,6 +15,11 @@
       <el-form-item label="Entry Gate">
         <div class="form-field-plaintext">{{ gateRecord.entryGate || '---' }}</div>
       </el-form-item>
+      <el-form-item label="Entry Snapshot">
+        <div class="form-field-plaintext">
+          <el-image :src="signedEntryImageUrl" style="width: 300px"></el-image>
+        </div>
+      </el-form-item>
       <el-form-item label="Entry Scan Time">
         <div class="form-field-plaintext">{{ formatTimestamp(gateRecord.entryScanTime) || '---' }}</div>
       </el-form-item>
@@ -23,6 +28,11 @@
       </el-form-item>
       <el-form-item label="Exit Gate">
         <div class="form-field-plaintext">{{ gateRecord.exitGate || '---' }}</div>
+      </el-form-item>
+      <el-form-item label="Exit Snapshot">
+        <div class="form-field-plaintext">
+          <el-image :src="signedExitImageUrl" style="width: 300px"></el-image>
+        </div>
       </el-form-item>
       <el-form-item label="Exit Scan Time">
         <div class="form-field-plaintext">{{ formatTimestamp(gateRecord.exitScanTime) || '---' }}</div>
@@ -89,7 +99,7 @@
 
 <script>
 import moment from 'moment'
-import { db, Timestamp } from '@/helpers/firebaseHelper'
+import { db, Timestamp, storage } from '@/helpers/firebaseHelper'
 export default {
   name: 'GateRecordEdit',
   data () {
@@ -103,6 +113,24 @@ export default {
       },
       formLabelWidth: '120px',
       gateRecord: {}
+    }
+  },
+  asyncComputed: {
+    async signedEntryImageUrl () {
+      try {
+        const gsUrl = this.gateRecord.entryImageUrl
+        return gsUrl ? await storage.refFromURL(gsUrl).getDownloadURL() : null
+      } catch (e) {
+        this.$message.error(e.message || e.toString())
+      }
+    },
+    async signedExitImageUrl () {
+      try {
+        const gsUrl = this.gateRecord.exitImageUrl
+        return gsUrl ? await storage.refFromURL(gsUrl).getDownloadURL() : null
+      } catch (e) {
+        this.$message.error(e.message || e.toString())
+      }
     }
   },
   methods: {
@@ -138,6 +166,7 @@ export default {
       return moment.duration(fromMoment.diff(moment())).humanize(withSuffix)
     },
     getParkedDuration () {
+      if (!this.gateRecord || !this.gateRecord.entryConfirmTime) return ''
       return moment.duration(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment())).humanize()
     },
     getAmountDue () {
@@ -145,9 +174,11 @@ export default {
       return '$100'
     },
     getExceedDuration () {
+      if (!this.gateRecord || !this.gateRecord.paymentTime) return ''
       return moment(moment()).diff(this.gateRecord.paymentTime.toDate(), 'minutes')
     },
     getExceedDurationString () {
+      if (!this.gateRecord || !this.gateRecord.paymentTime) return ''
       return moment.duration(moment().diff(moment(this.gateRecord.paymentTime.toDate()))).humanize()
     },
     getExceedAmount () {

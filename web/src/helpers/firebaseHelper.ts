@@ -22,9 +22,6 @@ export const db = firebase.firestore()
 const { Timestamp, GeoPoint } = firebase.firestore
 export { Timestamp, GeoPoint }
 
-// if using Firebase JS SDK < 5.8.0
-db.settings({ timestampsInSnapshots: true })
-
 // Auth
 export const auth = firebase.auth()
 

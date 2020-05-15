@@ -44,6 +44,12 @@ const routes = [
     name: 'LicensePlateRecognition',
     meta: { title: 'License Plate Recognition' },
     component: () => import(/* webpackChunkName: "gateRecordEdit" */ '../views/LicensePlateRecognition.vue')
+  },
+  {
+    path: '/recognitionDemo/',
+    name: 'RecognitionDemo',
+    meta: { title: 'Recognition Demo' },
+    component: () => import(/* webpackChunkName: "gateRecordEdit" */ '../views/RecognitionDemo.vue')
   }
 ]
 

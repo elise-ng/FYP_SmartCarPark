@@ -20,6 +20,10 @@
               <i class="el-icon-camera"></i>
               <span slot="title">License Plate Recognition</span>
           </el-menu-item>
+          <el-menu-item index="/recognitionDemo">
+              <i class="el-icon-camera"></i>
+              <span slot="title">Recognition Demo</span>
+          </el-menu-item>
           <el-menu-item index="/auth" style="position:absolute; bottom:0; width:100%;">
               <i class="el-icon-key"></i>
               <span slot="title">Authenication</span>

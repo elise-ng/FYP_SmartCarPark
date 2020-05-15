@@ -54,7 +54,7 @@ class _InformationPageState extends State<InformationPage> {
               .compareTo(b.data["entryScanTime"] as Timestamp));
         this._gateRecord = sortedGateRecords.first;
         this.requestParkingInvoice();
-        await this.listenToIotStateChanges();
+        this.listenToIotStateChanges();
       } catch (e) {
         print(e);
         this._gateRecord = null;
@@ -74,7 +74,7 @@ class _InformationPageState extends State<InformationPage> {
     }
   }
 
-  Future<void> listenToIotStateChanges() async {
+  void listenToIotStateChanges() async {
     await this._iotStateChangesPrevSubscription?.cancel();
     this._iotStateChangesPrevSubscription = null;
     await this._iotStateChangesNewSubscription?.cancel();
@@ -146,6 +146,8 @@ class _InformationPageState extends State<InformationPage> {
       _currentLocation = null;
     } else if (lastOccupy != null) {
       _currentLocation = lastOccupy['deviceId'];
+    } else {
+      _currentLocation = null;
     }
     this.listenToSnapshot();
   }
@@ -153,7 +155,10 @@ class _InformationPageState extends State<InformationPage> {
   void listenToSnapshot() async {
     this._snapshotSubscription?.cancel();
     this._snapshotSubscription = null;
-    if (this._currentLocation == null) return;
+    if (this._currentLocation == null) {
+      this._iotImageUrl = null;
+      return;
+    }
     Firestore.instance
         .document('iotStates/${this._currentLocation}')
         .snapshots()

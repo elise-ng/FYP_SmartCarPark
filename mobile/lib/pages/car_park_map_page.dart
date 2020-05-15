@@ -6,20 +6,18 @@ import 'package:smart_car_park_app/models/car_park_floor.dart';
 import 'package:smart_car_park_app/models/car_park_space.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ParkingPage extends StatefulWidget {
-  ParkingPage({
+class CarParkMapPage extends StatefulWidget {
+  CarParkMapPage({
     key,
   }) : super(key: key);
 
   @override
-  _ParkingPageState createState() => _ParkingPageState();
+  _CarParkMapPageState createState() => _CarParkMapPageState();
 }
 
-class _ParkingPageState extends State<ParkingPage> {
+class _CarParkMapPageState extends State<CarParkMapPage> {
   static const FLOORS_COLLECTION = "carParkFloors";
   static const IOT_STATES_COLLECTION = "iotStates";
-
-  GoogleMapController _controller;
 
   List<CarParkFloor> carParkFloors = [];
   int currentFloorIndex = 0;
@@ -30,8 +28,9 @@ class _ParkingPageState extends State<ParkingPage> {
 //  Polyline navigatingPolyline;
 
   static final CameraPosition _ustParkingPosition = CameraPosition(
-    target: LatLng(22.338616, 114.263270),
-    zoom: 19.7,
+    bearing: 90.0,
+    target: LatLng(22.3386, 114.2633),
+    zoom: 21,
   );
 
   @override
@@ -42,7 +41,7 @@ class _ParkingPageState extends State<ParkingPage> {
 
   void getData() async {
     QuerySnapshot floorsSnapshot =
-        await Firestore.instance.collection(FLOORS_COLLECTION).getDocuments();
+    await Firestore.instance.collection(FLOORS_COLLECTION).getDocuments();
     this.carParkFloors = floorsSnapshot.documents
         .map((document) => CarParkFloor.fromDocument(document))
         .toList();
@@ -62,7 +61,7 @@ class _ParkingPageState extends State<ParkingPage> {
 
         CarParkSpace parkingSpace = CarParkSpace.fromDocument(change.document);
         CarParkFloor floor = this.carParkFloors.firstWhere(
-            (floor) => floor.id == parkingSpace.floorId,
+                (floor) => floor.id == parkingSpace.floorId,
             orElse: () => null);
 
         /// Cannot find floor
@@ -86,6 +85,7 @@ class _ParkingPageState extends State<ParkingPage> {
       }
 
       /// Wait for changes to complete and update UI
+      setState(() {});
       await Future.wait(changeFutures);
       setState(() {});
     });
@@ -97,13 +97,13 @@ class _ParkingPageState extends State<ParkingPage> {
       body: Stack(
         children: <Widget>[
           GoogleMap(
+            compassEnabled: false,
+            myLocationButtonEnabled: false,
             mapToolbarEnabled: false,
-            minMaxZoomPreference: MinMaxZoomPreference(19.0, 21.0),
+            minMaxZoomPreference: MinMaxZoomPreference(20.0, 21.0),
             mapType: MapType.normal,
             initialCameraPosition: _ustParkingPosition,
-            onMapCreated: (GoogleMapController controller) {
-              this._controller = controller;
-            },
+            cameraTargetBounds: CameraTargetBounds(LatLngBounds(northeast: LatLng(22.3386, 114.2636), southwest: LatLng(22.3382, 114.2630))),
             markers: {
               ...this._getMarkers(),
 //              Marker(

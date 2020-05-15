@@ -7,7 +7,11 @@ import 'package:smart_car_park_app/utils/user_utils.dart';
 
 class SigninWidget extends StatefulWidget {
 
+  /// Completion Handler. Returns boolean indicating sign in result
+  Function() completion;
+
   SigninWidget({
+    this.completion,
     Key key
   }) : super(key: key);
 
@@ -49,7 +53,7 @@ class _SigninWidgetState extends State<SigninWidget> {
   @override
   void initState() {
     super.initState();
-    this._signinState = userRecord.isEmpty() ? SigninState.pending : SigninState.success;
+    this._signinState = userRecord.isAuthenticated() ? SigninState.pending : SigninState.success;
   }
 
   /// Send SMS code and try to auto-retrieve for instant sign in
@@ -67,10 +71,10 @@ class _SigninWidgetState extends State<SigninWidget> {
           final result = await _firebaseAuth.signInWithCredential(credential);
           if (result.user != null) {
             userRecord.update(await UserUtils.getUserRecordDocument(result.user.uid, source: Source.server));
-            // TODO: success, dismiss widget
             setState(() {
               _signinState = SigninState.success;
             });
+            Future.delayed(Duration(seconds: 1), widget.completion());
           } else {
             setState(() {
               _errorMessage = 'Sign in failed.';
@@ -121,6 +125,7 @@ class _SigninWidgetState extends State<SigninWidget> {
         setState(() {
           _signinState = SigninState.success;
         });
+        Future.delayed(Duration(seconds: 1), widget.completion());
       } else {
         setState(() {
           _errorMessage = 'Sign in failed.';

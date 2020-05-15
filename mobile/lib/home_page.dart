@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:smart_car_park_app/pages/infomation_page.dart';
-import 'package:smart_car_park_app/pages/parking_page.dart';
-import 'package:smart_car_park_app/pages/payment_page.dart';
+import 'package:provider/provider.dart';
+import 'package:smart_car_park_app/pages/information_page.dart';
+import 'package:smart_car_park_app/pages/car_park_map_page.dart';
+import 'package:smart_car_park_app/pages/login_page.dart';
+import 'models/user_record.dart';
+import 'pages/car_park_map_page.dart';
+import 'pages/information_page.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({
@@ -13,26 +17,58 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   int _currentIndex = 0;
-  final PageStorageBucket bucket = PageStorageBucket();
+  bool _isAuthenticated = false;
+
+  List<Widget> _unauthenticatedTabs = [
+    CarParkMapPage(),
+    LoginPage(),
+  ];
+  List<BottomNavigationBarItem> _unauthenticatedBarItems = [
+    BottomNavigationBarItem(
+      icon: new Icon(Icons.local_parking),
+      title: new Text('Parking'),
+    ),
+    BottomNavigationBarItem(
+      icon: new Icon(Icons.person),
+      title: new Text('Login'),
+    ),
+  ];
+
+  List<Widget> _authenticatedTabs = [
+    CarParkMapPage(),
+    InformationPage(),
+  ];
+  List<BottomNavigationBarItem> _authenticatedBarItems = [
+    BottomNavigationBarItem(
+      icon: new Icon(Icons.local_parking),
+      title: new Text('Parking'),
+    ),
+    BottomNavigationBarItem(
+      icon: new Icon(Icons.info_outline),
+      title: new Text('Information'),
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    this._isAuthenticated = Provider.of<UserRecord>(context, listen: false).isAuthenticated();
+  }
 
   @override
   Widget build(BuildContext context) {
+    UserRecord _userRecord = Provider.of<UserRecord>(context);
+    if(!this._isAuthenticated && _userRecord.isAuthenticated()) {
+      /// Just logged in, change back to map view
+      WidgetsBinding.instance.addPostFrameCallback((_) => this.setState(() { this._currentIndex = 0; }));
+    }
+    this._isAuthenticated = _userRecord.isAuthenticated();
+
     return Scaffold(
-      body: PageStorage(
-        child: [
-          ParkingPage(
-            key: PageStorageKey('Parking'),
-          ),
-          InformationPage(
-            key: PageStorageKey('Information'),
-          ),
-          PaymentPage(
-            key: PageStorageKey('Payment'),
-          ),
-        ][_currentIndex],
-        bucket: this.bucket,
+      body: IndexedStack(
+        index: this._currentIndex,
+        children: this._isAuthenticated ? _authenticatedTabs : _unauthenticatedTabs,
       ),
       bottomNavigationBar: BottomNavigationBar(
         onTap: onTabTapped,
@@ -40,20 +76,7 @@ class _HomePageState extends State<HomePage> {
         iconSize: 20,
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: new Icon(Icons.local_parking),
-            title: new Text('Parking'),
-          ),
-          BottomNavigationBarItem(
-            icon: new Icon(Icons.info_outline),
-            title: new Text('Information'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.payment),
-            title: Text('Payment'),
-          ),
-        ],
+        items: this._isAuthenticated ? _authenticatedBarItems : _unauthenticatedBarItems,
       ),
     );
   }

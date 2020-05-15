@@ -52,13 +52,7 @@
           <span>{{ getParkedDuration () }}</span>
         </el-form-item>
         <el-form-item label="Amount Due" :label-width="formLabelWidth"  v-if="gateRecord.paymentStatus !== 'processing' && gateRecord.paymentStatus !== 'succeeded'">
-          <span>{{ getAmountDue () }}</span>
-        </el-form-item>
-        <el-form-item label="Parked Duration Excceeds" :label-width="formLabelWidth" v-if="gateRecord.paymentTime !== null && getExceedDuration() > 15">
-          <span>{{ getExceedDurationString () }}</span>
-        </el-form-item>
-        <el-form-item label="Amount Owned" :label-width="formLabelWidth" v-if="gateRecord.paymentTime !== null && getExceedDuration() > 15">
-          <span>{{ getExceedAmount () }}</span>
+          <span>${{ getAmountDue () }}</span>
         </el-form-item>
         <el-form-item label="Liscense Plate" :label-width="formLabelWidth">
           <span>{{ gateRecord.vehicleId }}</span>
@@ -170,26 +164,19 @@ export default {
       return moment.duration(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment())).humanize()
     },
     getAmountDue () {
-      // TODO:Change it to the formula
-      return '$100'
-    },
-    getExceedDuration () {
-      if (!this.gateRecord || !this.gateRecord.paymentTime) return ''
-      return moment(moment()).diff(this.gateRecord.paymentTime.toDate(), 'minutes')
-    },
-    getExceedDurationString () {
-      if (!this.gateRecord || !this.gateRecord.paymentTime) return ''
-      return moment.duration(moment().diff(moment(this.gateRecord.paymentTime.toDate()))).humanize()
-    },
-    getExceedAmount () {
-      // TODO: Change it to the formula
-      return 'HKD100'
+      const parkingDurationInMinutes = Math.abs(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment(), 'minute'))
+      const roundedUpParkingHours = Math.ceil(parkingDurationInMinutes / 60)
+      const numberOfNormalHours = Math.min(roundedUpParkingHours, 2)
+      const numberOfBusyHours = Math.max(roundedUpParkingHours - 2, 0)
+      const normalSubtotal = numberOfNormalHours * 20
+      const busySubtotal = numberOfBusyHours * 50
+      return normalSubtotal + busySubtotal
     },
     async cashPayment () {
       console.log('cashPayment')
       try {
-        // TODO: get amount from cloud function
-        await this.$confirm(`Parked Duration: ${moment.duration(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment())).humanize()}, Amount Due: $`, 'Cash Payment', {
+        const amountDue = this.getAmountDue()
+        await this.$confirm(`Parked Duration: ${moment.duration(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment())).humanize()}, Amount Due: $${amountDue}`, 'Cash Payment', {
           confirmButtonText: 'Received',
           cancelButtonText: 'Cancel'
         })

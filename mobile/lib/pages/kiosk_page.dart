@@ -23,8 +23,8 @@ enum GateFlowState { scanning, scanned, submitting, submitted, contactStaff }
 class _KioskPageState extends State<KioskPage> {
   bool _isSignedIn = FirebaseAuth.instance.currentUser() != null;
 
-  GateMode _gateMode = GateMode.exit;
-  String _iotDeviceId = 'demo4';
+  GateMode _gateMode = GateMode.entry;
+  String _iotDeviceId = 'demo3';
   final String _staffCode = '0000';
 
   GateFlowState _gateFlowState = GateFlowState.scanning;
@@ -70,6 +70,7 @@ class _KioskPageState extends State<KioskPage> {
           final gateRecords = snapshot.documents
               .map((doc) => GateRecord.fromDocumentSnapshot(doc))
               .toList();
+          gateRecords.removeWhere((record) => record.entryScanTime.isBefore(DateTime.now().subtract(Duration(minutes: 5))));
           gateRecords
               .sort((a, b) => -1 * a.entryScanTime.compareTo(b.entryScanTime));
           if (gateRecords.isNotEmpty) {
@@ -94,6 +95,7 @@ class _KioskPageState extends State<KioskPage> {
           final gateRecords = snapshot.documents
               .map((doc) => GateRecord.fromDocumentSnapshot(doc))
               .toList();
+          gateRecords.removeWhere((record) => record.exitScanTime.isBefore(DateTime.now().subtract(Duration(minutes: 5))));
           gateRecords.sort((a, b) => -1 * a.exitScanTime.compareTo(b.exitScanTime));
           if (gateRecords.isNotEmpty) {
             _gateRecord = gateRecords.first;
@@ -127,6 +129,12 @@ class _KioskPageState extends State<KioskPage> {
   }
 
   void onScanned() async {
+    /// Scanning timeout
+    Future.delayed(Duration(minutes: 5), () {
+      if(this._gateFlowState != GateFlowState.submitting) {
+        onScanning();
+      }
+    });
     switch (_gateMode) {
       case GateMode.entry:
         final lastPhoneNumber = await getLastPhoneNumber(_gateRecord.vehicleId);

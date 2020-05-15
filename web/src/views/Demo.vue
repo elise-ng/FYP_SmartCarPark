@@ -175,7 +175,7 @@ export default {
       try {
         console.log('emulatePayment')
         await db.collection('gateRecords').doc(this.form.gateRecordId).update({
-          paymentStatus: 'successful',
+          paymentStatus: 'succeeded',
           paymentTime: Timestamp.fromDate(new Date())
         })
         console.log(`Updated gateRecord: ${this.form.gateRecordId}`)

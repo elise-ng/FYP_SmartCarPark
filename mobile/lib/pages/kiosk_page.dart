@@ -158,7 +158,7 @@ class _KioskPageState extends State<KioskPage> {
           });
         } else {
           _exitLicensePlateNotRecognized = false;
-          if (_gateRecord.paymentStatus == 'successful' &&
+          if (_gateRecord.paymentStatus == 'succeeded' &&
               _gateRecord.paymentTime != null) {
             final minutesAfterPayment =
                 DateTime.now().difference(_gateRecord.paymentTime).inMinutes;

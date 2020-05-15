@@ -164,6 +164,7 @@ export default {
       return moment.duration(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment())).humanize()
     },
     getAmountDue () {
+      if (!this.gateRecord || !this.gateRecord.entryConfirmTime) return -1
       const parkingDurationInMinutes = Math.abs(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment(), 'minute'))
       const roundedUpParkingHours = Math.ceil(parkingDurationInMinutes / 60)
       const numberOfNormalHours = Math.min(roundedUpParkingHours, 2)
@@ -176,7 +177,8 @@ export default {
       console.log('cashPayment')
       try {
         const amountDue = this.getAmountDue()
-        await this.$confirm(`Parked Duration: ${moment.duration(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment())).humanize()}, Amount Due: $${amountDue}`, 'Cash Payment', {
+        const duration = this.gateRecord && this.gateRecord.entryConfirmTime ? moment.duration(moment(this.gateRecord.entryConfirmTime.toDate()).diff(moment())).humanize() : 'unknown'
+        await this.$confirm(`Parked Duration: ${duration}, Amount Due: $${amountDue}`, 'Cash Payment', {
           confirmButtonText: 'Received',
           cancelButtonText: 'Cancel'
         })

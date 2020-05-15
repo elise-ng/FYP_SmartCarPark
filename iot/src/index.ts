@@ -19,21 +19,10 @@ enum Mode {
 const mode: string = process.env.mode
 const deviceId: string = process.env.deviceId
 const gateMode: string = process.env.gateMode
-const gateThresholdInCm: number = 200
-const lotThresholdInCm: number = 100
+const gateThresholdInCm: number = 250
+const lotThresholdInCm: number = 150
 const stableThresholdInCm: number = 5 // TODO: find out error / noise range of reading
 const historySize: number = 3
-
-// Check if array is sorted in accending/decending order
-function isIncremental(arr: number[], accending: boolean) {
-  return arr.every(function (x, i) {
-    if (accending) {
-      return i === 0 || x > arr[i - 1]
-    } else {
-      return i === 0 || x < arr[i - 1]
-    }
-  })
-}
 
 // Return average of all members in arr
 function average(arr: number[]) {
@@ -42,7 +31,7 @@ function average(arr: number[]) {
 }
 
 async function takePicture() : Promise<Buffer> {
-  const camera = await exec('raspistill -q 10 -ISO 800 -ex sports -n -o ./snapshot.jpg')
+  const camera = await exec('raspistill -q 10 -ISO 800 -ex sports -n -o ./snapshot.jpg -t 500')
   if (!camera.stderr) {
     return await readFile('./snapshot.jpg')
   } else {
@@ -71,8 +60,9 @@ async function main() {
               distanceHistory.shift()
             }
             distanceHistory.push(distanceInCm)
+            
             // if arrroaching && distance < threshold -> take photo
-            if (!triggered && isIncremental(distanceHistory, false) && distanceInCm < gateThresholdInCm) {
+            if (!triggered && average(distanceHistory) < gateThresholdInCm) {
               console.log(`Apprach detected, dist ${distanceHistory.join(' -> ')}`)
               triggered = true
               let imageBuffer: Buffer
@@ -100,8 +90,10 @@ async function main() {
                   await firebaseHelper.updateElseCreateExitGateRecord(vehicleId, imageUrl)
                   break
                 }
+                default:
+                  console.error('Gate mode not handled')
               }
-            } else if (triggered && isIncremental(distanceHistory, true) && distanceInCm >= gateThresholdInCm) { // if leaving, reset
+            } else if (triggered && average(distanceHistory) >= gateThresholdInCm) { // if leaving, reset
               console.log(`Departure detected, dist ${distanceHistory.join(' -> ')}`)
               triggered = false
             }

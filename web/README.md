@@ -1,11 +1,26 @@
-# web
+# Web Admin Portal
+
+Features:
+
+- Monitor real-time carpark information
+- Controlling parking records
+- Data visualization
+- Demo functionalities
 
 ## Project setup
+
+Requirements:
+
+- NodeJS
+- NPM
+- [Vue CLI](https://cli.vuejs.org/guide/installation.html)
+
 ```
-npm install
+npm i
 ```
 
 ### Compiles and hot-reloads for development
+
 ```
 npm run serve
 ```

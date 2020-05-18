@@ -1,21 +1,80 @@
-# Smart Car Park IoT
+# IoT Device
 
-Edit the source code inside `/src`
-This project uses TypeScript, which gets transpiled to JavaScript before running in NodeJS.
-The transpile action happens automatically when you run `npm start` or `npm test`
+Scripts are written in TypeScript and transpiled to JavaScript to run in NodeJS. 
 
-### Getting started
-Install NodeJS 10, then `cd` to working folder and:
+Controls ultrasonic distance sensor, manages IoT device state, takes snapshots and sync data to backend
+
+The transpile action happens automatically when you run `yarn run start` or `yarn run test`
+
+## One step deploy on a new Raspberry Pi
+
+Just run:
+
 ```sh
-npm i
+./setup.sh
 ```
 
-### Run
+This will install:
+
+- TeamViewer - Remote access
+- NodeJS 10.x
+- Yarn Package Manager
+- PM2
+
+and handles necessary configuations
+
+After running the script, be sure to run `raspi-config` in terminal and enable SSH, VNC and the Camera interface.
+
+---
+
+Alternatively, follow the steps below for manual configurations
+
+## Setting up NodeJS Environment
+
+- Install [Yarn package manager](https://yarnpkg.com/getting-started)
+- Install [NodeJS 10](https://nodejs.org/en/download/)
+
+Then:
+
 ```sh
-npm start
+yarn install
 ```
 
-### Test
+## Deployment and configuation
+
+[PM2](https://pm2.keymetrics.io/) is used for instance deployment and management. To install:
+
 ```sh
-npm test
+yarn global add pm2
+```
+
+Script accepts arguments provided to PM2 to configure to different modes. Edit `pm2_config.yaml` for configurations.
+
+Example for IoT (Parking Space) mode:
+
+```yaml
+apps:
+  - script: ./dist/index.js
+    name: 'iot'
+    env:
+      mode: 'iot'
+      deviceId: 'test1'
+```
+
+Example for Gate mode:
+
+```yaml
+apps:
+  - script: ./dist/index.js
+    name: 'iot'
+    env:
+      mode: 'gate'
+      gateMode: 'entry'
+      deviceId: 'test1'
+```
+
+Finally to deploy:
+
+```sh
+./redeploy.sh
 ```

@@ -1,6 +1,17 @@
 # Cloud Functions
 
-## Setting up dev env
+Source code for cloud functions used in LIX2's Final Year Project: Smart Car Park
+
+Cloud functions are separated into their own respective folders in `functions/src`:
+
+- `cv/` - License Plate Recognition
+- `iot/` - Handles IoT devices' snapshot uploads and database iotStates changes
+- `stripe/` - Calculate parking fee, generate payment secrets and provides webhook for Stripe events
+- `users/` - Handles Stripe ID generation after user creation
+
+- `common/` - Common modules and objects shared across different cloud functions
+
+## Setting up environment
 
 ### Install firebase cli tools
 
@@ -23,7 +34,7 @@ cd functions
 npm i
 ```
 
-## Dev workflow
+## Development workflow
 
 ### Deploy to cloud
 

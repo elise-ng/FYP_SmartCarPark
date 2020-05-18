@@ -28,7 +28,7 @@ Source code located in `iot/`
 
 Scripts are written in TypeScript and transpiled to JavaScript to run in NodeJS. Controls ultrasonic distance sensor, manages IoT device state, takes snapshots and sync data to backend
 
-Notice that [yarn package manager](https://yarnpkg.com/getting-started) must be used for Raspiberry Pi Zero W (arm6l) compatibility
+Notice that [Yarn package manager](https://yarnpkg.com/getting-started) must be used for Raspiberry Pi Zero W (arm6l) compatibility
 
 ## Web
 

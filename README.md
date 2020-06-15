@@ -8,7 +8,7 @@ By: Cheung Ka Yi Grace // Ng Chi Him // Wong Hiu Nam // Wong Ho Yan Veronica
 
 [Project Report](https://drive.google.com/file/d/10bGe_YqMu7pDkQ3eXUm4gPknPlRaHM0A/view?usp=sharing)
 
-[Presentation Video](https://drive.google.com/file/d/1zjxGNVkv_HV47gPv2nzJtrsjFFOFo_Se/view?usp=sharing)
+[Presentation & Demo Video](https://drive.google.com/file/d/1zjxGNVkv_HV47gPv2nzJtrsjFFOFo_Se/view?usp=sharing)
 
 [Presentation Slides](https://drive.google.com/file/d/1XyNesTL793NXgpPV1deE_7rWzjbocjce/view?usp=sharing)
 

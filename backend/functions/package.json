@@ -17,8 +17,8 @@
     "@google-cloud/firestore": "^3.7.4",
     "@google-cloud/vision": "^1.9.0",
     "base64-img": "^1.0.4",
-    "firebase-admin": "^8.6.0",
-    "firebase-functions": "^3.3.0",
+    "firebase-admin": "^11.4.1",
+    "firebase-functions": "^3.24.1",
     "moment": "^2.24.0",
     "stripe": "^8.39.1"
   },
